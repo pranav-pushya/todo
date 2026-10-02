@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CSE AI/ML & Cybersecurity Student Hub - Neo-Clay Glass Operating System SPA">
+  <title>CyberAI Student OS | Neo-Clay Glass</title>
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Ambient Glowing Background Orbs -->
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+  <div class="ambient-orb orb-3"></div>
+
+  <div id="app-container">
+    <!-- ==========================================================================
+         SIDEBAR NAVIGATION
+         ========================================================================== -->
+    <aside id="sidebar">
+      <div class="brand-container">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-text">
+          <h1>CYBER // AI</h1>
+          <span>STUDENT OS v4.0</span>
+        </div>
+      </div>
+
+      <ul class="nav-menu">
+        <li class="nav-item active" data-tab="tab-dashboard">
+          <button type="button">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            Dashboard
+          </button>
+        </li>
+        <li class="nav-item" data-tab="tab-dailybytes">
+          <button type="button">
+            <svg viewBox="0 0 24 24"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+            Daily Bytes
+          </button>
+        </li>
+        <li class="nav-item" data-tab="tab-deepwork">
+          <button type="button">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            Deep Work
+          </button>
+        </li>
+        <li class="nav-item" data-tab="tab-worklog">
+          <button type="button">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            AI Work Log
+          </button>
+        </li>
+        <li class="nav-item" data-tab="tab-oracle">
+          <button type="button">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            AI Oracle
+          </button>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="user-badge">
+          <div class="avatar">AV</div>
+          <div class="user-info">
+            <span class="user-name">Alex Vance</span>
+            <span class="user-role">CSE AI/ML & Cyber</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==========================================================================
+         MAIN CONTENT AREA
+         ========================================================================== -->
+    <main id="main-content">
+      
+      <!-- Top Header Bar -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-nav-toggle" id="mobile-toggle" aria-label="Toggle Sidebar">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
+          <div class="page-title">
+            <h2 id="current-tab-title">Dashboard Overview</h2>
+            <p id="current-tab-subtitle">Morning & Night Routine • Streak & Threat Telemetry</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Live Clock Badge -->
+          <div class="clock-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span id="live-clock">00:00:00 AM</span>
+          </div>
+
+          <!-- Settings Button -->
+          <button class="btn-clay" id="open-settings-btn" title="API Settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </button>
+
+          <!-- Theme Toggle Button -->
+          <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
+            <svg id="theme-sun-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <svg id="theme-moon-icon" viewBox="0 0 24 24" style="display:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- View Containers -->
+      <div class="view-container">
+
+        <!-- ==========================================================================
+             TAB 1: DASHBOARD VIEW
+             ========================================================================== -->
+        <section id="tab-dashboard" class="tab-view active">
+          <div class="dashboard-grid">
+            
+            <!-- Cyber Quote / Threat Ticker -->
+            <div class="col-12 clay-card ticker-card">
+              <span class="ticker-label">INTEL TICKER</span>
+              <div class="ticker-content">
+                <span class="ticker-text" id="threat-ticker-text">
+                  🔴 CVE-2026-8819: Zero-day memory corruption in Linux Kernel v6.14 • 🚀 PyTorch 3.0 released with native CUDA graph compilation • 🛡️ Threat Actor "NullPoint" targeting AI model weights via unauthenticated pickle deserialization
+                </span>
+              </div>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="col-12 stats-row">
+              <div class="clay-card stat-box">
+                <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg></div>
+                <div class="stat-data">
+                  <h3 id="streak-counter-val">14 Days</h3>
+                  <p>Habit Streak</p>
+                </div>
+              </div>
+              <div class="clay-card stat-box">
+                <div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                <div class="stat-data">
+                  <h3 id="focus-hours-val">4.5 Hrs</h3>
+                  <p>Deep Work Today</p>
+                </div>
+              </div>
+              <div class="clay-card stat-box">
+                <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+                <div class="stat-data">
+                  <h3 id="routine-comp-val">80%</h3>
+                  <p>Routine Done</p>
+                </div>
+              </div>
+              <div class="clay-card stat-box">
+                <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+                <div class="stat-data">
+                  <h3 id="cyber-intel-count">12 Alerts</h3>
+                  <p>Today's Bytes</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Routines Section -->
+            <div class="col-8 clay-card">
+              <h3 style="margin-bottom:16px; font-weight:700;">Daily Protocol Checklists</h3>
+              <div class="routines-container">
+                <!-- Morning Routine -->
+                <div class="routine-section">
+                  <h3>☀️ Morning Protocol</h3>
+                  <div class="routine-list" id="morning-routine-list">
+                    <!-- Morning items injected by JS -->
+                  </div>
+                </div>
+
+                <!-- Night Routine -->
+                <div class="routine-section">
+                  <h3>🌙 Night Protocol</h3>
+                  <div class="routine-list" id="night-routine-list">
+                    <!-- Night items injected by JS -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Routine Completion Ring Card -->
+            <div class="col-4 clay-card streak-card">
+              <h3>Protocol Velocity</h3>
+              <div class="progress-ring-container">
+                <svg class="progress-ring" width="150" height="150">
+                  <circle class="progress-ring-bg" cx="75" cy="75" r="65"></circle>
+                  <circle class="progress-ring-fill" id="routine-progress-circle" cx="75" cy="75" r="65"></circle>
+                </svg>
+                <div class="ring-center-text" id="ring-pct-text">75%</div>
+              </div>
+              <p style="font-size:0.85rem; color:var(--text-muted);">Complete all morning & night habits to keep your streak burning!</p>
+              <button class="btn-clay btn-clay-primary" id="reset-checklist-btn" style="margin-top:16px;">Reset Checklists</button>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ==========================================================================
+             TAB 2: DAILY BYTES VIEW
+             ========================================================================== -->
+        <section id="tab-dailybytes" class="tab-view">
+          <div class="intel-header">
+            <div class="intel-search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="intel-search-input" class="input-clay" placeholder="Search AI papers, CVE vulnerabilities, zero-days...">
+            </div>
+
+            <div class="category-pills" id="intel-category-pills">
+              <button class="pill-btn active" data-category="all">All Intel</button>
+              <button class="pill-btn" data-category="aiml">AI/ML Research</button>
+              <button class="pill-btn" data-category="cyber">Cyber Security</button>
+              <button class="pill-btn" data-category="zeroday">Zero-Day CVEs</button>
+              <button class="pill-btn" data-category="saved">Bookmarked</button>
+            </div>
+          </div>
+
+          <!-- Intel Grid Feed -->
+          <div class="intel-grid" id="intel-grid-feed">
+            <!-- Dynamically populated via daily-bytes.js -->
+          </div>
+        </section>
+
+        <!-- ==========================================================================
+             TAB 3: DEEP WORK VIEW (POMODORO & SYNTH)
+             ========================================================================== -->
+        <section id="tab-deepwork" class="tab-view">
+          <div class="deepwork-layout">
+            
+            <!-- Pomodoro Timer Card -->
+            <div class="clay-card timer-card">
+              <div class="timer-modes">
+                <button class="mode-btn active" data-duration="1500">Pomodoro (25m)</button>
+                <button class="mode-btn" data-duration="300">Short Break (5m)</button>
+                <button class="mode-btn" data-duration="900">Long Break (15m)</button>
+              </div>
+
+              <div class="timer-display">
+                <svg class="timer-svg" width="240" height="240">
+                  <circle class="timer-bg" cx="120" cy="120" r="105"></circle>
+                  <circle class="timer-progress" id="timer-progress-ring" cx="120" cy="120" r="105"></circle>
+                </svg>
+                <div class="timer-digits" id="timer-digits">25:00</div>
+              </div>
+
+              <div class="timer-controls">
+                <button class="btn-clay btn-clay-primary" id="timer-start-btn">Start Focus</button>
+                <button class="btn-clay" id="timer-pause-btn" style="display:none;">Pause</button>
+                <button class="btn-clay" id="timer-reset-btn">Reset</button>
+              </div>
+            </div>
+
+            <!-- Web Audio Ambient Soundscapes Panel -->
+            <div class="clay-card sound-panel">
+              <h3>🎵 Web Audio Ambient Synthesizer</h3>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">
+                Procedurally generated lo-fi acoustic soundscapes using the HTML5 Web Audio API. Zero external audio downloads needed!
+              </p>
+
+              <div class="sound-options">
+                <!-- Rain Synth -->
+                <div class="sound-item">
+                  <div class="sound-info">
+                    <div class="sound-icon"><svg viewBox="0 0 24 24"><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path><path d="M8 19v2M8 13v2M12 21v2M12 15v2M16 19v2M16 13v2"></path></svg></div>
+                    <div>
+                      <strong>Cyber Rain</strong>
+                      <p style="font-size:0.75rem; color:var(--text-muted);">Soft pink rain noise</p>
+                    </div>
+                  </div>
+                  <input type="range" class="volume-slider" data-sound="rain" min="0" max="1" step="0.05" value="0">
+                </div>
+
+                <!-- Binaural Synth -->
+                <div class="sound-item">
+                  <div class="sound-info">
+                    <div class="sound-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path></svg></div>
+                    <div>
+                      <strong>Alpha Binaural (10Hz)</strong>
+                      <p style="font-size:0.75rem; color:var(--text-muted);">Deep focus brainwaves</p>
+                    </div>
+                  </div>
+                  <input type="range" class="volume-slider" data-sound="binaural" min="0" max="1" step="0.05" value="0">
+                </div>
+
+                <!-- Cyber Synth Waves -->
+                <div class="sound-item">
+                  <div class="sound-info">
+                    <div class="sound-icon"><svg viewBox="0 0 24 24"><path d="M2 12h5l3 9 4-18 3 9h5"></path></svg></div>
+                    <div>
+                      <strong>Lo-Fi Cyber Drone</strong>
+                      <p style="font-size:0.75rem; color:var(--text-muted);">Smooth ambient synthesizer</p>
+                    </div>
+                  </div>
+                  <input type="range" class="volume-slider" data-sound="cyber" min="0" max="1" step="0.05" value="0">
+                </div>
+              </div>
+
+              <!-- Session History Quick Log -->
+              <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--glass-border);">
+                <h4 style="font-size:0.95rem; margin-bottom:10px;">Today's Completed Sessions</h4>
+                <ul id="session-log-list" style="list-style:none; display:flex; flex-direction:column; gap:8px; font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted);">
+                  <li>• 09:30 AM — 25m Focus (PyTorch CUDA Optimization)</li>
+                  <li>• 11:15 AM — 25m Focus (CVE Payload Analysis)</li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ==========================================================================
+             TAB 4: AI WORK LOG VIEW
+             ========================================================================== -->
+        <section id="tab-worklog" class="tab-view">
+          <div class="worklog-grid">
+            
+            <!-- Daily Input Form -->
+            <div class="clay-card log-form">
+              <h3>Daily Reflection Log</h3>
+              
+              <div class="form-group">
+                <label for="work-accomplished">Key Accomplishments Today</label>
+                <textarea id="work-accomplished" class="input-clay textarea-clay" placeholder="Built a PyTorch CNN model, analyzed CVE-2026-8819 payload..."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="work-blockers">Blockers / Challenges Encountered</label>
+                <textarea id="work-blockers" class="input-clay textarea-clay" placeholder="Memory leakage during tensor GPU transfer..."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="work-learnings">AI/ML & Cybersecurity Concepts Mastered</label>
+                <textarea id="work-learnings" class="input-clay textarea-clay" placeholder="Transformer self-attention QKV projections, stack canary bypasses..."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="work-rating">Productivity Rating (1 - 10)</label>
+                <input type="number" id="work-rating" class="input-clay" min="1" max="10" value="9">
+              </div>
+
+              <button class="btn-clay btn-clay-purple" id="generate-reflection-btn" style="margin-top:10px;">⚡ Generate Automated AI Reflection</button>
+            </div>
+
+            <!-- AI Formatted Reflection Output -->
+            <div class="clay-card reflection-output">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>Formatted Log Preview</h3>
+                <div style="display:flex; gap:8px;">
+                  <button class="btn-clay" id="copy-log-btn" title="Copy Markdown">Copy</button>
+                  <button class="btn-clay" id="export-log-btn" title="Download Markdown">Export .md</button>
+                </div>
+              </div>
+
+              <div class="markdown-preview" id="log-markdown-preview">
+                <!-- Dynamic Markdown content formatted by work-log.js -->
+                /* Click "Generate Automated AI Reflection" to compile structured daily insights */
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ==========================================================================
+             TAB 5: AI ORACLE CHAT ASSISTANT VIEW
+             ========================================================================== -->
+        <section id="tab-oracle" class="tab-view">
+          <div class="clay-card oracle-container">
+            
+            <div class="oracle-header">
+              <div>
+                <h3 style="font-weight:800;">AI Oracle v4.0 Assistant</h3>
+                <p style="font-size:0.8rem; color:var(--text-muted);">Specialized CSE AI/ML & Cyber Threat Intelligence Copilot</p>
+              </div>
+              <button class="btn-clay" id="clear-oracle-chat" style="font-size:0.8rem; padding:6px 12px;">Clear Chat</button>
+            </div>
+
+            <!-- Preset Prompt Chips -->
+            <div class="oracle-presets">
+              <button class="preset-chip" data-prompt="Explain Transformer Self-Attention mechanism with Q, K, V formulas">🧠 Transformer Attention</button>
+              <button class="preset-chip" data-prompt="Analyze CVE zero-day exploit vector & mitigation steps">🛡️ CVE Exploit Breakdown</button>
+              <button class="preset-chip" data-prompt="Write a Python script for asynchronous web vulnerability scanner">💻 Python Security Tool</button>
+              <button class="preset-chip" data-prompt="Create a 7-day intensive study schedule for PyTorch and LLM fine-tuning">📅 7-Day AI Study Plan</button>
+            </div>
+
+            <!-- Chat History Area -->
+            <div class="chat-history" id="oracle-chat-history">
+              <div class="chat-bubble oracle-msg">
+                👋 Greetings Alex. I am <strong>Oracle v4.0</strong>, your AI & Cybersecurity assistant. How can I assist your research, coding, or threat analysis today?
+              </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input-bar">
+              <input type="text" id="oracle-input" class="input-clay" placeholder="Ask Oracle anything about AI/ML models, cybersecurity CVEs, code..." style="flex:1;">
+              <button class="btn-clay btn-clay-primary" id="oracle-send-btn">Send Prompt</button>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ==========================================================================
+       SETTINGS MODAL (GROK API / THEME CONFIG)
+       ========================================================================== -->
+  <div class="modal-backdrop" id="settings-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>⚡ System & API Settings</h3>
+        <button class="modal-close" id="close-settings-btn">&times;</button>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="form-group">
+          <label for="grok-api-key">xAI Grok / OpenAI API Key (Optional)</label>
+          <input type="password" id="grok-api-key" class="input-clay" placeholder="sk-..." value="">
+          <span style="font-size:0.75rem; color:var(--text-muted);">Leave empty to use built-in simulated high-fidelity offline intelligence engine.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="student-name-input">Student Profile Name</label>
+          <input type="text" id="student-name-input" class="input-clay" value="Alex Vance">
+        </div>
+
+        <button class="btn-clay btn-clay-primary" id="save-settings-btn" style="margin-top:10px;">Save Configuration</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- JavaScript Modules -->
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/daily-bytes.js"></script>
+  <script src="js/deep-work.js"></script>
+  <script src="js/work-log.js"></script>
+  <script src="js/oracle.js"></script>
+</body>
+</html>
