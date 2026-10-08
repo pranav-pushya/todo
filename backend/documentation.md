@@ -84,9 +84,9 @@ The backend build is split into two major phases:
   - Run automated tests to verify database creation, CRUD actions, and Swagger UI at `http://localhost:8000/docs`.
 
 ### Phase 2: Autonomous AI Agent with Tool Calling
-- **Step 9: Groq LLM Setup & Tool Definitions** *(Next)*
-  - Build `app/services/agent_tools.py` with functions for `create_task`, `complete_task`, `delete_task`, `extract_tasks_from_text`, and `create_project`.
-- **Step 10: Agent Command Endpoint**
+- **Step 9: Groq LLM Setup & Tool Definitions** *(Completed)*
+  - Build `app/services/agent_tools.py` with functions for `create_task`, `complete_task`, `delete_task`, `reschedule_tasks`, and `create_project`.
+- **Step 10: Agent Command Endpoint** *(Next)*
   - Expose `/api/v1/agent/command` allowing natural language input to control the app.
 
 ---
@@ -511,6 +511,57 @@ The backend build is split into two major phases:
    ============================================================
    ALL 20 AUTOMATED VERIFICATION TESTS PASSED (100% SUCCESS)!
    ============================================================
+   ```
+
+---
+
+### 🟢 Step 9: Groq LLM Setup & Tool Definitions (COMPLETED)
+
+#### A. What was done:
+1. Created `app/services/agent_tools.py`: Implemented executable database tools tailored for LLM function calling:
+   - `tool_create_task`: Parses natural language due dates ('today', 'tomorrow', 'next week') and automatically creates parent projects if they don't exist.
+   - `tool_complete_task`: Completes tasks by ID or fuzzy title search and logs UTC completion timestamps.
+   - `tool_delete_task`: Permanently deletes tasks by ID or title matching.
+   - `tool_reschedule_tasks`: Bulk reschedules tasks matching criteria (e.g. "overdue", "today") to a new date.
+   - `tool_create_project`: Creates new project groupings.
+   - `tool_list_tasks`: Allows the AI agent to inspect user tasks to answer natural questions.
+2. Created `app/services/groq_client.py`:
+   - Configured the ultra-fast Groq LPU client targeting `llama-3.3-70b-versatile`.
+   - Defined JSON schemas for all tools conforming to OpenAI / Groq tool calling specifications.
+   - Built a dynamic context-aware system prompt injecting the current date and day of the week.
+   - Built the multi-turn agent execution loop: LLM invocation $\rightarrow$ tool call extraction $\rightarrow$ SQLite execution $\rightarrow$ audit logging to `AgentActionLog` $\rightarrow$ final conversational summary generation.
+   - Added graceful handling when the split API key (`k1`, `k2`, `k3`) is not yet entered, returning clear setup guidance without crashing.
+3. Exported tools and services in `app/services/__init__.py`.
+4. Automated verification: Tested tool functions directly against SQLite, verified date parsing, confirmed audit log generation, and validated empty key graceful degradation.
+
+#### B. How it was done (code explanation in simple terms):
+1. **What is LLM Tool Calling?**
+   - Normal AI chatbots just generate text. If you say *"Add a task to buy groceries"*, a normal AI will say *"Sure, I added it!"* without actually touching your database.
+   - With **Tool Calling**, we send the AI a menu of real Python functions it is allowed to call (`create_task`, `complete_task`, etc.).
+   - The AI responds with structured JSON: `{"name": "create_task", "arguments": {"title": "Buy groceries", "priority": "P2"}}`.
+   - Our backend intercepts that instruction, runs the actual Python function to write to SQLite, logs it in `AgentActionLog`, and sends the result back to the AI to confirm!
+
+2. **Smart Date Parsing (`parse_date_string`)**:
+   ```python
+   if cleaned == "today":
+       return today
+   if cleaned in ("tomorrow", "tmrw"):
+       return today + timedelta(days=1)
+   ```
+   *Beginner explanation*: When you tell the AI *"Remind me tomorrow to review code"*, the parser calculates tomorrow's actual calendar date automatically so SQLite receives a clean date.
+
+3. **Audit Logging (`AgentActionLog`)**:
+   Every tool execution by the AI is recorded in the `agent_action_logs` table. You can always see who created or updated a task and what prompt triggered it.
+
+4. **Verification Output**:
+   ```powershell
+   [PASS] Tool create_task with auto-project: {'status': 'success', 'action': 'create_task', 'task_id': 1, 'title': 'Agent Test Task', ...}
+   [PASS] Tool list_tasks: 1 tasks found
+   [PASS] Tool complete_task: {'status': 'success', 'action': 'complete_task', 'task_id': 1, ...}
+   [PASS] Tool delete_task: {'status': 'success', 'action': 'delete_task', ...}
+   [PASS] System prompt generated with dynamic date context
+   [PASS] Empty key graceful handling: Groq API key not configured yet. Please open 'backend/app/core/config.py'...
+   --- ALL STEP 9 AGENT TOOLS VERIFIED PERFECTLY ---
    ```
 
 ---
