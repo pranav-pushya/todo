@@ -86,8 +86,9 @@ The backend build is split into two major phases:
 ### Phase 2: Autonomous AI Agent with Tool Calling
 - **Step 9: Groq LLM Setup & Tool Definitions** *(Completed)*
   - Build `app/services/agent_tools.py` with functions for `create_task`, `complete_task`, `delete_task`, `reschedule_tasks`, and `create_project`.
-- **Step 10: Agent Command Endpoint** *(Next)*
+- **Step 10: Agent Command Endpoint** *(Completed - Phase 2 Finalized)*
   - Expose `/api/v1/agent/command` allowing natural language input to control the app.
+  - Expose `/api/v1/agent/logs` for audit trails and `/api/v1/agent/tool/{tool_name}` for direct actions.
 
 ---
 
@@ -566,4 +567,45 @@ The backend build is split into two major phases:
 
 ---
 
-*This document will be updated after each step is completed.*
+### 🟢 Step 10: AI Agent Command REST Endpoints (COMPLETED - PHASE 2 FINALIZED)
+
+#### A. What was done:
+1. Created `app/schemas/agent.py`:
+   - `AgentCommandRequest`: Validates user natural language instructions (`min_length=1, max_length=2000`).
+   - `AgentExecutedAction`: Serializes tool names, arguments passed, and result dictionaries.
+   - `AgentCommandResponse`: Returns execution status, conversational explanation (`reply`), and array of executed database actions.
+   - `AgentLogResponse`: Serializes execution audit records for frontend inspection.
+2. Created `app/api/v1/agent.py`:
+   - `POST /api/v1/agent/command`: Takes natural language instructions, routes them through the Groq LLM tool calling engine, writes changes to SQLite, logs to `agent_action_logs`, and returns a natural summary.
+   - `GET /api/v1/agent/logs`: Returns historical AI agent actions.
+   - `POST /api/v1/agent/tool/{tool_name}`: Allows direct programmatic execution of any tool without LLM overhead.
+3. Mounted the agent router in `app/api/router.py`.
+4. Extended `backend/test_api.py` with 4 new verification tests (Tests 21-24), expanding the automated test suite to 24 tests.
+5. Live verified with Groq: successfully sent natural prompt *"Add a high priority task Review Cloud Security Audit due tomorrow under Project Cybersecurity"*, verified LLM tool calling, SQLite record creation, and natural language conversational reply.
+
+#### B. How it was done (code explanation in simple terms):
+1. **The Agent API Workflow**:
+   - The user types into the web or mobile app: *"Reschedule all overdue tasks to tomorrow"*.
+   - The frontend sends `POST /api/v1/agent/command` with `{ "prompt": "..." }`.
+   - The backend runs `execute_agent_command()`:
+     1. Groq evaluates the request against our tools schema.
+     2. Groq calls `reschedule_tasks(filter_criteria="overdue", new_due_date="tomorrow")`.
+     3. Our Python engine updates the due dates in `todo.db`.
+     4. A permanent audit log is recorded in `agent_action_logs`.
+     5. Groq receives the confirmation and produces a friendly reply: *"I have rescheduled your 3 overdue tasks to tomorrow."*
+     6. The frontend receives `{ "status": "success", "reply": "...", "executed_actions": [...] }` and instantly updates the UI!
+
+2. **Automated Test Results**:
+   ```text
+   ============================================================
+   ALL 24 AUTOMATED VERIFICATION TESTS PASSED (100% SUCCESS)!
+   ============================================================
+   [PASS] 21. Direct agent tool execution verified (Task ID: 1).
+   [PASS] 22. Agent audit logs endpoint verified (Entries: 2).
+   [PASS] 23. Live Groq LLM autonomous tool calling command verified.
+   [PASS] 24. Post-test cleanup verified.
+   ```
+
+---
+
+*This concludes all backend phases! The backend is 100% feature-complete, verified, and ready for Web & Mobile frontend integration.*

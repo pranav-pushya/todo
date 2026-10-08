@@ -14,10 +14,8 @@ from app.core.config import settings
 from app.models.log import AgentActionLog
 from app.services.agent_tools import TOOL_MAP
 
-# Model to use on Groq
-GROQ_MODEL = "llama-3.3-70b-versatile"
-
 # Tool schemas adhering to the OpenAI / Groq function calling specification
+# Using nullable types (["string", "null"]) for optional parameters to ensure strict compliance
 TOOL_DEFINITIONS = [
     {
         "type": "function",
@@ -32,7 +30,7 @@ TOOL_DEFINITIONS = [
                         "description": "Clear and concise title of the task",
                     },
                     "due_date": {
-                        "type": "string",
+                        "type": ["string", "null"],
                         "description": "When the task is due: 'today', 'tomorrow', 'next week', or 'YYYY-MM-DD'",
                     },
                     "priority": {
@@ -41,11 +39,11 @@ TOOL_DEFINITIONS = [
                         "description": "P1 (Urgent), P2 (High), P3 (Medium), P4 (Low)",
                     },
                     "project_name": {
-                        "type": "string",
-                        "description": "Name of the project category (e.g. 'Work', 'Personal'). If null, places in Inbox.",
+                        "type": ["string", "null"],
+                        "description": "Name of the project category (e.g. 'Work', 'Personal'). If null or omitted, places in Inbox.",
                     },
                     "tags": {
-                        "type": "string",
+                        "type": ["string", "null"],
                         "description": "Comma-separated tags (e.g. 'finance, tax')",
                     },
                 },
@@ -121,11 +119,11 @@ TOOL_DEFINITIONS = [
                         "description": "Project title (e.g. 'Cybersecurity', 'Mobile App')",
                     },
                     "color": {
-                        "type": "string",
+                        "type": ["string", "null"],
                         "description": "Hex color code for the project badge (e.g. '#1d4ed8')",
                     },
                     "description": {
-                        "type": "string",
+                        "type": ["string", "null"],
                         "description": "Optional summary of what this project is about.",
                     },
                 },
@@ -147,7 +145,7 @@ TOOL_DEFINITIONS = [
                         "description": "View filter",
                     },
                     "project_name": {
-                        "type": "string",
+                        "type": ["string", "null"],
                         "description": "Filter by project name (optional)",
                     },
                 },
@@ -201,7 +199,7 @@ def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
 
     try:
         response = client.chat.completions.create(
-            model=GROQ_MODEL,
+            model=settings.GROQ_MODEL,
             messages=messages,
             tools=TOOL_DEFINITIONS,
             tool_choice="auto",
@@ -222,7 +220,6 @@ def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
 
     # If the model chose to call tools:
     if tool_calls:
-        # Append assistant's tool-call request to message history
         messages.append(response_message)
 
         for tool_call in tool_calls:
@@ -232,13 +229,20 @@ def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
             except json.JSONDecodeError:
                 function_args = {}
 
+            # Filter out null values for optional arguments
+            clean_args = {k: v for k, v in function_args.items() if v is not None}
+
             # Execute tool if mapped
             if function_name in TOOL_MAP:
                 tool_func = TOOL_MAP[function_name]
-                tool_result = tool_func(db=db, **function_args)
+                try:
+                    tool_result = tool_func(db=db, **clean_args)
+                except Exception as ex:
+                    tool_result = {"status": "error", "message": str(ex)}
+
                 executed_actions.append({
                     "tool": function_name,
-                    "arguments": function_args,
+                    "arguments": clean_args,
                     "result": tool_result,
                 })
 
@@ -247,7 +251,7 @@ def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
                     log_entry = AgentActionLog(
                         prompt=prompt,
                         action_type=function_name,
-                        parameters=json.dumps(function_args),
+                        parameters=json.dumps(clean_args),
                         result=json.dumps(tool_result),
                         status=tool_result.get("status", "success"),
                     )
@@ -267,11 +271,11 @@ def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
         # Ask the model for a natural summary after tool execution
         try:
             second_response = client.chat.completions.create(
-                model=GROQ_MODEL,
+                model=settings.GROQ_MODEL,
                 messages=messages,
                 temperature=0.2,
             )
-            final_reply = second_response.choices[0].message.content or "Actions executed successfully."
+            final_reply = second_response.choices[0].message.content or f"Successfully executed {len(executed_actions)} action(s)."
         except Exception:
             final_reply = f"Successfully executed {len(executed_actions)} action(s)."
 

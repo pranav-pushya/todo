@@ -28,9 +28,10 @@ class Settings(BaseSettings):
 
     # Groq AI Split-Key structure
     # You can paste your key pieces here or in a .env file
-    k1: str = ""
-    k2: str = ""
-    k3: str = ""
+    k1: str = "gsk_i9BLxswr5co"
+    k2: str = "YrWZ5X339WGdyb3FYMe"
+    k3: str = "Y1aGo5cpCTdWldHCiQATWD"
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
 
     @property
     def GROQ_API_KEY(self) -> str:

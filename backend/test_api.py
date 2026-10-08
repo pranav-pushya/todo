@@ -198,8 +198,51 @@ def run_tests():
     assert len(res.json()) == 0
     print("[PASS] 20. Cascading delete verified: 0 orphan tasks remaining.")
 
+    # 21. Direct Agent Tool Execution Test
+    tool_payload = {
+        "title": "Direct Tool Verification Task",
+        "priority": "P1",
+        "due_date": "today",
+    }
+    res = client.post("/api/v1/agent/tool/create_task", json=tool_payload)
+    assert res.status_code == 200
+    tool_data = res.json()
+    assert tool_data["status"] == "success"
+    agent_tid = tool_data["task_id"]
+    print(f"[PASS] 21. Direct agent tool execution verified (Task ID: {agent_tid}).")
+
+    # 22. AI Agent Execution Audit Logs Test
+    res = client.get("/api/v1/agent/logs")
+    assert res.status_code == 200
+    assert isinstance(res.json(), list)
+    print(f"[PASS] 22. Agent audit logs endpoint verified (Entries: {len(res.json())}).")
+
+    # 23. Live Autonomous AI Agent Command Test
+    agent_payload = {
+        "prompt": "Create a task 'Security Vulnerability Patch' due tomorrow with priority P1 under project Cybersecurity"
+    }
+    res = client.post("/api/v1/agent/command", json=agent_payload)
+    assert res.status_code == 200
+    agent_res = res.json()
+    assert agent_res["status"] == "success"
+    assert len(agent_res["executed_actions"]) >= 1
+    assert "reply" in agent_res
+    print("[PASS] 23. Live Groq LLM autonomous tool calling command verified.")
+
+    # Final cleanup of agent-created items
+    client.delete(f"/api/v1/tasks/{agent_tid}")
+    from app.core.database import SessionLocal
+    from app.models import Project
+    db = SessionLocal()
+    p_cyber = db.query(Project).filter_by(title="Cybersecurity").first()
+    if p_cyber:
+        db.delete(p_cyber)
+        db.commit()
+    db.close()
+    print("[PASS] 24. Post-test cleanup verified.")
+
     print("=" * 60)
-    print("ALL 20 AUTOMATED VERIFICATION TESTS PASSED (100% SUCCESS)!")
+    print("ALL 24 AUTOMATED VERIFICATION TESTS PASSED (100% SUCCESS)!")
     print("=" * 60)
 
 

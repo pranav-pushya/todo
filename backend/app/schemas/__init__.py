@@ -1,8 +1,14 @@
 """Pydantic schemas package initialization."""
 
+from app.schemas.agent import (
+    AgentCommandRequest,
+    AgentCommandResponse,
+    AgentExecutedAction,
+    AgentLogResponse,
+)
 from app.schemas.common import PriorityEnum, TaskViewFilter
-from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
-from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
+from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
+from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
 
 __all__ = [
     "PriorityEnum",
@@ -13,4 +19,8 @@ __all__ = [
     "TaskCreate",
     "TaskUpdate",
     "TaskResponse",
+    "AgentCommandRequest",
+    "AgentCommandResponse",
+    "AgentExecutedAction",
+    "AgentLogResponse",
 ]
