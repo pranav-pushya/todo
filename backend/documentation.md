@@ -75,10 +75,10 @@ The backend build is split into two major phases:
 - **Step 5: Database CRUD Layer (`app/crud/`)** *(Completed)*
   - Write helper functions to query, insert, update, and delete database records cleanly.
   - Add filters for **Inbox**, **Today**, **Upcoming**, and **Completed**.
-- **Step 6: REST API Routers (`app/api/v1/`)** *(Next)*
+- **Step 6: REST API Routers (`app/api/v1/`)** *(Completed)*
   - Create `/api/v1/projects` endpoints.
   - Create `/api/v1/tasks` endpoints.
-- **Step 7: Application Server & CORS (`backend/main.py`)**
+- **Step 7: Application Server & CORS (`backend/main.py`)** *(Next)*
   - Set up FastAPI app, include routers, configure CORS for Web & Mobile.
 - **Step 8: Automated Verification (`backend/test_api.py`)**
   - Run automated tests to verify database creation, CRUD actions, and Swagger UI at `http://localhost:8000/docs`.
@@ -339,6 +339,59 @@ The backend build is split into two major phases:
    .\.venv\Scripts\python -c "... assert projects[0].task_count == 2; ... assert t_obj.completed is True; ... delete_project(db, p); ..."
    ```
    Output: `All CRUD tests passed with 100% success!`
+
+---
+
+### 🟢 Step 6: REST API Routers (COMPLETED)
+
+#### A. What was done:
+1. Created `app/api/v1/projects.py`: Implemented full REST endpoints for Projects:
+   - `GET /api/v1/projects/`: Lists all projects with active & completed task counts.
+   - `POST /api/v1/projects/`: Creates a project (returns 400 Bad Request on duplicate titles).
+   - `GET /api/v1/projects/{id}`: Returns specific project metadata.
+   - `GET /api/v1/projects/{id}/tasks`: Returns all tasks belonging to that project.
+   - `PATCH /api/v1/projects/{id}`: Updates project title, description, or archived status.
+   - `DELETE /api/v1/projects/{id}`: Deletes a project and cascade-deletes all its tasks.
+2. Created `app/api/v1/tasks.py`: Implemented full REST endpoints for Tasks:
+   - `GET /api/v1/tasks/`: Lists tasks with query filters (`?view=inbox|today|upcoming|completed`, `?project_id=`, `?priority=P1..P4`, `?search=`).
+   - `POST /api/v1/tasks/`: Creates a task (validates that `project_id` exists before creating, returning 404 if invalid).
+   - `GET /api/v1/tasks/{id}`: Gets single task details.
+   - `PATCH /api/v1/tasks/{id}`: Supports partial updates.
+   - `PATCH /api/v1/tasks/{id}/toggle`: Instant checkmark completion toggle with timestamping.
+   - `DELETE /api/v1/tasks/{id}`: Permanently deletes a task.
+3. Created `app/api/router.py`: Aggregated both sub-routers into a master `api_router`.
+4. Verified all endpoints via FastAPI `TestClient`: tested project creation, task creation, completion toggles, and deletion.
+
+#### B. How it was done (code explanation in simple terms):
+1. **What is an API Router?**
+   - In FastAPI, an `APIRouter` acts like a "mini FastAPI app" responsible for a specific topic (e.g. all URLs starting with `/projects` or `/tasks`).
+   - By breaking our routes into separate files (`projects.py` and `tasks.py`), the codebase remains clean, maintainable, and easy to navigate.
+
+2. **Dependency Injection (`Depends(get_db)`)**:
+   ```python
+   @router.get("/")
+   def read_tasks(db: Session = Depends(get_db)):
+   ```
+   *Beginner explanation*: FastAPI automatically calls our `get_db()` function from Step 2, hands the database session to our function, and closes it as soon as the response is sent back to the browser or mobile app.
+
+3. **HTTP Status Codes Used**:
+   - `200 OK`: Standard successful response.
+   - `201 Created`: Returned when a brand new project or task is saved.
+   - `204 No Content`: Returned when an item is deleted (telling the browser the delete was successful and there is no extra data to show).
+   - `400 Bad Request`: Returned if the user tries to create a duplicate project title.
+   - `404 Not Found`: Returned if the user requests or links to an ID that doesn't exist.
+
+4. **Verification via TestClient**:
+   ```powershell
+   .\.venv\Scripts\python -c "... p_res = client.post('/api/v1/projects/', json={'title': 'API Test Project'}); ... t_res = client.post('/api/v1/tasks/', ...); ... toggle_res = client.patch(f'/api/v1/tasks/{tid}/toggle'); ..."
+   ```
+   Output:
+   ```text
+   Project created: 201
+   Task created: 201
+   Task toggled: 200 True
+   Cleanup done!
+   ```
 
 ---
 
