@@ -78,9 +78,9 @@ The backend build is split into two major phases:
 - **Step 6: REST API Routers (`app/api/v1/`)** *(Completed)*
   - Create `/api/v1/projects` endpoints.
   - Create `/api/v1/tasks` endpoints.
-- **Step 7: Application Server & CORS (`backend/main.py`)** *(Next)*
+- **Step 7: Application Server & CORS (`backend/main.py`)** *(Completed)*
   - Set up FastAPI app, include routers, configure CORS for Web & Mobile.
-- **Step 8: Automated Verification (`backend/test_api.py`)**
+- **Step 8: Automated Verification (`backend/test_api.py`)** *(Next)*
   - Run automated tests to verify database creation, CRUD actions, and Swagger UI at `http://localhost:8000/docs`.
 
 ### Phase 2: Autonomous AI Agent with Tool Calling
@@ -391,6 +391,67 @@ The backend build is split into two major phases:
    Task created: 201
    Task toggled: 200 True
    Cleanup done!
+   ```
+
+---
+
+### 🟢 Step 7: Application Server Setup & CORS (COMPLETED)
+
+#### A. What was done:
+1. Created `backend/main.py`: The central application entry point that initializes FastAPI with full metadata and Swagger UI support at `/docs`.
+2. Configured modern `lifespan` event handler to automatically create all SQLite database tables on server startup using `Base.metadata.create_all(bind=engine)`.
+3. Integrated `CORSMiddleware` with whitelist origins allowing requests from both the React Web frontend (`http://localhost:5173`) and React Native Expo mobile environments (`http://localhost:8081`, `19006`).
+4. Mounted `api_router` under the `/api/v1` prefix.
+5. Created a root endpoint `GET /` pointing developers to the interactive documentation.
+6. Created a dedicated health check endpoint `GET /health` that performs a live database ping (`SELECT 1`) to ensure both the server and database are healthy.
+7. Verified the server, health endpoint, OpenAPI documentation, and CORS preflight headers through automated tests.
+
+#### B. How it was done (code explanation in simple terms):
+1. **What is CORS and why is it essential?**
+   - By default, web browsers block web pages from sending HTTP requests to a server on a different port or domain for security (called the "Same-Origin Policy").
+   - Since our React Web app runs on port `5173` and our FastAPI backend runs on port `8000`, the browser would block all API calls without CORS.
+   - We configured `CORSMiddleware`:
+     ```python
+     app.add_middleware(
+         CORSMiddleware,
+         allow_origins=settings.BACKEND_CORS_ORIGINS,
+         allow_credentials=True,
+         allow_methods=["*"],
+         allow_headers=["*"],
+     )
+     ```
+     This instructs the browser: *"It is safe to let localhost:5173 read and write to this API."*
+
+2. **Application Lifespan Events**:
+   ```python
+   @asynccontextmanager
+   async def lifespan(app: FastAPI):
+       Base.metadata.create_all(bind=engine)
+       yield
+   ```
+   *Beginner explanation*: When you start the FastAPI server (`python main.py`), FastAPI runs the code before `yield`. This ensures the SQLite database file and all required tables exist before any user request arrives.
+
+3. **Database Health Check (`/health`)**:
+   ```python
+   @app.get("/health")
+   def health_check():
+       db = SessionLocal()
+       db.execute(text("SELECT 1"))
+       db.close()
+       return {"status": "healthy", "database": "connected"}
+   ```
+   *Beginner explanation*: If you ever suspect the database is unreachable or locked, hitting `http://localhost:8000/health` executes a tiny test query (`SELECT 1`) to confirm the database engine is responding.
+
+4. **Verification Output**:
+   ```powershell
+   .\.venv\Scripts\python -c "... client.get('/'); client.get('/health'); client.options('/api/v1/tasks/', headers=...); ..."
+   ```
+   Output:
+   ```text
+   Root: 200 {'message': 'Welcome to the AI To-Do API!', 'version': '1.0.0', 'docs': '/docs', 'api_v1': '/api/v1'}
+   Health: 200 {'status': 'healthy', 'database': 'connected', 'version': '1.0.0'}
+   CORS Allow Origin: http://localhost:5173
+   FastAPI main server & CORS configured perfectly!
    ```
 
 ---

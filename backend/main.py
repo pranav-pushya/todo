@@ -1,0 +1,91 @@
+"""Main FastAPI Application Entry Point.
+
+Configures CORS, lifespan startup events, database table initialization,
+and mounts all REST API routes for Web and Mobile clients.
+"""
+
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, status
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+
+from app.api.router import api_router
+from app.core.config import settings
+from app.core.database import Base, engine, SessionLocal
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan event handler for application startup and shutdown.
+
+    Automatically ensures all SQLite database tables exist on server boot.
+    """
+    # Startup: Ensure all ORM models are registered as tables in SQLite
+    Base.metadata.create_all(bind=engine)
+    yield
+    # Shutdown logic (if any) can be placed here
+
+
+# Initialize the FastAPI application
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    description=(
+        "Production-ready backend API for the AI-Controlled To-Do Platform. "
+        "Supports projects, tasks, smart views (Inbox, Today, Upcoming), "
+        "and autonomous AI Agent tool execution."
+    ),
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+
+# Configure Cross-Origin Resource Sharing (CORS)
+# Allows the React Web App (Vite on :5173) and React Native Mobile App (Expo)
+# to make API requests without being blocked by browser security policies.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/", tags=["Root"])
+def root_status():
+    """Welcome endpoint pointing developers and clients to the interactive Swagger UI."""
+    return {
+        "message": f"Welcome to the {settings.PROJECT_NAME}!",
+        "version": settings.VERSION,
+        "docs": "/docs",
+        "api_v1": settings.API_V1_STR,
+    }
+
+
+@app.get("/health", tags=["Health"], status_code=status.HTTP_200_OK)
+def health_check():
+    """Health check endpoint verifying server uptime and database connectivity."""
+    db_status = "connected"
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+    except Exception as e:
+        db_status = f"unhealthy: {str(e)}"
+
+    return {
+        "status": "healthy" if db_status == "connected" else "degraded",
+        "database": db_status,
+        "version": settings.VERSION,
+    }
+
+
+# Mount all Version 1 API routes (/api/v1/projects and /api/v1/tasks)
+app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
