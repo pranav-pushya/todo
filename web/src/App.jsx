@@ -15,8 +15,10 @@ import AICopilotDrawer from './components/agent/AICopilotDrawer';
 import CommandPalette from './components/agent/CommandPalette';
 import ZenFocusChamber from './components/focus/ZenFocusChamber';
 import MLExperimentsModal from './components/ml/MLExperimentsModal';
+import KeyboardCheatsheetModal from './components/common/KeyboardCheatsheetModal';
 
 function AppContent() {
+
 
   const {
     isCommandPaletteOpen,
@@ -31,12 +33,38 @@ function AppContent() {
     setIsCreateProjectOpen,
   } = useAgent();
 
-  const { activeFilter, setActiveFilter, searchQuery, setSearchQuery } = useTasks();
+  const {
+    tasks,
+    toggleTask,
+    editTask,
+    removeTask,
+    activeFilter,
+    setActiveFilter,
+    searchQuery,
+    setSearchQuery,
+  } = useTasks();
   const { selectedProjectId, setSelectedProjectId } = useProjects();
+  const { toast, confirm } = useUIFeedback();
 
   const [isZenOpen, setIsZenOpen] = useState(false);
   const [zenTaskId, setZenTaskId] = useState(null);
   const [isMLOpen, setIsMLOpen] = useState(false);
+  const [isCheatsheetOpen, setIsCheatsheetOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+
+  // Keep highlightedIndex in bounds when tasks change
+  useEffect(() => {
+    if (tasks.length === 0) {
+      setHighlightedIndex(-1);
+    } else if (highlightedIndex >= tasks.length) {
+      setHighlightedIndex(tasks.length - 1);
+    }
+  }, [tasks.length]);
+
+  const highlightedTaskId =
+    highlightedIndex >= 0 && highlightedIndex < tasks.length
+      ? tasks[highlightedIndex]?.id
+      : null;
 
   const handleOpenAddTask = () => {
     setTaskToEdit(null);
@@ -56,8 +84,12 @@ function AppContent() {
   // Global Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // 1. ESCAPE: Closes any open modal, palette, drawer, or zen mode
+      // 1. ESCAPE: Closes any open modal, palette, drawer, cheatsheet, or zen mode
       if (e.key === 'Escape') {
+        if (isCheatsheetOpen) {
+          setIsCheatsheetOpen(false);
+          return;
+        }
         if (isMLOpen) {
           setIsMLOpen(false);
           return;
@@ -107,7 +139,84 @@ function AppContent() {
 
       if (isInput) return;
 
-      // 4. Global single-key navigation when not typing
+      // 4. Vim & Hacker Keyboard Navigation
+      if (e.key === '?') {
+        e.preventDefault();
+        setIsCheatsheetOpen((prev) => !prev);
+        return;
+      }
+
+      // Move highlight down (j or ArrowDown)
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (tasks.length > 0) {
+          setHighlightedIndex((prev) => (prev < tasks.length - 1 ? prev + 1 : 0));
+        }
+        return;
+      }
+
+      // Move highlight up (k or ArrowUp)
+      if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (tasks.length > 0) {
+          setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : tasks.length - 1));
+        }
+        return;
+      }
+
+      // Complete / Toggle highlighted task (x)
+      if (e.key === 'x') {
+        if (highlightedIndex >= 0 && highlightedIndex < tasks.length) {
+          e.preventDefault();
+          const t = tasks[highlightedIndex];
+          toggleTask(t.id);
+          toast.success(t.completed ? 'Task reopened [x]' : 'Task completed! ✨ [x]');
+        }
+        return;
+      }
+
+      // Edit highlighted task (e)
+      if (e.key === 'e') {
+        if (highlightedIndex >= 0 && highlightedIndex < tasks.length) {
+          e.preventDefault();
+          handleEditTask(tasks[highlightedIndex]);
+        }
+        return;
+      }
+
+      // Delete highlighted task (d or #)
+      if (e.key === 'd' || e.key === '#') {
+        if (highlightedIndex >= 0 && highlightedIndex < tasks.length) {
+          e.preventDefault();
+          const targetTask = tasks[highlightedIndex];
+          (async () => {
+            const ok = await confirm({
+              title: 'Delete Task (Vim: d)',
+              message: `Are you sure you want to delete "${targetTask.title}"?`,
+              confirmText: 'Delete',
+              danger: true,
+            });
+            if (ok) {
+              removeTask(targetTask.id);
+              toast.success('Task deleted via [d]');
+            }
+          })();
+        }
+        return;
+      }
+
+      // Set priority 1-4
+      if (['1', '2', '3', '4'].includes(e.key)) {
+        if (highlightedIndex >= 0 && highlightedIndex < tasks.length) {
+          e.preventDefault();
+          const p = `P${e.key}`;
+          editTask(tasks[highlightedIndex].id, { priority: p });
+          toast.success(`Priority set to ${p} on "${tasks[highlightedIndex].title}" ⚡`);
+        }
+        return;
+      }
+
+      // 5. Global View & Action Hotkeys
       if (e.key === 'n' || e.key === 'N') {
         e.preventDefault();
         handleOpenAddTask();
@@ -135,7 +244,10 @@ function AppContent() {
         setIsDrawerOpen((prev) => !prev);
       } else if (e.key === 'f' || e.key === 'F') {
         e.preventDefault();
-        handleOpenZen();
+        const targetId = highlightedIndex >= 0 && highlightedIndex < tasks.length
+          ? tasks[highlightedIndex].id
+          : null;
+        handleOpenZen(targetId);
       } else if (e.key === '/') {
         e.preventDefault();
         const searchInput = document.querySelector('input[placeholder*="Search tasks"]');
@@ -150,11 +262,15 @@ function AppContent() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
+    tasks,
+    highlightedIndex,
+    isCheatsheetOpen,
     isCommandPaletteOpen,
     isAddTaskOpen,
     isCreateProjectOpen,
     isDrawerOpen,
     isZenOpen,
+    isMLOpen,
     setIsCommandPaletteOpen,
     setIsDrawerOpen,
     setIsAddTaskOpen,
@@ -164,7 +280,13 @@ function AppContent() {
     setSelectedProjectId,
     searchQuery,
     setSearchQuery,
+    toggleTask,
+    editTask,
+    removeTask,
+    toast,
+    confirm,
   ]);
+
 
   const isNotesView = !selectedProjectId && activeFilter === 'notes';
 
@@ -193,6 +315,7 @@ function AppContent() {
             onOpenAddTask={handleOpenAddTask}
             onEditTask={handleEditTask}
             onFocusTask={(taskId) => handleOpenZen(taskId)}
+            highlightedTaskId={highlightedTaskId}
           />
         </main>
       </div>
@@ -251,6 +374,12 @@ function AppContent() {
       <MLExperimentsModal
         isOpen={isMLOpen}
         onClose={() => setIsMLOpen(false)}
+      />
+
+      {/* Linear/Vim Keyboard Shortcuts Cheatsheet */}
+      <KeyboardCheatsheetModal
+        isOpen={isCheatsheetOpen}
+        onClose={() => setIsCheatsheetOpen(false)}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Check,
   Calendar,
@@ -26,7 +26,8 @@ const PRIORITY_CONFIG = {
   P4: { label: 'P4 Low', bg: 'bg-slate-500/10 text-slate-400 border-slate-500/30' },
 };
 
-export default function TaskItem({ task, onEdit, onFocus }) {
+export default function TaskItem({ task, onEdit, onFocus, isHighlighted }) {
+
   const {
     toggleTask,
     removeTask,
@@ -166,10 +167,21 @@ export default function TaskItem({ task, onEdit, onFocus }) {
     }
   };
 
+  const itemRef = useRef(null);
+
+  useEffect(() => {
+    if (isHighlighted && itemRef.current) {
+      itemRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [isHighlighted]);
+
   return (
     <div
-      className={`group flex items-start gap-3.5 p-3.5 rounded-xl border transition-all ${
-        task.completed
+      ref={itemRef}
+      className={`group flex items-start gap-3.5 p-3.5 rounded-xl border transition-all relative ${
+        isHighlighted
+          ? 'ring-2 ring-cobalt-500 bg-cobalt-950/40 border-cobalt-500/60 shadow-glow-subtle'
+          : task.completed
           ? 'bg-obsidian-950/40 border-white/[0.04] opacity-60'
           : 'bg-obsidian-850/60 hover:bg-obsidian-800/80 border-white/[0.06] hover:border-white/[0.12] shadow-sm'
       }`}
@@ -197,6 +209,12 @@ export default function TaskItem({ task, onEdit, onFocus }) {
           >
             {task.title}
           </span>
+          {isHighlighted && (
+            <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-cobalt-500/20 text-cobalt-300 border border-cobalt-500/30 flex items-center gap-1 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-cobalt-400 animate-ping" />
+              <span>Vim: [x] done • [e] edit • [1-4] priority • [f] focus</span>
+            </span>
+          )}
         </div>
 
         {task.description && (

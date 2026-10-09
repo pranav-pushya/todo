@@ -2299,3 +2299,96 @@ npm run dev
 1. **Essential for CSE & AI/ML Students**: Computer science research notes are filled with mathematical loss functions, backpropagation derivations, and code snippets. Plain text notes fail to represent these accurately.
 2. **Instant Visual Verification**: The split view gives developers the immediate confidence that their equations and code blocks are syntactically and visually correct without context switching.
 3. **Interactive Document Flow**: Being able to toggle checkboxes directly in rendered preview mode keeps notes functional as interactive checklists.
+
+---
+
+## ⚡ Feature 7: Linear-Style "Vim/Hacker Keyboard Navigation"
+
+### A. What was done:
+
+1. **Linear / Vim List Navigation & Auto-Scroll**:
+   - Implemented `j` and `k` (along with `ArrowDown` / `ArrowUp`) keys in [`web/src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx) to traverse tasks without touching a mouse.
+   - Highlighted task receives an active cobalt glowing ring (`ring-2 ring-cobalt-500 bg-cobalt-950/40 border-cobalt-500/60 shadow-glow-subtle`) in [`web/src/components/tasks/TaskItem.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/TaskItem.jsx).
+   - Auto-scrolls into viewport using `itemRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })`.
+   - Displays a pulsing Vim badge on the active item: `Vim: [x] done • [e] edit • [1-4] priority • [f] focus`.
+
+2. **Contextual Action Keybindings on Highlighted Task**:
+   - **`x`**: Instant completion toggle with toast feedback.
+   - **`e`**: Opens task edit modal.
+   - **`d` / `#`**: Prompts delete confirmation and removes task.
+   - **`1`, `2`, `3`, `4`**: Instantly sets priority to `P1 Urgent`, `P2 High`, `P3 Medium`, or `P4 Low`.
+   - **`f`**: Launches fullscreen Zen Focus Chamber with the highlighted task pinned.
+
+3. **Vim & Hacker Shortcuts Cheatsheet Modal ([`web/src/components/common/KeyboardCheatsheetModal.jsx`](file:///d:/Coding/Projects/todo/web/src/components/common/KeyboardCheatsheetModal.jsx))**:
+   - Pressing **`?`** anywhere in the app displays an obsidian cheatsheet HUD.
+   - Groups shortcuts into **Vim Navigation**, **Workspace Views**, and **Global Hotkeys**.
+   - Dismissible via `Esc` or `?`.
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **Vim Key Handler ([`web/src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx))**:
+   ```javascript
+   // Move highlight down (j or ArrowDown)
+   if (e.key === 'j' || e.key === 'ArrowDown') {
+     e.preventDefault();
+     if (tasks.length > 0) {
+       setHighlightedIndex((prev) => (prev < tasks.length - 1 ? prev + 1 : 0));
+     }
+     return;
+   }
+
+   // Complete highlighted task (x)
+   if (e.key === 'x') {
+     if (highlightedIndex >= 0 && highlightedIndex < tasks.length) {
+       e.preventDefault();
+       const t = tasks[highlightedIndex];
+       toggleTask(t.id);
+       toast.success(t.completed ? 'Task reopened [x]' : 'Task completed! ✨ [x]');
+     }
+     return;
+   }
+
+   // Quick-set priority 1-4
+   if (['1', '2', '3', '4'].includes(e.key)) {
+     if (highlightedIndex >= 0 && highlightedIndex < tasks.length) {
+       e.preventDefault();
+       editTask(tasks[highlightedIndex].id, { priority: `P${e.key}` });
+     }
+     return;
+   }
+   ```
+
+2. **Auto-Scroll & Active Ring ([`web/src/components/tasks/TaskItem.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/TaskItem.jsx))**:
+   ```jsx
+   const itemRef = useRef(null);
+   useEffect(() => {
+     if (isHighlighted && itemRef.current) {
+       itemRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+     }
+   }, [isHighlighted]);
+   ```
+
+3. **Production Build Verification**:
+   ```powershell
+   cd d:\Coding\Projects\todo\web
+   npm run build
+   ```
+   **Output**:
+   ```text
+   ✓ 1610 modules transformed.
+   rendering chunks...
+   dist/index.html                   0.86 kB │ gzip:   0.48 kB
+   dist/assets/index-DIw-up8p.css   79.10 kB │ gzip:  16.63 kB
+   dist/assets/index-C_Gii2Q1.js   581.31 kB │ gzip: 165.15 kB
+   ✓ built in 6.76s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Zero-Latency Workflow for Power Developers**: Developers who use Vim, Neovim, or Linear expect keyboard-first ergonomics. Switching between keyboard and mouse introduces physical micro-delays.
+2. **Effortless Triage**: Going through a morning inbox using `j` + `x` or `j` + `1` allows developers to triage dozens of tasks in seconds.
+3. **Discoverable Ergonomics**: Having the `?` cheatsheet readily available eliminates cognitive load and helps new users learn the system instantly.
