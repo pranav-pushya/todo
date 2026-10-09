@@ -77,6 +77,9 @@ To make the app look clean, futuristic, and distraction-free:
 
 ### 🟢 Step 1: Vite + React Scaffolding & Theme Engine (COMPLETED)
 
+> **💡 Hinglish Summary:**  
+> Is step mein humne Vite aur React setup karke Obsidian black aur Cobalt blue theme ready kiya. Saare Tailwind configuration aur custom styling add kiye taaki pure app ko ek modern dark mode look mil sake.
+
 #### A. What was done:
 
 1. **Initialized frontend project structure**: Created the complete directory layout inside `web/` (`public/`, `src/`).
@@ -254,6 +257,9 @@ Setting up Vite and Tailwind first establishes a modern, fast development enviro
 
 ### 🟢 Step 2: Backend API Client Service Layer (COMPLETED)
 
+> **💡 Hinglish Summary:**  
+> Is step mein humne frontend ke liye ek centralized API service layer banaya jo FastAPI backend se baat karta hai. Isme tasks, projects, aur AI agent commands ke saare REST API endpoints ko clean async functions mein wrap kiya gaya hai.
+
 #### A. What was done:
 1. Created [`src/services/api.js`](file:///d:/Coding/Projects/todo/web/src/services/api.js): Centralized API communication layer using native Fetch with asynchronous `async/await`.
 2. Configured base URL targeting `http://localhost:8001/api/v1` (with fallback to `import.meta.env.VITE_API_URL` when specified in environment).
@@ -419,6 +425,9 @@ Setting up Vite and Tailwind first establishes a modern, fast development enviro
 
 ### 🟢 Step 3: Global Reactive State Contexts (COMPLETED)
 
+> **💡 Hinglish Summary:**  
+> Is step mein humne React Context API use karke TaskContext, ProjectContext aur AgentContext banaya taaki state pure app mein smoothly sync rahe. Jab bhi koi task add ya update hota hai ya AI koi action leta hai, pura UI bina page reload kiye turant update ho jata hai.
+
 #### A. What was done:
 1. Created [`src/context/ProjectContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/ProjectContext.jsx):
    - Stores `projects`, `selectedProjectId`, `setSelectedProjectId`, `loading`, and `error`.
@@ -573,6 +582,9 @@ Setting up Vite and Tailwind first establishes a modern, fast development enviro
 
 ### 🟢 Step 4: Navigation Layout & Shell (COMPLETED)
 
+> **💡 Hinglish Summary:**  
+> Is step mein humne app ka main shell banaya jisme Sidebar aur Header shaamil hain. Isme views switch karne ke navigation links, live search bar, aur quick task add karne ke buttons diye gaye hain.
+
 #### A. What was done:
 1. Created [`src/components/layout/Header.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Header.jsx):
    - Integrated live keyword search tied into `TaskContext` (`searchQuery`, `setSearchQuery`).
@@ -699,6 +711,9 @@ Setting up Vite and Tailwind first establishes a modern, fast development enviro
 ---
 
 ### 🟢 Step 5: Task & Project Management Views (COMPLETED)
+
+> **💡 Hinglish Summary:**  
+> Is step mein humne core task management UI banaya jisme TaskItem, TaskList, aur AddTaskModal shamil hain. User yahan aasani se tasks ko priorities (P1-P4), due dates, aur tags ke saath create, edit, aur complete kar sakta hai.
 
 #### A. What was done:
 1. Created [`src/components/tasks/TaskItem.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/TaskItem.jsx):
@@ -830,6 +845,9 @@ Setting up Vite and Tailwind first establishes a modern, fast development enviro
 
 ### 🟢 Step 6: AI Copilot Drawer & Command Palette (COMPLETED)
 
+> **💡 Hinglish Summary:**  
+> Is step mein humne right-side AI Copilot drawer aur Ctrl+K Command Palette integrate kiya. Iske through user natural language mein bolkar tasks schedule karwa sakta hai aur app ko bina mouse touch kiye control kar sakta hai.
+
 #### A. What was done:
 1. Created [`src/components/agent/AICopilotDrawer.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/AICopilotDrawer.jsx):
    - Slide-in side drawer featuring Groq Llama 3.3 engine branding and green online indicator.
@@ -933,6 +951,9 @@ Setting up Vite and Tailwind first establishes a modern, fast development enviro
 
 ### 🟢 Step 7: Production Build, Verification & Phase 3 Finalization (COMPLETED)
 
+> **💡 Hinglish Summary:**  
+> Is step mein humne frontend ka production build (`npm run build`) chala kar check kiya aur saare components ko verify kiya. Saari dependencies aur bundle size optimize kiye gaye taaki app bina kisi bug ke lightning-fast chale.
+
 #### A. What was done:
 1. Conducted an end-to-end audit across all React components, contexts, and API services:
    - Scaffolding & Theme Engine (Step 1)
@@ -1015,6 +1036,9 @@ npm run dev
 ---
 
 ## 6. 🛠️ Enhancements & Bugfixes: AI Copilot Schema Alignment & Global Keyboard Shortcuts
+
+> **💡 Hinglish Summary:**  
+> Is section mein humne Groq LLM tool calling schema ko strict null types ke saath align kiya taaki API validation fail na ho. Saath hi global keyboard shortcuts (Escape aur Ctrl+K) ko fix kiya taaki modals smoothly close ho sakein.
 
 ### A. What was done:
 
@@ -1150,6 +1174,9 @@ npm run dev
 
 ## 7. 🤖 Full UI Control & Multi-Command Execution Engine for AI Agent
 
+> **💡 Hinglish Summary:**  
+> Is section mein humne AI agent ko direct frontend UI control karne ki power di taaki wo ek prompt mein multiple tools chala sake. Agar user bole 'task add karo aur week view kholo', toh agent database update karne ke saath UI screen bhi change kar deta hai.
+
 ### A. What was done:
 
 1. **Autonomous UI Control Capabilities (`ui_control`)**:
@@ -1279,6 +1306,9 @@ npm run dev
 
 ## 8. 📊 This Week View & Productivity Consistency Dashboard
 
+> **💡 Hinglish Summary:**  
+> Is section mein humne 7-days 'This Week' filter aur ek comprehensive productivity dashboard add kiya. Isse users ko unka daily completion rate, weekly velocity aur streaks clearly graphs ke zariye dikhte hain.
+
 ### A. What was done:
 
 1. **"This Week" View Section**:
@@ -1389,6 +1419,9 @@ npm run dev
 
 ## 9. 📝 Integrated Notes Webapp & Double-Click Logo Launcher
 
+> **💡 Hinglish Summary:**  
+> Is section mein humne app ke andar ek full-fledged Notes workspace embed kiya jo logo pe double-click karte hi khul jata hai. Isme color tagging, markdown support, aur instant search diya gaya hai bina kisi third-party app ki zaroorat ke.
+
 ### A. What was done:
 
 1. **Double-Click Logo Launcher Mechanism**:
@@ -1469,6 +1502,9 @@ npm run dev
 ---
 
 ## 🔟 Step 10: Floating AI Copilot Action Button & Fullscreen Immersive Notes Workspace
+
+> **💡 Hinglish Summary:**  
+> Is step mein humne AI Copilot ko bottom-right corner pe floating interactive button banaya taaki wo screen pe hamesha accessible rahe. Saath hi Notes workspace ko completely fullscreen distraction-free banaya jisme sidebar aur header automatically hide ho jaate hain.
 
 ### A. What was done:
 
@@ -1578,6 +1614,9 @@ npm run dev
 
 ## 1️⃣1️⃣ Step 11: Double-Click Navigation in Notes & Streamlined AI Copilot Drawer
 
+> **💡 Hinglish Summary:**  
+> Is step mein humne Notes workspace se wapas Tasks mein aane ke liye double-click navigation implement kiya. Saath hi AI Copilot drawer se purane audit logs hata kar interface ko bilkul clean aur clutter-free banaya.
+
 ### A. What was done:
 
 1. **Double-Click Feature in Notes Workspace Header**:
@@ -1658,6 +1697,9 @@ npm run dev
 
 ## 1️⃣2️⃣ Step 12: Global UI Feedback System (Toasts & Confirmation Popups)
 
+> **💡 Hinglish Summary:**  
+> Is step mein humne browser ke generic alerts aur confirms ko stylish custom UI popups aur toast notifications se replace kiya. Isse user ko delete karte waqt clear warning modal milta hai aur har action par modern toast feedback dikhta hai.
+
 ### A. What was done:
 
 1. **Replaced All Browser Native `alert()` and `confirm()` Dialogs**:
@@ -1734,6 +1776,9 @@ npm run dev
 # 🚀 Developer Edition Features (CSE & AI/ML Platform)
 
 ## ⚡ Feature 1: "Magic Subtasking" (AI Task Deconstruction)
+
+> **💡 Hinglish Summary:**  
+> Is feature mein humne AI-powered subtask generator banaya jo kisi bhi complex task ko 3 se 6 atomic steps mein tod deta hai. Groq LPU Llama 3.3 model 1 second se kam time mein structured subtasks create karta hai jise accordion checklist se track kiya ja sakta hai.
 
 ### A. What was done:
 
@@ -1830,6 +1875,9 @@ npm run dev
 
 ## 🔄 Feature 2: Two-Way "Knowledge ⇄ Action" Synced Bridge
 
+> **💡 Hinglish Summary:**  
+> Is feature mein humne Notes aur Tasks ke beech two-way relational link banaya jisse har task ka ek instant scratchpad ban jata hai. Agar aap note ke andar `- [ ]` checklist likhte ho, toh wo automatically background mein system tasks ban kar sync ho jaate hain.
+
 ### A. What was done:
 
 1. **Relational Schema Linkage (`Task` ⇄ `Note`)**:
@@ -1923,6 +1971,9 @@ npm run dev
 
 ## 🎯 Feature 3: Fullscreen "Zen Flow" / Focus Chamber (`F` Hotkey with Timer Feature)
 
+> **💡 Hinglish Summary:**  
+> Is feature mein humne 'F' key dabate hi khulne wala fullscreen distraction-free Zen Chamber banaya jisme Pomodoro aur Deep Work timers hain. Saath hi Web Audio API se bina internet ke 432Hz solfeggio chime aur brown noise bajta hai taaki developer flow state mein kaam kar sake.
+
 ### A. What was done:
 
 1. **Fullscreen Focus Chamber Component ([`web/src/components/focus/ZenFocusChamber.jsx`](file:///d:/Coding/Projects/todo/web/src/components/focus/ZenFocusChamber.jsx))**:
@@ -2015,6 +2066,9 @@ npm run dev
 ---
 
 ## 🔥 Feature 4: The Glowing Cobalt "GitHub-Style Consistency Matrix" & Momentum Heatmap
+
+> **💡 Hinglish Summary:**  
+> Is feature mein humne GitHub jaisa 365-day consistency heatmap aur 0-100 Momentum Score banaya jo glowing cobalt aur emerald tiles mein dikhta hai. Ye developer ke continuous daily efforts aur task completion streak ko visualize karke consistency maintain karne mein madad karta hai.
 
 ### A. What was done:
 
@@ -2115,6 +2169,9 @@ npm run dev
 ---
 
 ## 🧪 Feature 5: AI/ML Experiment & Model Training Webhook Integration
+
+> **💡 Hinglish Summary:**  
+> Is feature mein humne PyTorch aur HuggingFace training runs ko live track karne ke liye webhook system banaya. Jab bhi aapka model train hota hai ya validation accuracy hit hoti hai, training script webhook bhejti hai aur task automatically complete mark ho jata hai.
 
 ### A. What was done:
 
@@ -2217,6 +2274,9 @@ npm run dev
 
 ## 📐 Feature 6: LaTeX & Syntax-Highlighted Code in Notes
 
+> **💡 Hinglish Summary:**  
+> Is feature mein humne Notes ke andar KaTeX library integrate ki jisse `$$` aur `$` use karke complex mathematical formulas render hote hain. Saath hi multi-language syntax highlighting aur split-screen live preview mode diya gaya hai jisse code aur notes saath-saath dikhein.
+
 ### A. What was done:
 
 1. **KaTeX Integration & Math Processing Engine**:
@@ -2303,6 +2363,9 @@ npm run dev
 ---
 
 ## ⚡ Feature 7: Linear-Style "Vim/Hacker Keyboard Navigation"
+
+> **💡 Hinglish Summary:**  
+> Is feature mein humne Linear aur Vim jaisi keyboard navigation di jisme bina mouse chhue 'j' aur 'k' se list traverse hoti hai aur 'x' se task complete hota hai. Saath hi '?' dabane par pura hacker cheatsheet modal screen par pop up ho jata hai.
 
 ### A. What was done:
 
@@ -2396,6 +2459,9 @@ npm run dev
 ---
 
 ## 🏃‍♂️ Feature 8: Sprint Mode & Agile Burndown Chart (Solo-Developer Engine)
+
+> **💡 Hinglish Summary:**  
+> Is feature mein humne solo-developers ke liye Agile Sprint mode aur interactive SVG Burndown Chart banaya. Ye ideal slope ke mukable aapki actual daily velocity track karta hai aur 3-column Kanban board ke zariye sprint backlog ko manage karta hai.
 
 ### A. What was done:
 
@@ -2497,6 +2563,9 @@ npm run dev
 ---
 
 ## 🧠 Feature 9: AI Copilot as an ML & Code Assistant
+
+> **💡 Hinglish Summary:**  
+> Is feature mein humne Groq Copilot ko specialized ML & Coding pair programmer banaya jo PyTorch, CUDA OOM errors, aur tensor issues debug karta hai. Chat ke andar syntax-highlighted code blocks aate hain jinhe 1-click se direct Notes Workspace mein save ya Task mein convert kiya ja sakta hai.
 
 ### A. What was done:
 
