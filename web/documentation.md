@@ -247,13 +247,13 @@ Setting up Vite and Tailwind first establishes a modern, fast development enviro
 ## 5. 🚀 How to Run the Backend and Frontend
 
 ### 1. Running the FastAPI Backend
-> [!IMPORTANT]
-> The backend entrypoint is located at `backend/main.py` directly, so the Uvicorn module path is `main:app` (NOT `app.main:app`).
+> [!TIP]
+> If port `8000` is occupied by another project (such as CampusConnect), run our backend on port `8001` so both can run concurrently:
 ```powershell
 cd d:\Coding\Projects\todo\backend
-.\.venv\Scripts\uvicorn main:app --reload --port 8000
+.\.venv\Scripts\uvicorn main:app --reload --port 8001
 ```
-- API Docs: `http://localhost:8000/docs`
+- API Docs: `http://localhost:8001/docs` (shows **AI To-Do API**)
 
 ### 2. Running the Web Frontend (Step 1 Scaffold)
 ```powershell
