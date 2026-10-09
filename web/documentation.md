@@ -1274,3 +1274,113 @@ npm run dev
 
 1. **Bridging the LLM to the Frontend GUI**: Traditional AI chatbots only produce text. By equipping the AI Copilot with `ui_control` tools, the assistant becomes an autonomous driver of the web application itself, capable of opening modals, selecting views, and managing windows.
 2. **Collective Multi-Action Execution**: Real-world user commands rarely consist of just one isolated step. Users naturally say *"Create a task for tomorrow and switch to today view and open the cmd menu"*. Enabling multi-step iterative tool execution allows the assistant to fulfill all parts of complex, multi-action requests in a single interaction.
+
+---
+
+## 8. 📊 This Week View & Productivity Consistency Dashboard
+
+### A. What was done:
+
+1. **"This Week" View Section**:
+   - Added `WEEK = "week"` filter to `TaskViewFilter` enum in [`backend/app/schemas/common.py`](file:///d:/Coding/Projects/todo/backend/app/schemas/common.py).
+   - Updated `get_tasks` in [`backend/app/crud/task.py`](file:///d:/Coding/Projects/todo/backend/app/crud/task.py) to dynamically query tasks scheduled from Monday to Sunday of the active week (`start_of_week = today - timedelta(days=today.weekday())`, `end_of_week = start_of_week + timedelta(days=6)`).
+   - Added **This Week** to [`web/src/components/layout/Sidebar.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Sidebar.jsx) with `CalendarDays` icon.
+   - Added single-key shortcut **`W`** in [`web/src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx) and quick action in [`web/src/components/agent/CommandPalette.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/CommandPalette.jsx).
+
+2. **Productivity Consistency Dashboard View**:
+   - Built a comprehensive analytics view in [`web/src/components/dashboard/DashboardView.jsx`](file:///d:/Coding/Projects/todo/web/src/components/dashboard/DashboardView.jsx):
+     - **Daily Consistency Bar Chart (Past 7 Days)**: Renders a visual bar chart comparing tasks completed vs due for each day of the week, highlighting Today and active days with a cobalt glow.
+     - **Weekly Consistency Trend (Past 4 Weeks)**: Tracks week-over-week productivity velocity across 3 Weeks Ago, 2 Weeks Ago, Last Week, and This Week.
+     - **Productivity Streak Counter**: Calculates consecutive daily completion streaks (`🔥 X Days Streak`).
+     - **Completion Rate Meter**: Visual progress ring & percentage meter (`X% completed`).
+     - **Workload Status**: Clear counters for active, completed, and overdue tasks.
+     - **Priority Workload Breakdown**: High-contrast distributions across P1 (Urgent), P2 (High), P3 (Medium), and P4 (Low).
+     - **Project Overview Matrix**: Real-time project task allocation bars.
+     - **Smart AI Copilot Quick Actions**: Direct trigger to reschedule overdue tasks via AI.
+   - Added **Dashboard** to [`web/src/components/layout/Sidebar.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Sidebar.jsx) (shortcut **`D`**, icon `BarChart3`).
+   - Integrated into [`web/src/components/tasks/TaskList.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/TaskList.jsx) so selecting the Dashboard renders the dedicated analytics canvas.
+
+3. **Backend Analytics REST Endpoint**:
+   - Implemented `get_task_analytics(db)` in [`backend/app/crud/task.py`](file:///d:/Coding/Projects/todo/backend/app/crud/task.py) computing daily counts, weekly trends, streaks, priority distributions, and completion percentages directly in SQLite.
+   - Added `GET /api/v1/tasks/analytics` in [`backend/app/api/v1/tasks.py`](file:///d:/Coding/Projects/todo/backend/app/api/v1/tasks.py).
+   - Added `TaskAPI.getAnalytics()` in [`web/src/services/api.js`](file:///d:/Coding/Projects/todo/web/src/services/api.js).
+   - Enhanced [`web/src/context/TaskContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/TaskContext.jsx) with `analytics`, `analyticsLoading`, and `fetchAnalytics()`, automatically re-calculating stats whenever tasks are toggled, created, or removed.
+
+4. **AI Copilot & Command Palette Integration**:
+   - Updated [`backend/app/services/groq_client.py`](file:///d:/Coding/Projects/todo/backend/app/services/groq_client.py) and [`web/src/context/AgentContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/AgentContext.jsx) to recognize natural language requests like *"show my progress"*, *"open dashboard"*, or *"view this week"* and navigate to the respective views instantly.
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **Week Filter in `get_tasks` ([`backend/app/crud/task.py`](file:///d:/Coding/Projects/todo/backend/app/crud/task.py))**:
+   ```python
+   elif view == TaskViewFilter.WEEK or view == "week":
+       start_of_week = today - timedelta(days=today.weekday())
+       end_of_week = start_of_week + timedelta(days=6)
+       query = query.filter(
+           Task.due_date >= start_of_week,
+           Task.due_date <= end_of_week,
+           Task.completed.is_(False),
+       )
+   ```
+
+2. **Streak and Daily Consistency Computation ([`backend/app/crud/task.py`](file:///d:/Coding/Projects/todo/backend/app/crud/task.py))**:
+   ```python
+   def get_task_analytics(db: Session) -> dict:
+       today = date.today()
+       all_tasks = db.query(Task).all()
+       ...
+       # Daily consistency for past 7 days
+       daily_consistency = []
+       for offset in range(6, -1, -1):
+           target_day = today - timedelta(days=offset)
+           daily_consistency.append({
+               "date": target_day.isoformat(),
+               "day": target_day.strftime("%a"),
+               "completed": completed_date_counts.get(target_day, 0),
+               "total_due": due_date_counts.get(target_day, 0),
+               "is_today": offset == 0,
+           })
+
+       # Consecutive completion streak calculation
+       streak = 0
+       check_day = today
+       if completed_date_counts.get(check_day, 0) > 0:
+           streak += 1
+           check_day -= timedelta(days=1)
+           while completed_date_counts.get(check_day, 0) > 0:
+               streak += 1
+               check_day -= timedelta(days=1)
+       ...
+       return {
+           "total_tasks": total_tasks,
+           "completed_tasks": completed_tasks,
+           "completion_rate": completion_rate,
+           "current_streak": streak,
+           "daily_consistency": daily_consistency,
+           "weekly_consistency": weekly_consistency,
+           "priority_distribution": priority_distribution,
+       }
+   ```
+
+3. **Dashboard View Integration ([`web/src/components/tasks/TaskList.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/TaskList.jsx))**:
+   ```jsx
+   export default function TaskList({ onOpenAddTask, onEditTask }) {
+     const { tasks, activeFilter } = useTasks();
+     const { selectedProjectId } = useProjects();
+
+     if (!selectedProjectId && activeFilter === 'dashboard') {
+       return <DashboardView onOpenAddTask={onOpenAddTask} />;
+     }
+     ...
+   }
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Mid-Range Planning (This Week)**: Looking only at "Today" can feel too narrow, while "Upcoming" can feel overwhelming. A dedicated "This Week" view provides the sweet spot for medium-term weekly execution.
+2. **Behavioral Reinforcement & Consistency**: Visualizing daily streaks and past-7-days completion rates taps into habit-building psychology (such as GitHub commit heatmaps or Duolingo streaks), motivating users to complete tasks daily without breaking momentum.
+3. **Data-Driven Workload Clarity**: Charts showing weekly output trends and priority breakdowns allow users to spot bottlenecks, prevent burnout, and understand where their time is being spent.

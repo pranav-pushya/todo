@@ -9,6 +9,7 @@ from app.crud.project import get_project_by_id
 from app.crud.task import (
     create_task,
     delete_task,
+    get_task_analytics,
     get_task_by_id,
     get_tasks,
     to_task_response,
@@ -58,6 +59,14 @@ def add_task(
             )
     task = create_task(db=db, task_in=task_in)
     return to_task_response(task)
+
+
+@router.get("/analytics")
+def read_task_analytics(
+    db: Session = Depends(get_db),
+):
+    """Retrieve productivity consistency statistics, streaks, and completion analytics."""
+    return get_task_analytics(db=db)
 
 
 @router.get("/{task_id}", response_model=TaskResponse)

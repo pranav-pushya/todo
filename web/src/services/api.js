@@ -62,6 +62,13 @@ export const TaskAPI = {
   },
 
   /**
+   * Retrieve productivity analytics, streaks, and consistency stats.
+   */
+  async getAnalytics() {
+    return request('/tasks/analytics');
+  },
+
+  /**
    * Retrieve single task details by ID.
    */
   async getTask(taskId) {

@@ -4,6 +4,8 @@ import {
   Plus,
   FolderPlus,
   Calendar,
+  CalendarDays,
+  BarChart3,
   X,
   ArrowRight,
 } from 'lucide-react';
@@ -142,6 +144,36 @@ export default function CommandPalette({ onOpenAddTask, onOpenCreateProject }) {
               <span>View Today's Tasks</span>
             </span>
             <span className="text-[10px] text-slate-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">T</span>
+          </button>
+
+          <button
+            onClick={() =>
+              handleAction(() => {
+                setActiveFilter('week');
+              })
+            }
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.06] text-slate-300 hover:text-white transition-colors group text-left"
+          >
+            <span className="flex items-center gap-2.5">
+              <CalendarDays className="w-4 h-4 text-blue-400" />
+              <span>View This Week</span>
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">W</span>
+          </button>
+
+          <button
+            onClick={() =>
+              handleAction(() => {
+                setActiveFilter('dashboard');
+              })
+            }
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.06] text-slate-300 hover:text-white transition-colors group text-left"
+          >
+            <span className="flex items-center gap-2.5">
+              <BarChart3 className="w-4 h-4 text-emerald-400" />
+              <span>Productivity Dashboard & Consistency</span>
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">D</span>
           </button>
 
           <button

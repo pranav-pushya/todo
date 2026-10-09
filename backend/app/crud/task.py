@@ -1,6 +1,6 @@
 """CRUD operations for Task models with Inbox, Today, and Upcoming views."""
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
 from sqlalchemy import case
 from sqlalchemy.orm import Session
@@ -47,6 +47,10 @@ def get_tasks(
         query = query.filter(Task.project_id.is_(None), Task.completed.is_(False))
     elif view == TaskViewFilter.TODAY or view == "today":
         query = query.filter(Task.due_date == today, Task.completed.is_(False))
+    elif view == TaskViewFilter.WEEK or view == "week":
+        start_of_week = today - timedelta(days=today.weekday())
+        end_of_week = start_of_week + timedelta(days=6)
+        query = query.filter(Task.due_date >= start_of_week, Task.due_date <= end_of_week, Task.completed.is_(False))
     elif view == TaskViewFilter.UPCOMING or view == "upcoming":
         query = query.filter(Task.due_date > today, Task.completed.is_(False))
     elif view == TaskViewFilter.COMPLETED or view == "completed":
@@ -150,3 +154,98 @@ def delete_task(db: Session, db_task: Task) -> None:
     """Remove a task from the database."""
     db.delete(db_task)
     db.commit()
+
+
+def get_task_analytics(db: Session) -> dict:
+    """Compute productivity metrics, completion streaks, and daily/weekly consistency."""
+    today = date.today()
+    all_tasks = db.query(Task).all()
+
+    total_tasks = len(all_tasks)
+    completed_tasks = sum(1 for t in all_tasks if t.completed)
+    pending_tasks = total_tasks - completed_tasks
+    overdue_tasks = sum(1 for t in all_tasks if not t.completed and t.due_date and t.due_date < today)
+
+    completion_rate = round((completed_tasks / total_tasks * 100), 1) if total_tasks > 0 else 0.0
+
+    priority_distribution = {
+        "P1": sum(1 for t in all_tasks if t.priority == "P1"),
+        "P2": sum(1 for t in all_tasks if t.priority == "P2"),
+        "P3": sum(1 for t in all_tasks if t.priority == "P3"),
+        "P4": sum(1 for t in all_tasks if t.priority == "P4"),
+    }
+
+    # Map dates to completed count
+    completed_date_counts = {}
+    due_date_counts = {}
+
+    for t in all_tasks:
+        if t.completed and t.completed_at:
+            comp_date = t.completed_at.date() if hasattr(t.completed_at, "date") else None
+            if comp_date:
+                completed_date_counts[comp_date] = completed_date_counts.get(comp_date, 0) + 1
+        elif t.completed and t.due_date:
+            completed_date_counts[t.due_date] = completed_date_counts.get(t.due_date, 0) + 1
+
+        if t.due_date:
+            due_date_counts[t.due_date] = due_date_counts.get(t.due_date, 0) + 1
+
+    # Daily consistency for past 7 days (including today)
+    daily_consistency = []
+    for offset in range(6, -1, -1):
+        target_day = today - timedelta(days=offset)
+        c_count = completed_date_counts.get(target_day, 0)
+        d_count = due_date_counts.get(target_day, 0)
+        daily_consistency.append({
+            "date": target_day.isoformat(),
+            "day": target_day.strftime("%a"),
+            "completed": c_count,
+            "total_due": d_count,
+            "is_today": offset == 0,
+        })
+
+    # Weekly consistency for past 4 weeks
+    weekly_consistency = []
+    week_names = ["3 Wks Ago", "2 Wks Ago", "Last Week", "This Week"]
+    for w_idx in range(4):
+        w_start = today - timedelta(days=(3 - w_idx) * 7 + today.weekday())
+        w_end = w_start + timedelta(days=6)
+        w_completed = sum(
+            count for d, count in completed_date_counts.items()
+            if w_start <= d <= w_end
+        )
+        weekly_consistency.append({
+            "label": week_names[w_idx],
+            "start": w_start.isoformat(),
+            "end": w_end.isoformat(),
+            "completed": w_completed,
+            "is_current": w_idx == 3,
+        })
+
+    # Calculate streak (consecutive days with >= 1 completion)
+    streak = 0
+    check_day = today
+    if completed_date_counts.get(check_day, 0) > 0:
+        streak += 1
+        check_day -= timedelta(days=1)
+        while completed_date_counts.get(check_day, 0) > 0:
+            streak += 1
+            check_day -= timedelta(days=1)
+    else:
+        check_day = today - timedelta(days=1)
+        while completed_date_counts.get(check_day, 0) > 0:
+            streak += 1
+            check_day -= timedelta(days=1)
+
+    return {
+        "total_tasks": total_tasks,
+        "completed_tasks": completed_tasks,
+        "pending_tasks": pending_tasks,
+        "overdue_tasks": overdue_tasks,
+        "completion_rate": completion_rate,
+        "current_streak": streak,
+        "priority_distribution": priority_distribution,
+        "daily_consistency": daily_consistency,
+        "weekly_consistency": weekly_consistency,
+    }
+

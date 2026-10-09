@@ -24,5 +24,6 @@ class TaskViewFilter(str, Enum):
     ALL = "all"
     INBOX = "inbox"
     TODAY = "today"
+    WEEK = "week"
     UPCOMING = "upcoming"
     COMPLETED = "completed"

@@ -2,6 +2,7 @@ import React from 'react';
 import { useTasks } from '../../context/TaskContext';
 import { useProjects } from '../../context/ProjectContext';
 import TaskItem from './TaskItem';
+import DashboardView from '../dashboard/DashboardView';
 import { CheckCircle2, ListFilter, Plus } from 'lucide-react';
 
 export default function TaskList({ onOpenAddTask, onEditTask }) {
@@ -19,6 +20,11 @@ export default function TaskList({ onOpenAddTask, onEditTask }) {
 
   const currentProject = projects.find((p) => p.id === selectedProjectId);
 
+  // If user navigated to Dashboard view and no project is selected, render DashboardView
+  if (!selectedProjectId && activeFilter === 'dashboard') {
+    return <DashboardView onOpenAddTask={onOpenAddTask} />;
+  }
+
   // Compute view header title
   const getHeaderTitle = () => {
     if (currentProject) return currentProject.title;
@@ -27,6 +33,8 @@ export default function TaskList({ onOpenAddTask, onEditTask }) {
         return 'Inbox';
       case 'today':
         return 'Today';
+      case 'week':
+        return 'This Week';
       case 'upcoming':
         return 'Upcoming';
       case 'completed':

@@ -95,6 +95,14 @@ function AppContent() {
         e.preventDefault();
         setSelectedProjectId(null);
         setActiveFilter('today');
+      } else if (e.key === 'w' || e.key === 'W') {
+        e.preventDefault();
+        setSelectedProjectId(null);
+        setActiveFilter('week');
+      } else if (e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
+        setSelectedProjectId(null);
+        setActiveFilter('dashboard');
       } else if (e.key === 'i' || e.key === 'I') {
         e.preventDefault();
         setSelectedProjectId(null);

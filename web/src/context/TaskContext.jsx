@@ -7,11 +7,25 @@ const TaskContext = createContext(null);
 export function TaskProvider({ children }) {
   const { selectedProjectId, fetchProjects } = useProjects();
   const [tasks, setTasks] = useState([]);
-  const [activeFilter, setActiveFilter] = useState('inbox'); // 'inbox' | 'today' | 'upcoming' | 'completed' | 'all'
+  const [activeFilter, setActiveFilter] = useState('inbox'); // 'inbox' | 'today' | 'week' | 'upcoming' | 'completed' | 'dashboard' | 'all'
   const [priorityFilter, setPriorityFilter] = useState(null); // 'P1' | 'P2' | 'P3' | 'P4' | null
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+
+  const fetchAnalytics = useCallback(async () => {
+    setAnalyticsLoading(true);
+    try {
+      const data = await TaskAPI.getAnalytics();
+      setAnalytics(data);
+    } catch (err) {
+      console.error('Failed to load analytics:', err);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }, []);
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
@@ -24,18 +38,21 @@ export function TaskProvider({ children }) {
 
       if (selectedProjectId) {
         options.projectId = selectedProjectId;
-      } else if (activeFilter !== 'all') {
+      } else if (activeFilter !== 'all' && activeFilter !== 'dashboard') {
         options.view = activeFilter;
       }
 
       const data = await TaskAPI.getTasks(options);
       setTasks(data);
+
+      // Auto-load analytics whenever tasks or view updates
+      fetchAnalytics();
     } catch (err) {
       setError(err.message || 'Failed to load tasks');
     } finally {
       setLoading(false);
     }
-  }, [activeFilter, selectedProjectId, priorityFilter, searchQuery]);
+  }, [activeFilter, selectedProjectId, priorityFilter, searchQuery, fetchAnalytics]);
 
   useEffect(() => {
     fetchTasks();
@@ -45,8 +62,8 @@ export function TaskProvider({ children }) {
     try {
       const created = await TaskAPI.createTask(taskData);
       setTasks((prev) => [created, ...prev]);
-      // Refresh projects so completion counts update
       fetchProjects();
+      fetchAnalytics();
       return created;
     } catch (err) {
       setError(err.message);
@@ -59,6 +76,7 @@ export function TaskProvider({ children }) {
       const updated = await TaskAPI.updateTask(taskId, updates);
       setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
       fetchProjects();
+      fetchAnalytics();
       return updated;
     } catch (err) {
       setError(err.message);
@@ -71,6 +89,7 @@ export function TaskProvider({ children }) {
       const updated = await TaskAPI.toggleTask(taskId);
       setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
       fetchProjects();
+      fetchAnalytics();
       return updated;
     } catch (err) {
       setError(err.message);
@@ -83,6 +102,7 @@ export function TaskProvider({ children }) {
       await TaskAPI.deleteTask(taskId);
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
       fetchProjects();
+      fetchAnalytics();
     } catch (err) {
       setError(err.message);
       throw err;
@@ -101,7 +121,10 @@ export function TaskProvider({ children }) {
         setSearchQuery,
         loading,
         error,
+        analytics,
+        analyticsLoading,
         fetchTasks,
+        fetchAnalytics,
         addTask,
         editTask,
         toggleTask,

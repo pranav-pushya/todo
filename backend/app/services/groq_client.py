@@ -176,7 +176,7 @@ TOOL_DEFINITIONS = [
                     },
                     "view": {
                         "type": ["string", "null"],
-                        "description": "The view to navigate to: 'inbox', 'today', 'upcoming', 'completed', or 'all'.",
+                        "description": "The view to navigate to: 'inbox', 'today', 'week', 'dashboard', 'upcoming', 'completed', or 'all'.",
                     },
                     "project_name": {
                         "type": ["string", "null"],
@@ -212,7 +212,8 @@ def build_system_prompt() -> str:
         "- If the user asks to open the command menu / cmd palette / menu (e.g., 'open cmd menu', 'open command menu', 'cmd palette'), call 'ui_control' with action='open_command_palette'.\n"
         "- If the user asks to open the add task modal/form/dialog, call 'ui_control' with action='open_add_task_modal'.\n"
         "- If the user asks to open the project creation modal, call 'ui_control' with action='open_create_project_modal'.\n"
-        "- If the user asks to show or switch to Today, Inbox, Upcoming, Completed, or a specific Project, call 'ui_control' with action='navigate_view' and the respective view or project_name.\n"
+        "- If the user asks to show or switch to Today, Week, Dashboard, Inbox, Upcoming, Completed, or a specific Project, call 'ui_control' with action='navigate_view' and the respective view ('today', 'week', 'dashboard', 'inbox', etc.) or project_name.\n"
+        "- If the user asks to see progress, consistency, analytics, charts, or streaks, call 'ui_control' with action='navigate_view' and view='dashboard'.\n"
         "- If the user asks to filter tasks by priority (e.g. 'filter by P1'), call 'ui_control' with action='filter_priority'.\n"
         "- If the user asks to search for tasks, call 'ui_control' with action='search_tasks'.\n"
         "- If the user asks to close modals or dialogs, call 'ui_control' with action='close_modals'.\n\n"

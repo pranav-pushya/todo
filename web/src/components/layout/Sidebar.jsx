@@ -3,7 +3,9 @@ import {
   Inbox,
   Calendar,
   CalendarDays,
+  Clock,
   CheckCircle,
+  BarChart3,
   Plus,
   Trash2,
   Sparkles,
@@ -39,9 +41,11 @@ export default function Sidebar({ onOpenCreateProject }) {
   };
 
   const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart3, badge: 'Overview' },
     { id: 'inbox', label: 'Inbox', icon: Inbox },
     { id: 'today', label: 'Today', icon: Calendar },
-    { id: 'upcoming', label: 'Upcoming', icon: CalendarDays },
+    { id: 'week', label: 'This Week', icon: CalendarDays },
+    { id: 'upcoming', label: 'Upcoming', icon: Clock },
     { id: 'completed', label: 'Completed', icon: CheckCircle },
   ];
 
@@ -64,7 +68,7 @@ export default function Sidebar({ onOpenCreateProject }) {
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
         <div className="space-y-1">
           <div className="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
-            Tasks
+            Views
           </div>
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -73,18 +77,31 @@ export default function Sidebar({ onOpenCreateProject }) {
               <button
                 key={item.id}
                 onClick={() => handleSelectNav(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                   isActive
                     ? 'bg-cobalt-900/60 text-cobalt-300 border border-cobalt-700/50 shadow-sm'
                     : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                 }`}
               >
-                <Icon
-                  className={`w-4 h-4 ${
-                    isActive ? 'text-cobalt-400' : 'text-slate-400 group-hover:text-white'
-                  }`}
-                />
-                <span>{item.label}</span>
+                <div className="flex items-center gap-3">
+                  <Icon
+                    className={`w-4 h-4 ${
+                      isActive ? 'text-cobalt-400' : 'text-slate-400 group-hover:text-white'
+                    }`}
+                  />
+                  <span>{item.label}</span>
+                </div>
+                {item.badge && (
+                  <span
+                    className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${
+                      isActive
+                        ? 'bg-cobalt-800 text-cobalt-200'
+                        : 'bg-white/[0.05] text-slate-500'
+                    }`}
+                  >
+                    {item.badge}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -104,7 +121,7 @@ export default function Sidebar({ onOpenCreateProject }) {
           </div>
 
           {projects.length === 0 ? (
-            <div className="px-3 py-2 text-xs text-slate-500 italic">No projects yet</div>
+            <div className="px-3 py-2 text-xs text-slate-600 italic">No projects yet</div>
           ) : (
             projects.map((proj) => {
               const isSelected = selectedProjectId === proj.id;
@@ -114,22 +131,22 @@ export default function Sidebar({ onOpenCreateProject }) {
                   onClick={() => handleSelectProject(proj.id)}
                   className={`group flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-cobalt-900/60 text-cobalt-300 border border-cobalt-700/50'
+                      ? 'bg-cobalt-900/40 text-white border border-cobalt-800/40'
                       : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 truncate">
                     <span
                       className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: proj.color || '#3b82f6' }}
+                      style={{ backgroundColor: proj.color || '#1d4ed8' }}
                     />
                     <span className="truncate">{proj.title}</span>
                   </div>
 
                   <div className="flex items-center gap-1.5 flex-shrink-0">
-                    {proj.open_tasks > 0 && (
+                    {proj.open_tasks_count > 0 && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/[0.06] text-slate-400">
-                        {proj.open_tasks}
+                        {proj.open_tasks_count}
                       </span>
                     )}
                     <button
