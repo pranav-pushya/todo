@@ -33,6 +33,15 @@ async function request(endpoint, options = {}) {
     }
 
     const text = await response.text();
+    const contentType = response.headers.get('content-type') || '';
+    const isHtml = contentType.includes('text/html') || (text && text.trim().startsWith('<'));
+
+    if (isHtml) {
+      throw new Error(
+        'Backend API unavailable at this URL. Make sure the FastAPI backend is running or VITE_API_URL is configured.'
+      );
+    }
+
     let data = null;
     if (text && text.trim()) {
       try {

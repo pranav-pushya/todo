@@ -442,21 +442,21 @@ function AppContent() {
 
 export default function App() {
   return (
-    <UIFeedbackProvider>
-      <AuthProvider>
-        <ProjectProvider>
-          <TaskProvider>
-            <NoteProvider>
-              <AgentProvider>
-                <ErrorBoundary>
+    <ErrorBoundary>
+      <UIFeedbackProvider>
+        <AuthProvider>
+          <ProjectProvider>
+            <TaskProvider>
+              <NoteProvider>
+                <AgentProvider>
                   <AppContent />
-                </ErrorBoundary>
-              </AgentProvider>
-            </NoteProvider>
-          </TaskProvider>
-        </ProjectProvider>
-      </AuthProvider>
-    </UIFeedbackProvider>
+                </AgentProvider>
+              </NoteProvider>
+            </TaskProvider>
+          </ProjectProvider>
+        </AuthProvider>
+      </UIFeedbackProvider>
+    </ErrorBoundary>
   );
 }
 

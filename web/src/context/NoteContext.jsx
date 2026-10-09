@@ -17,11 +17,12 @@ export function NoteProvider({ children }) {
     setError(null);
     try {
       const data = await NoteAPI.getNotes({ search: searchQuery.trim() || undefined });
-      setNotes(data);
+      const safeNotes = Array.isArray(data) ? data : [];
+      setNotes(safeNotes);
       setActiveNoteId((curr) => {
-        if (!curr && data.length > 0) return data[0].id;
-        if (curr && data.some((n) => n.id === curr)) return curr;
-        return data.length > 0 ? data[0].id : null;
+        if (!curr && safeNotes.length > 0) return safeNotes[0].id;
+        if (curr && safeNotes.some((n) => n.id === curr)) return curr;
+        return safeNotes.length > 0 ? safeNotes[0].id : null;
       });
     } catch (err) {
       console.error('Failed to load notes:', err);

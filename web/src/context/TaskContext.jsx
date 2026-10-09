@@ -33,7 +33,9 @@ export function TaskProvider({ children }) {
     setAnalyticsLoading(true);
     try {
       const data = await TaskAPI.getAnalytics();
-      setAnalytics(data);
+      if (data && typeof data === 'object') {
+        setAnalytics(data);
+      }
     } catch (err) {
       console.error('Failed to load analytics:', err);
     } finally {

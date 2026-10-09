@@ -14,7 +14,7 @@ export function ProjectProvider({ children }) {
     setError(null);
     try {
       const data = await ProjectAPI.getProjects({ includeArchived: false });
-      setProjects(data);
+      setProjects(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err.message || 'Failed to load projects');
     } finally {

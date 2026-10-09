@@ -38,7 +38,7 @@ export function AgentProvider({ children }) {
   const fetchLogs = useCallback(async () => {
     try {
       const data = await AgentAPI.getLogs(30);
-      setLogs(data);
+      setLogs(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to load agent logs:', err);
     }
