@@ -2,7 +2,8 @@
 
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, Field
+import re
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class UserRegister(BaseModel):
@@ -17,12 +18,45 @@ class UserRegister(BaseModel):
     github_username: Optional[str] = Field(None, max_length=100, description="GitHub profile handle")
     avatar_url: Optional[str] = Field(None, max_length=500, description="Custom avatar image URL")
 
+    @field_validator("email", mode="before")
+    @classmethod
+    def clean_email(cls, v):
+        if isinstance(v, str):
+            return v.strip().lower()
+        return v
+
+    @field_validator("username", mode="before")
+    @classmethod
+    def clean_username(cls, v):
+        if isinstance(v, str):
+            return v.strip()
+        return v
+
+    @field_validator("github_username", mode="before")
+    @classmethod
+    def clean_github(cls, v):
+        if not v or not isinstance(v, str):
+            return None
+        cleaned = v.strip()
+        for prefix in ("https://github.com/", "http://github.com/", "github.com/"):
+            if cleaned.startswith(prefix):
+                cleaned = cleaned[len(prefix):]
+        cleaned = cleaned.lstrip("@").strip("/ ")
+        return cleaned or None
+
 
 class UserLogin(BaseModel):
     """Schema for logging in with either email or username."""
 
     email_or_username: str = Field(..., min_length=3, description="Registered email address or username")
     password: str = Field(..., min_length=1, description="Account password")
+
+    @field_validator("email_or_username", mode="before")
+    @classmethod
+    def clean_identifier(cls, v):
+        if isinstance(v, str):
+            return v.strip()
+        return v
 
 
 class UserUpdate(BaseModel):
@@ -34,6 +68,19 @@ class UserUpdate(BaseModel):
     github_username: Optional[str] = Field(None, max_length=100)
     avatar_url: Optional[str] = Field(None, max_length=500)
     theme_preference: Optional[str] = Field(None, max_length=50)
+
+    @field_validator("github_username", mode="before")
+    @classmethod
+    def clean_github(cls, v):
+        if not v or not isinstance(v, str):
+            return None
+        cleaned = v.strip()
+        for prefix in ("https://github.com/", "http://github.com/", "github.com/"):
+            if cleaned.startswith(prefix):
+                cleaned = cleaned[len(prefix):]
+        cleaned = cleaned.lstrip("@").strip("/ ")
+        return cleaned or None
+
 
 
 class UserPasswordChange(BaseModel):

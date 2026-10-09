@@ -32,19 +32,35 @@ async function request(endpoint, options = {}) {
       return null;
     }
 
-    const data = await response.json();
+    const text = await response.text();
+    let data = null;
+    if (text && text.trim()) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = null;
+      }
+    }
 
     if (!response.ok) {
-      const errorMsg = data?.detail || `HTTP Error ${response.status}: ${response.statusText}`;
+      const errorMsg =
+        data?.detail ||
+        (data && typeof data === 'object' ? JSON.stringify(data) : null) ||
+        (text && text.length < 200 ? text : null) ||
+        `HTTP Error ${response.status}: ${response.statusText || 'Request failed'}. Make sure backend is running on port 8001.`;
       throw new Error(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
     }
 
     return data;
   } catch (error) {
     console.error(`API Error on [${options.method || 'GET'}] ${endpoint}:`, error);
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('Unable to connect to backend server. Please ensure FastAPI is running on port 8001.');
+    }
     throw error;
   }
 }
+
 
 // ==================== TASK API ====================
 
