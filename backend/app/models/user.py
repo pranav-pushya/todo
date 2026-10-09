@@ -30,6 +30,8 @@ class User(Base):
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=utcnow, nullable=False)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
+    reset_token = Column(String(100), nullable=True)
+    reset_token_expires_at = Column(DateTime, nullable=True)
 
     # Relationships to user-owned entities
     tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")

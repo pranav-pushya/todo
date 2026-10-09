@@ -36,6 +36,15 @@ def auto_migrate_sqlite():
                 conn.execute(text(f"ALTER TABLE {tbl} ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE"))
                 conn.commit()
 
+        # 3b. Migrate users reset_token columns if missing
+        user_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(users)")).fetchall()]
+        if "reset_token" not in user_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN reset_token VARCHAR(100)"))
+            conn.commit()
+        if "reset_token_expires_at" not in user_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN reset_token_expires_at DATETIME"))
+            conn.commit()
+
         # 4. Seed default developer demo user if users table is empty
         user_count = conn.execute(text("SELECT count(*) FROM users")).scalar()
         if user_count == 0:

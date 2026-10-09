@@ -12,19 +12,24 @@ from app.crud.user import (
     authenticate_user,
     change_user_password,
     create_user,
+    generate_password_reset_code,
     get_user_by_email,
     get_user_by_id,
     get_user_by_username,
     get_user_profile_dict,
+    reset_password_with_code,
     update_user_profile,
 )
 from app.models.user import User
 from app.schemas.user import (
     TokenResponse,
+    UserForgotPassword,
+    UserForgotPasswordResponse,
     UserLogin,
     UserPasswordChange,
     UserProfileResponse,
     UserRegister,
+    UserResetPassword,
     UserUpdate,
 )
 
@@ -203,3 +208,67 @@ def change_password(
         )
 
     return {"status": "success", "message": message}
+
+
+@router.post(
+    "/forgot-password",
+    response_model=UserForgotPasswordResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Request a 6-digit password recovery code",
+)
+def forgot_password(
+    forgot_data: UserForgotPassword,
+    db: Session = Depends(get_db),
+):
+    """Generate a 6-digit recovery code for an account matching email or username."""
+    success, code, user, message = generate_password_reset_code(
+        db, email_or_username=forgot_data.email_or_username
+    )
+    if not success or not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=message,
+        )
+
+    return UserForgotPasswordResponse(
+        status="success",
+        message=f"Recovery code generated for {user.email}. Enter the 6-digit code to set a new password.",
+        email=user.email,
+        recovery_code=code,
+    )
+
+
+@router.post(
+    "/reset-password",
+    response_model=TokenResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Reset password using 6-digit recovery code",
+)
+def reset_password(
+    reset_data: UserResetPassword,
+    db: Session = Depends(get_db),
+):
+    """Verify recovery code and update password, automatically returning an active session token."""
+    success, user, message = reset_password_with_code(
+        db,
+        email_or_username=reset_data.email_or_username,
+        recovery_code=reset_data.recovery_code,
+        new_password=reset_data.new_password,
+    )
+    if not success or not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message,
+        )
+
+    access_token = create_access_token(
+        data={"sub": str(user.id), "email": user.email, "username": user.username}
+    )
+
+    profile_dict = get_user_profile_dict(db, user)
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=UserProfileResponse(**profile_dict),
+    )
+

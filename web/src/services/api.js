@@ -455,6 +455,26 @@ export const AuthAPI = {
       body: JSON.stringify({ current_password, new_password }),
     });
   },
+
+  /**
+   * Request a 6-digit password recovery code.
+   */
+  async forgotPassword(email_or_username) {
+    return request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email_or_username }),
+    });
+  },
+
+  /**
+   * Reset password using the 6-digit recovery code.
+   */
+  async resetPassword({ email_or_username, recovery_code, new_password }) {
+    return request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email_or_username, recovery_code, new_password }),
+    });
+  },
 };
 
 export const UserAPI = {

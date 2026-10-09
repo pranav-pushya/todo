@@ -90,6 +90,50 @@ class UserPasswordChange(BaseModel):
     new_password: str = Field(..., min_length=6, max_length=128, description="New account password")
 
 
+class UserForgotPassword(BaseModel):
+    """Schema for requesting a password recovery code."""
+
+    email_or_username: str = Field(..., min_length=3, description="Registered email or username")
+
+    @field_validator("email_or_username", mode="before")
+    @classmethod
+    def clean_identifier(cls, v):
+        if isinstance(v, str):
+            return v.strip()
+        return v
+
+
+class UserForgotPasswordResponse(BaseModel):
+    """Schema returned after a recovery code is generated."""
+
+    status: str = "success"
+    message: str
+    email: str
+    recovery_code: Optional[str] = None
+
+
+class UserResetPassword(BaseModel):
+    """Schema for resetting password using the 6-digit recovery code."""
+
+    email_or_username: str = Field(..., min_length=3, description="Registered email or username")
+    recovery_code: str = Field(..., min_length=4, max_length=50, description="Verification recovery code")
+    new_password: str = Field(..., min_length=6, max_length=128, description="New account password")
+
+    @field_validator("email_or_username", mode="before")
+    @classmethod
+    def clean_identifier(cls, v):
+        if isinstance(v, str):
+            return v.strip()
+        return v
+
+    @field_validator("recovery_code", mode="before")
+    @classmethod
+    def clean_code(cls, v):
+        if isinstance(v, str):
+            return v.strip()
+        return v
+
+
 class UserProfileResponse(BaseModel):
     """Schema for returning user profile data to frontend."""
 

@@ -115,6 +115,18 @@ export function AuthProvider({ children }) {
     return AuthAPI.changePassword({ current_password, new_password });
   };
 
+  const forgotPassword = async (email_or_username) => {
+    return AuthAPI.forgotPassword(email_or_username);
+  };
+
+  const resetPassword = async ({ email_or_username, recovery_code, new_password }) => {
+    const res = await AuthAPI.resetPassword({ email_or_username, recovery_code, new_password });
+    if (res && res.access_token) {
+      setAuthSession(res.access_token, res.user);
+    }
+    return res;
+  };
+
   const value = {
     user,
     token,
@@ -129,6 +141,8 @@ export function AuthProvider({ children }) {
     logout,
     updateProfile,
     changePassword,
+    forgotPassword,
+    resetPassword,
     refreshProfile,
   };
 

@@ -1,5 +1,7 @@
 """Database CRUD operations for User Accounts & Profiles."""
 
+import secrets
+from datetime import datetime, timezone, timedelta
 from typing import Optional, Tuple
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -90,6 +92,61 @@ def change_user_password(
     db.commit()
     db.refresh(user)
     return True, "Password changed successfully"
+
+
+def generate_password_reset_code(
+    db: Session, email_or_username: str
+) -> Tuple[bool, Optional[str], Optional[User], str]:
+    """Generate a 6-digit recovery code valid for 15 minutes."""
+    user = get_user_by_email_or_username(db, email_or_username)
+    if not user:
+        return False, None, None, f"No account found with username or email '{email_or_username}'."
+
+    # Generate secure 6-digit numeric recovery code
+    recovery_code = f"{secrets.randbelow(900000) + 100000}"
+    user.reset_token = recovery_code
+    user.reset_token_expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+    db.commit()
+    db.refresh(user)
+    return True, recovery_code, user, "Recovery code generated successfully."
+
+
+def reset_password_with_code(
+    db: Session, email_or_username: str, recovery_code: str, new_password: str
+) -> Tuple[bool, Optional[User], str]:
+    """Validate 6-digit recovery code and update user's password."""
+    user = get_user_by_email_or_username(db, email_or_username)
+    if not user:
+        return False, None, "User not found."
+
+    if not user.reset_token or not user.reset_token_expires_at:
+        return False, None, "No active password recovery request found. Please request a new code."
+
+    # Check expiration
+    now = datetime.now(timezone.utc)
+    expires = user.reset_token_expires_at
+    if expires.tzinfo is None:
+        expired = datetime.utcnow() > expires
+    else:
+        expired = now > expires
+
+    if expired:
+        user.reset_token = None
+        user.reset_token_expires_at = None
+        db.commit()
+        return False, None, "Recovery code has expired (valid for 15 minutes). Please request a new one."
+
+    # Check code match
+    if user.reset_token.strip() != recovery_code.strip():
+        return False, None, "Invalid recovery code. Please check and try again."
+
+    # Update password and clear code
+    user.hashed_password = hash_password(new_password)
+    user.reset_token = None
+    user.reset_token_expires_at = None
+    db.commit()
+    db.refresh(user)
+    return True, user, "Password has been successfully reset."
 
 
 def get_user_profile_dict(db: Session, user: User) -> dict:
