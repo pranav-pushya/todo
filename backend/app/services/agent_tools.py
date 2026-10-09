@@ -8,6 +8,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 
+from app.crud.note import create_note
 from app.crud.project import create_project, get_project_by_title
 from app.crud.task import (
     create_task,
@@ -20,6 +21,7 @@ from app.crud.task import (
 from app.models.project import Project
 from app.models.task import Task
 from app.schemas.common import PriorityEnum
+from app.schemas.note import NoteCreate
 from app.schemas.project import ProjectCreate
 from app.schemas.task import TaskCreate, TaskUpdate
 
@@ -329,6 +331,31 @@ def tool_ui_control(
     }
 
 
+def tool_save_code_to_note(
+    db: Session,
+    title: str,
+    code_or_content: str,
+    language: Optional[str] = "python",
+    tags: str = "code, ml",
+) -> Dict[str, Any]:
+    """Tool: Save a code architecture, ML script, or mathematical note into the user's Notes Workspace."""
+    formatted_content = f"```{language or 'python'}\n{code_or_content.strip()}\n```"
+    note_in = NoteCreate(
+        title=title.strip(),
+        content=formatted_content,
+        tags=tags or "code, ml",
+        pinned=False,
+    )
+    note = create_note(db, note_in)
+    return {
+        "status": "success",
+        "action": "save_code_to_note",
+        "note_id": note.id,
+        "title": note.title,
+        "message": f"Saved code architecture note '{note.title}' into Notes Workspace",
+    }
+
+
 # Map tool name string to callable function
 TOOL_MAP = {
     "create_task": tool_create_task,
@@ -338,5 +365,6 @@ TOOL_MAP = {
     "create_project": tool_create_project,
     "list_tasks": tool_list_tasks,
     "ui_control": tool_ui_control,
+    "save_code_to_note": tool_save_code_to_note,
 }
 

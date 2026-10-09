@@ -2493,3 +2493,101 @@ npm run dev
 1. **Solo-Developer Accountability**: Solo engineers and student developers often struggle with scope creep. Sprints enforce fixed timeboxes (e.g. 7 or 14 days) and explicit milestone goals.
 2. **Visual Trajectory Feedback**: The burndown chart immediately shows whether the developer is on track to hit their deadline, replacing vague feelings of progress with mathematical certainty.
 3. **Agile Without Jira Overhead**: Enterprise tools like Jira are bloated and heavy. This built-in lightweight Kanban and burndown gives students and indie hackers the discipline of Agile without context switching.
+
+---
+
+## 🧠 Feature 9: AI Copilot as an ML & Code Assistant
+
+### A. What was done:
+
+1. **Senior ML & Software Engineering LLM Persona**:
+   - Re-engineered Groq system prompt in [`backend/app/services/groq_client.py`](file:///d:/Coding/Projects/todo/backend/app/services/groq_client.py) to embody a world-class AI/ML engineer tailored for Computer Science & Engineering (AIML) students and software developers.
+   - Equipped the assistant with domain specialization in **PyTorch**, **TensorFlow**, **HuggingFace Transformers**, **PEFT / LoRA fine-tuning**, **CUDA memory optimization / OOM debugging**, **loss divergence diagnosis (NaN / Inf loss)**, **mathematical derivations with KaTeX/LaTeX**, and **Python software design**.
+
+2. **Persistent Code Architecture Tool (`save_code_to_note`)**:
+   - Added `tool_save_code_to_note` in [`backend/app/services/agent_tools.py`](file:///d:/Coding/Projects/todo/backend/app/services/agent_tools.py) and registered it in `TOOL_DEFINITIONS`.
+   - Allows the AI to autonomously write entire scaffolded ML training loops, model architectures, or algorithms directly into the user's persistent Notes Workspace so they don't lose crucial scripts in chat history.
+   - Synchronized frontend reactive state in [`web/src/context/AgentContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/AgentContext.jsx) via `useNotes().fetchNotes()`.
+
+3. **Interactive Code Sandbox & IDE Blocks in Chat ([`web/src/components/agent/AICopilotDrawer.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/AICopilotDrawer.jsx))**:
+   - Implemented a markdown regex parser that detects code blocks and renders them into obsidian-themed terminal containers.
+   - **Language Tag Badge**: Displays the programming language header (e.g. `PYTHON`, `BASH`, `PYTORCH`, `LATEX`).
+   - **1-Click Copy**: Copies code to the system clipboard with an animated checkmark state.
+   - **1-Click "Save Note"**: Directly converts the snippet into a new note in the Notes Workspace.
+   - **1-Click "Task"**: Extracts the first line and converts the code block into a tracked project task.
+
+4. **Curated ML & Developer Prompt Chips**:
+   - Added quick prompt chips for common engineering workflows:
+     - 🧪 *"Debug CUDA OOM & Memory"*
+     - ⚡ *"PyTorch Training Loop + Webhook"*
+     - 🏃‍♂️ *"Deconstruct Sprint: Fine-tune LoRA"*
+     - 📐 *"Cross-Entropy Loss Formula (LaTeX)"*
+     - 🧭 *"Open ML Experiment Lab & Webhooks"*
+     - 🔥 *"Switch to Sprint Mode"*
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **Backend Agent Tool Definition ([`backend/app/services/agent_tools.py`](file:///d:/Coding/Projects/todo/backend/app/services/agent_tools.py))**:
+   ```python
+   def tool_save_code_to_note(
+       db: Session,
+       title: str,
+       code_or_content: str,
+       language: Optional[str] = "python",
+       tags: str = "code, ml",
+   ) -> Dict[str, Any]:
+       """Tool: Save code architectures or ML scripts into Notes Workspace."""
+       formatted_content = f"```{language or 'python'}\n{code_or_content.strip()}\n```"
+       note_in = NoteCreate(
+           title=title.strip(),
+           content=formatted_content,
+           tags=tags or "code, ml",
+           pinned=False,
+       )
+       note = create_note(db, note_in)
+       return {
+           "status": "success",
+           "action": "save_code_to_note",
+           "note_id": note.id,
+           "title": note.title,
+           "message": f"Saved code architecture note '{note.title}' into Notes Workspace",
+       }
+   ```
+
+2. **Interactive Code Block Parser ([`web/src/components/agent/AICopilotDrawer.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/AICopilotDrawer.jsx))**:
+   ```jsx
+   // Renders language bar, 1-click Save Note, 1-click Task, and 1-click Copy
+   <div className="flex items-center justify-between px-3 py-1.5 bg-black/60 border-b border-white/[0.06] text-[10px]">
+     <span className="font-bold text-cobalt-300 uppercase tracking-wider">{part.language}</span>
+     <div className="flex items-center gap-1.5">
+       <button onClick={() => onSaveToNotes(part.code, part.language)}>Save Note</button>
+       <button onClick={() => onCreateTask(part.code)}>Task</button>
+       <button onClick={() => onCopy(part.code, part.key)}>Copy</button>
+     </div>
+   </div>
+   ```
+
+3. **Production Build Verification**:
+   ```powershell
+   cd d:\Coding\Projects\todo\web
+   npm run build
+   ```
+   **Output**:
+   ```text
+   ✓ 1611 modules transformed.
+   rendering chunks...
+   dist/index.html                               0.86 kB │ gzip:   0.48 kB
+   dist/assets/index-B20AtDqK.css               82.57 kB │ gzip:  17.18 kB
+   dist/assets/index-BZ1JAEwy.js               612.03 kB │ gzip: 172.09 kB
+   ✓ built in 7.21s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Tailored for CSE AI/ML Developers**: Generic to-do bots only create basic tasks. This copilot functions as an active pair programmer that understands PyTorch tensors, gradient descent, CUDA memory errors, and machine learning pipelines.
+2. **Actionable Knowledge Persistence**: Instead of code solutions getting lost in a disappearing chat drawer, 1-click actions turn AI-generated code directly into persistent notes or executable backlog tasks.
+3. **Seamless Multi-Modal Synergy**: The AI Copilot can not only advise on ML models, but also simultaneously navigate the UI to the ML Experiment Lab or launch an Agile Sprint for model training.

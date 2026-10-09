@@ -2,12 +2,14 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { AgentAPI } from '../services/api';
 import { useTasks } from './TaskContext';
 import { useProjects } from './ProjectContext';
+import { useNotes } from './NoteContext';
 
 const AgentContext = createContext(null);
 
 export function AgentProvider({ children }) {
   const { fetchTasks, setActiveFilter, setPriorityFilter, setSearchQuery } = useTasks();
   const { fetchProjects, projects, setSelectedProjectId } = useProjects();
+  const { fetchNotes } = useNotes();
 
   // Drawers and Modals
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -86,6 +88,10 @@ export function AgentProvider({ children }) {
         case 'open_notes':
           setSelectedProjectId(null);
           setActiveFilter('notes');
+          break;
+        case 'open_sprint':
+          setSelectedProjectId(null);
+          setActiveFilter('sprint');
           break;
         case 'navigate_view':
           if (actionObj.view) {
@@ -237,8 +243,13 @@ export function AgentProvider({ children }) {
 
       setMessages((prev) => [...prev, agentMessage]);
 
-      // Refresh tasks, projects, and logs so the UI is immediately in sync
-      await Promise.all([fetchTasks(), fetchProjects(), fetchLogs()]);
+      // Refresh tasks, projects, notes, and logs so the UI is immediately in sync
+      await Promise.all([
+        fetchTasks(),
+        fetchProjects(),
+        fetchLogs(),
+        fetchNotes ? fetchNotes() : Promise.resolve(),
+      ]);
 
       return response;
     } catch (err) {

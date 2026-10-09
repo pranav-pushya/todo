@@ -168,6 +168,9 @@ TOOL_DEFINITIONS = [
                             "open_add_task_modal",
                             "open_create_project_modal",
                             "open_notes",
+                            "open_sprint",
+                            "open_ml_lab",
+                            "open_focus_chamber",
                             "navigate_view",
                             "filter_priority",
                             "search_tasks",
@@ -178,7 +181,7 @@ TOOL_DEFINITIONS = [
                     },
                     "view": {
                         "type": ["string", "null"],
-                        "description": "The view to navigate to: 'inbox', 'today', 'week', 'dashboard', 'notes', 'upcoming', 'completed', or 'all'.",
+                        "description": "The view to navigate to: 'inbox', 'today', 'week', 'dashboard', 'sprint', 'notes', 'upcoming', 'completed', or 'all'.",
                     },
                     "project_name": {
                         "type": ["string", "null"],
@@ -197,6 +200,35 @@ TOOL_DEFINITIONS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "save_code_to_note",
+            "description": "Save code architectures, ML training scripts, mathematical formulas, or documentation into the user's persistent Notes Workspace.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Title of the note (e.g. 'PyTorch Training Loop with Gradient Clipping')",
+                    },
+                    "code_or_content": {
+                        "type": "string",
+                        "description": "Code snippet or technical explanation to save.",
+                    },
+                    "language": {
+                        "type": ["string", "null"],
+                        "description": "Programming language ('python', 'bash', 'javascript', 'latex', etc.)",
+                    },
+                    "tags": {
+                        "type": ["string", "null"],
+                        "description": "Comma-separated tags for easy search (e.g. 'pytorch, training, ml')",
+                    },
+                },
+                "required": ["title", "code_or_content"],
+            },
+        },
+    },
 ]
 
 
@@ -206,28 +238,34 @@ def build_system_prompt() -> str:
     day_name = date.today().strftime("%A")
 
     return (
-        f"You are the autonomous AI Copilot and UI Controller for the AI-Controlled To-Do Platform.\n"
+        f"You are the autonomous AI Copilot, UI Controller, and Senior ML & Software Engineering Pair Programmer.\n"
+        f"The user is a Computer Science & Engineering (AIML) student and software developer.\n"
         f"Today is {day_name}, {today_str}.\n\n"
-        "Your mission is to understand user natural language commands and execute the appropriate database and UI tools.\n"
-        "IMPORTANT - WEB APPLICATION UI CONTROL:\n"
-        "You HAVE FULL CAPABILITY to control the web application interface via the 'ui_control' tool!\n"
-        "- If the user asks to open the command menu / cmd palette / menu (e.g., 'open cmd menu', 'open command menu', 'cmd palette'), call 'ui_control' with action='open_command_palette'.\n"
-        "- If the user asks to open the add task modal/form/dialog, call 'ui_control' with action='open_add_task_modal'.\n"
-        "- If the user asks to open the project creation modal, call 'ui_control' with action='open_create_project_modal'.\n"
-        "- If the user asks to show or switch to Today, Week, Dashboard, Inbox, Upcoming, Completed, or a specific Project, call 'ui_control' with action='navigate_view' and the respective view ('today', 'week', 'dashboard', 'inbox', etc.) or project_name.\n"
-        "- If the user asks to see progress, consistency, analytics, charts, or streaks, call 'ui_control' with action='navigate_view' and view='dashboard'.\n"
-        "- If the user asks to filter tasks by priority (e.g. 'filter by P1'), call 'ui_control' with action='filter_priority'.\n"
-        "- If the user asks to search for tasks, call 'ui_control' with action='search_tasks'.\n"
-        "- If the user asks to close modals or dialogs, call 'ui_control' with action='close_modals'.\n\n"
-        "DATABASE ACTIONS:\n"
-        "- If the user asks to add tasks, call 'create_task'.\n"
-        "- If the user says 'done with X' or 'finish X', call 'complete_task'.\n"
-        "- If the user asks to reschedule overdue tasks, call 'reschedule_tasks'.\n"
-        "- If the user asks what they have to do, call 'list_tasks'.\n\n"
+        "CORE CAPABILITIES:\n"
+        "1. ML & CODE SPECIALIST:\n"
+        "   - You possess deep expertise in PyTorch, TensorFlow, HuggingFace Transformers, LoRA/PEFT, CUDA memory optimization, loss divergence debugging, mathematical derivations (KaTeX / LaTeX), Git workflows, and Python architectures.\n"
+        "   - When answering programming, AI, or ML questions, write clean, robust code with syntax highlighting tags (e.g. ```python, ```bash).\n"
+        "   - When providing substantial code architectures, algorithms, or ML pipelines, you can save them directly to the user's Notes Workspace via the 'save_code_to_note' tool!\n\n"
+        "2. FULL WEB APPLICATION UI CONTROL:\n"
+        "   - Open Command Palette / Menu: 'ui_control' with action='open_command_palette'\n"
+        "   - Open Add Task dialog: 'ui_control' with action='open_add_task_modal'\n"
+        "   - Open Project creation dialog: 'ui_control' with action='open_create_project_modal'\n"
+        "   - Navigate Views: 'ui_control' with action='navigate_view' and view='today' | 'week' | 'dashboard' | 'sprint' | 'notes' | 'inbox'\n"
+        "   - Open ML Experiment Lab: 'ui_control' with action='open_ml_lab'\n"
+        "   - Open Sprint Board & Burndown: 'ui_control' with action='open_sprint' or navigate_view with view='sprint'\n"
+        "   - Open Zen Focus Chamber: 'ui_control' with action='open_focus_chamber'\n"
+        "   - Filter Tasks: 'ui_control' with action='filter_priority' and priority='P1'..'P4'\n"
+        "   - Search Tasks: 'ui_control' with action='search_tasks' and search_query='...'\n\n"
+        "3. DATABASE ACTIONS:\n"
+        "   - Add tasks: 'create_task'\n"
+        "   - Complete tasks: 'complete_task'\n"
+        "   - Reschedule tasks: 'reschedule_tasks'\n"
+        "   - List tasks: 'list_tasks'\n"
+        "   - Save Code/ML notes: 'save_code_to_note'\n\n"
         "MULTIPLE / COMPOUND COMMANDS:\n"
-        "The user CAN and OFTEN WILL give MULTIPLE commands collectively in a single prompt (e.g. 'Create task deploy api due tomorrow, switch to today view, and open the cmd menu').\n"
+        "The user CAN and OFTEN WILL give MULTIPLE commands in a single prompt (e.g. 'Create task fine-tune BERT, switch to sprint view, and open the ML lab').\n"
         "YOU MUST CALL ALL CORRESPONDING TOOLS TOGETHER IN A SINGLE TURN.\n"
-        "Always be concise, proactive, and confirm what was opened, navigated, or created."
+        "Always be concise, proactive, authoritative, and confirm what was executed."
     )
 
 
