@@ -68,7 +68,7 @@ To make the app look clean, futuristic, and distraction-free:
 | **Step 3** | Global State Contexts           | TaskContext, ProjectContext, AgentContext          | 🟢 Completed |
 | **Step 4** | Navigation & Layout Shell       | Minimalist Sidebar, Header & Search                | 🟢 Completed |
 | **Step 5** | Task & Project Management Views | TaskList, TaskItem, AddTask & Project Modals       | 🟢 Completed |
-| **Step 6** | AI Copilot & Command Palette    | Ctrl+K Command Bar & Groq Chat Drawer              | ⏳ Pending   |
+| **Step 6** | AI Copilot & Command Palette    | Ctrl+K Command Bar & Groq Chat Drawer              | 🟢 Completed |
 | **Step 7** | Production Build & Verification | Verification testing and full build audit          | ⏳ Pending   |
 
 ---
@@ -824,6 +824,109 @@ Setting up Vite and Tailwind first establishes a modern, fast development enviro
 
 - **Commit**: [`1a20718`](https://github.com/pranav-pushya/todo/commit/1a20718)
 - **Commit Message**: `feat(web): implement Step 5 task and project views with TaskList, TaskItem, and modals`
+- **Branch**: `main` (Pushed to `origin/main`)
+
+---
+
+### 🟢 Step 6: AI Copilot Drawer & Command Palette (COMPLETED)
+
+#### A. What was done:
+1. Created [`src/components/agent/AICopilotDrawer.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/AICopilotDrawer.jsx):
+   - Slide-in side drawer featuring Groq Llama 3.3 engine branding and green online indicator.
+   - Dual-tab navigation: **Chat** and **Audit Logs**.
+   - **Real-Time Chat Tab**:
+     - Conversation bubbles for user prompts and AI responses.
+     - Autonomous tool action execution badges: Displays tools called by the agent (e.g. `✔ create_task`, `✔ reschedule_tasks`) with formatted JSON parameters.
+     - Quick prompt suggestion chips (*"Add high priority task 'Review security patch' due tomorrow"*, *"Reschedule overdue tasks to Friday"*, etc.).
+     - Animated thinking indicator while waiting for Groq LLM inference.
+     - Form input with send button and auto-scroll to latest response.
+   - **Audit Logs Tab**:
+     - Live audit trail displaying recent actions executed in SQLite (`GET /agent/logs`), including timestamp, action type, parameters, and result summary.
+2. Created [`src/components/agent/CommandPalette.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/CommandPalette.jsx):
+   - Spotlight overlay activated anywhere by typing `Ctrl + K` or clicking the search trigger in the Header.
+   - Freeform natural language prompt bar with "Run AI" action that submits directly to the Copilot and opens the drawer.
+   - Quick action shortcuts:
+     - `Create New Task` (N)
+     - `Create New Project` (P)
+     - `View Today's Tasks` (T)
+     - `Open AI Copilot Chat & Tool Logs` (AI)
+3. Updated [`src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx) to mount both `AICopilotDrawer` and `CommandPalette`.
+4. Verified that the production build bundles cleanly (`npm run build`).
+
+---
+
+#### B. How it was done (commands & code explanation):
+
+1. **Tool Action Rendering ([`src/components/agent/AICopilotDrawer.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/AICopilotDrawer.jsx))**:
+   ```jsx
+   {msg.actions && msg.actions.length > 0 && (
+     <div className="mt-2 pt-2 border-t border-white/[0.08] space-y-1.5">
+       <div className="text-[10px] font-semibold uppercase tracking-wider text-cobalt-300 flex items-center gap-1">
+         <Wrench className="w-3 h-3" />
+         <span>Actions Executed ({msg.actions.length})</span>
+       </div>
+       {msg.actions.map((act, idx) => (
+         <div key={idx} className="bg-black/40 rounded-lg p-2 font-mono text-[10px] text-slate-300 border border-white/[0.04]">
+           <div className="text-emerald-400 font-semibold mb-0.5">✔ {act.tool}</div>
+           <div className="text-slate-400 truncate">{JSON.stringify(act.parameters)}</div>
+         </div>
+       ))}
+     </div>
+   )}
+   ```
+   *Beginner Explanation*: Whenever the AI decides to perform database operations (like creating 3 tasks or moving deadlines), the backend returns `actions_taken`. This code visualizes each database tool called by the model so the user has full transparency over what changed.
+
+2. **Global Spotlight Shortcut ([`src/components/agent/CommandPalette.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/CommandPalette.jsx))**:
+   ```jsx
+   const handleRunCommand = async (e) => {
+     e.preventDefault();
+     if (!query.trim() || isSubmitting) return;
+
+     setIsSubmitting(true);
+     try {
+       await sendCommand(query.trim());
+       setIsCommandPaletteOpen(false);
+       setIsDrawerOpen(true);
+       setQuery('');
+     } finally {
+       setIsSubmitting(false);
+     }
+   };
+   ```
+
+3. **Production Build Verification**:
+   ```powershell
+   npm run build
+   ```
+   **Output**:
+   ```text
+   > todo-web@0.1.0 build
+   > vite build
+
+   vite v6.4.4 building for production...
+   transforming...
+   ✓ 1600 modules transformed.
+   rendering chunks...
+   computing gzip size...
+   dist/index.html                   0.86 kB │ gzip:  0.49 kB
+   dist/assets/index-DSRyTyES.css   23.87 kB │ gzip:  5.03 kB
+   dist/assets/index-CVfZqkuE.js   195.89 kB │ gzip: 58.30 kB
+   ✓ built in 4.00s
+   ```
+
+---
+
+#### C. Why it was done:
+1. **Natural Language Productivity**: Users can speak to the application naturally (*"Reschedule my tasks to next week"*) without manually clicking through date pickers or menus.
+2. **Transparent Auditability**: Displaying the exact tool execution parameters in both the chat feed and audit log builds user trust and makes AI actions verifiable.
+3. **Frictionless Command Palette**: Modern productivity apps like Raycast, Linear, and VS Code rely on `Ctrl+K` command bars to keep power users in flow state.
+
+---
+
+### 📦 Git Commit & Push Information
+
+- **Commit**: `[Pending push]`
+- **Commit Message**: `feat(web): implement Step 6 AI Copilot drawer with tool execution feed and Ctrl+K command palette`
 - **Branch**: `main` (Pushed to `origin/main`)
 
 ---

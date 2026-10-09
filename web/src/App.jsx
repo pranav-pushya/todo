@@ -8,6 +8,8 @@ import Header from './components/layout/Header';
 import TaskList from './components/tasks/TaskList';
 import AddTaskModal from './components/tasks/AddTaskModal';
 import CreateProjectModal from './components/projects/CreateProjectModal';
+import AICopilotDrawer from './components/agent/AICopilotDrawer';
+import CommandPalette from './components/agent/CommandPalette';
 
 function AppContent() {
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
@@ -40,6 +42,15 @@ function AppContent() {
           />
         </main>
       </div>
+
+      {/* Right AI Copilot Drawer */}
+      <AICopilotDrawer />
+
+      {/* Ctrl + K Command Palette */}
+      <CommandPalette
+        onOpenAddTask={handleOpenAddTask}
+        onOpenCreateProject={() => setIsCreateProjectOpen(true)}
+      />
 
       {/* Add / Edit Task Modal */}
       <AddTaskModal
