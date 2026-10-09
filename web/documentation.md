@@ -3020,3 +3020,21 @@ npm run dev
    - **Context Normalization**: Updated `NoteContext.jsx` `fetchNotes` and `editNote` so `format` is always normalized with fallback (`updated.format || updates.format || n.format || 'markdown'`), preventing any accidental resets.
    - **Instant 1-Click Segmented Toggle in Toolbar**: Replaced the hidden dropdown with prominent 1-click toggle buttons directly on the editor toolbar (`Markdown (.md)` in cobalt and `Plain Text (.txt)` in emerald).
    - **Outside-Click Refs**: Replaced `onMouseLeave` with document click-outside `useRef` event listeners for the Download and New Note menus.
+
+---
+
+### 🟢 Production Deployment: Firebase Hosting & Render Backend (COMPLETED)
+
+> **💡 Hinglish Summary:**  
+> Is deployment step mein humne latest code ko build karke Firebase Hosting par successfully deploy kar diya hai. Saath hi Render cloud par live backend active hai jisse pura application public web par seamlessly live chal raha hai.
+
+#### A. Deployment Details:
+1. **Frontend Production Bundle & Release**:
+   - Built optimized production assets via Vite (`npm run build`).
+   - Deployed directly to Firebase Hosting via Firebase CLI (`firebase deploy --only hosting`).
+   - **Live Web App URL**: [https://kortex-246.web.app](https://kortex-246.web.app) (also accessible at [https://kortex-246.firebaseapp.com](https://kortex-246.firebaseapp.com)).
+
+2. **Backend API Cloud Service**:
+   - Live on Render Cloud: [https://kortex-xnin.onrender.com/api/v1](https://kortex-xnin.onrender.com/api/v1)
+   - Verified health endpoint status: `200 OK` (`{"status":"healthy","database":"connected","version":"1.0.0"}`).
+   - Connected with auto-deploy on git push from `main`.
