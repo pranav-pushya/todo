@@ -3,6 +3,7 @@ import { useTasks } from '../../context/TaskContext';
 import { useProjects } from '../../context/ProjectContext';
 import TaskItem from './TaskItem';
 import DashboardView from '../dashboard/DashboardView';
+import NotesApp from '../notes/NotesApp';
 import { CheckCircle2, ListFilter, Plus } from 'lucide-react';
 
 export default function TaskList({ onOpenAddTask, onEditTask }) {
@@ -11,6 +12,7 @@ export default function TaskList({ onOpenAddTask, onEditTask }) {
     loading,
     error,
     activeFilter,
+    setActiveFilter,
     priorityFilter,
     setPriorityFilter,
     searchQuery,
@@ -19,6 +21,11 @@ export default function TaskList({ onOpenAddTask, onEditTask }) {
   const { projects, selectedProjectId } = useProjects();
 
   const currentProject = projects.find((p) => p.id === selectedProjectId);
+
+  // If user navigated to Notes workspace, render NotesApp
+  if (!selectedProjectId && activeFilter === 'notes') {
+    return <NotesApp onBackToTasks={() => setActiveFilter('inbox')} />;
+  }
 
   // If user navigated to Dashboard view and no project is selected, render DashboardView
   if (!selectedProjectId && activeFilter === 'dashboard') {

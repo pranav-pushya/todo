@@ -9,6 +9,7 @@ from app.schemas.agent import (
 from app.schemas.common import PriorityEnum, TaskViewFilter
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
+from app.schemas.note import NoteCreate, NoteResponse, NoteUpdate
 
 __all__ = [
     "PriorityEnum",
@@ -19,6 +20,9 @@ __all__ = [
     "TaskCreate",
     "TaskUpdate",
     "TaskResponse",
+    "NoteCreate",
+    "NoteUpdate",
+    "NoteResponse",
     "AgentCommandRequest",
     "AgentCommandResponse",
     "AgentExecutedAction",

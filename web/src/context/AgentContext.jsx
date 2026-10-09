@@ -83,6 +83,10 @@ export function AgentProvider({ children }) {
           setIsCreateProjectOpen(false);
           setIsCommandPaletteOpen(false);
           break;
+        case 'open_notes':
+          setSelectedProjectId(null);
+          setActiveFilter('notes');
+          break;
         case 'navigate_view':
           if (actionObj.view) {
             setSelectedProjectId(null);
@@ -158,12 +162,14 @@ export function AgentProvider({ children }) {
     }
 
     // 4. View Navigation
-    const navMatch = p.match(/\b(go\s+to|show|open|navigate\s+to|switch\s+to)\s+(today|week|this\s+week|dashboard|inbox|upcoming|completed)\b/i);
+    const navMatch = p.match(/\b(go\s+to|show|open|navigate\s+to|switch\s+to)\s+(today|week|this\s+week|dashboard|notes|inbox|upcoming|completed)\b/i);
     if (navMatch) {
       const v = navMatch[2].toLowerCase().replace(/\s+/, '').replace('thisweek', 'week').trim();
       intents.push({ action: 'navigate_view', view: v });
     } else if (/\b(show|open|view)?\s*(my\s+)?(progress|consistency|analytics|streak|dashboard)\b/i.test(p)) {
       intents.push({ action: 'navigate_view', view: 'dashboard' });
+    } else if (/\b(open|show|go\s+to|switch\s+to)\s+(my\s+)?notes(\s+app|\s+workspace)?\b/i.test(p) || p === 'notes' || p === 'notes app') {
+      intents.push({ action: 'open_notes' });
     }
 
     // 5. Priority Filter

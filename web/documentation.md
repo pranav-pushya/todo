@@ -1384,3 +1384,84 @@ npm run dev
 1. **Mid-Range Planning (This Week)**: Looking only at "Today" can feel too narrow, while "Upcoming" can feel overwhelming. A dedicated "This Week" view provides the sweet spot for medium-term weekly execution.
 2. **Behavioral Reinforcement & Consistency**: Visualizing daily streaks and past-7-days completion rates taps into habit-building psychology (such as GitHub commit heatmaps or Duolingo streaks), motivating users to complete tasks daily without breaking momentum.
 3. **Data-Driven Workload Clarity**: Charts showing weekly output trends and priority breakdowns allow users to spot bottlenecks, prevent burnout, and understand where their time is being spent.
+
+---
+
+## 9. 📝 Integrated Notes Webapp & Double-Click Logo Launcher
+
+### A. What was done:
+
+1. **Double-Click Logo Launcher Mechanism**:
+   - Attached an `onDoubleClick` event listener to the application logo in [`web/src/components/layout/Sidebar.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Sidebar.jsx).
+   - Double-clicking the brand logo ("AI To-Do" / checkmark icon) instantly switches the workspace into the **Notes Webapp**.
+   - Added hover micro-interactions: a tooltip *"Double-click logo to open Notes Workspace!"* and a subtle `2x click: Notes` indicator badge.
+
+2. **Full-Featured Notes Workspace (`NotesApp.jsx`)**:
+   - Built [`web/src/components/notes/NotesApp.jsx`](file:///d:/Coding/Projects/todo/web/src/components/notes/NotesApp.jsx):
+     - **Split-Pane Workspace**: Left sidebar with searchable, filterable notes cards and right canvas with a live distraction-free editor.
+     - **Rich Note Attributes**: Title, auto-saving content body, 6 curated color accent tags (Cobalt, Emerald, Amber, Rose, Purple, Cyan), comma-separated tag labels, and pin-to-top status.
+     - **"Convert to Task" Action**: 1-click conversion button that transforms any note directly into an active to-do item in your Inbox.
+     - **Real-time Word & Character Counter**: Tracks writing progress at the bottom toolbar.
+     - **Seamless Navigation**: `← Back to To-Do Tasks` button returns instantly to the task manager.
+
+3. **Backend Note Persistence & REST Endpoints**:
+   - Created the `Note` ORM model in [`backend/app/models/note.py`](file:///d:/Coding/Projects/todo/backend/app/models/note.py) with fields `title`, `content`, `color`, `pinned`, `tags`, and timestamps.
+   - Defined Pydantic schemas (`NoteCreate`, `NoteUpdate`, `NoteResponse`) in [`backend/app/schemas/note.py`](file:///d:/Coding/Projects/todo/backend/app/schemas/note.py).
+   - Implemented CRUD functions in [`backend/app/crud/note.py`](file:///d:/Coding/Projects/todo/backend/app/crud/note.py) (`get_notes`, `create_note`, `update_note`, `toggle_note_pin`, `delete_note`).
+   - Exposed REST API endpoints under `/api/v1/notes` in [`backend/app/api/v1/notes.py`](file:///d:/Coding/Projects/todo/backend/app/api/v1/notes.py).
+
+4. **Frontend Service & Context Integration**:
+   - Added `NoteAPI` in [`web/src/services/api.js`](file:///d:/Coding/Projects/todo/web/src/services/api.js).
+   - Created [`web/src/context/NoteContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/NoteContext.jsx) managing notes state, active note selection, optimistic editing, and task conversions.
+   - Wrapped the application tree with `NoteProvider` in [`web/src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx).
+   - Added quick action in [`web/src/components/agent/CommandPalette.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/CommandPalette.jsx) and natural language recognition in [`web/src/context/AgentContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/AgentContext.jsx) (*"open notes"*, *"notes workspace"*).
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **Logo Double-Click Handler ([`web/src/components/layout/Sidebar.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Sidebar.jsx))**:
+   ```jsx
+   <div
+     onDoubleClick={() => handleSelectNav('notes')}
+     title="Double-click logo to open Notes Workspace!"
+     className="h-16 border-b border-white/[0.08] px-6 flex items-center justify-between cursor-pointer group hover:bg-white/[0.02] transition-colors"
+   >
+     <div className="flex items-center gap-2.5">
+       <div className="w-7 h-7 rounded-lg bg-cobalt-700 flex items-center justify-center shadow-glow-cobalt group-hover:scale-105 transition-transform">
+         <CheckCircle className="w-4 h-4 text-white stroke-[2.5]" />
+       </div>
+       <div className="flex flex-col">
+         <span className="font-semibold text-sm tracking-tight text-white group-hover:text-cobalt-300 transition-colors">
+           AI To-Do
+         </span>
+         <span className="text-[9px] text-slate-500 font-mono hidden group-hover:block transition-all">
+           2x click: Notes
+         </span>
+       </div>
+     </div>
+   </div>
+   ```
+
+2. **Note-to-Task Conversion ([`web/src/context/NoteContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/NoteContext.jsx))**:
+   ```javascript
+   const convertToTask = async (note) => {
+     const taskData = {
+       title: note.title || 'Action from Note',
+       description: note.content || null,
+       priority: 'P3',
+       tags: note.tags ? note.tags.split(',').map((t) => t.trim()) : [],
+     };
+     const created = await TaskAPI.createTask(taskData);
+     fetchTasks();
+     return created;
+   };
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Integrated Knowledge & Execution**: Productivity requires both brainstorming (notes) and execution (tasks). Giving users a full Notes webapp inside the to-do manager eliminates context switching between apps.
+2. **Easter-Egg Logo Interaction**: Double-clicking the logo is a delightful, modern power-user shortcut that keeps the interface clean while keeping extensive functionality immediately accessible.
+3. **Actionable Notes**: The "Convert to Task" bridge ensures ideas captured in meeting notes or brainstorming sessions don't get forgotten—they directly become actionable items on your dashboard.

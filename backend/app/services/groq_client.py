@@ -166,6 +166,7 @@ TOOL_DEFINITIONS = [
                             "close_command_palette",
                             "open_add_task_modal",
                             "open_create_project_modal",
+                            "open_notes",
                             "navigate_view",
                             "filter_priority",
                             "search_tasks",
@@ -176,7 +177,7 @@ TOOL_DEFINITIONS = [
                     },
                     "view": {
                         "type": ["string", "null"],
-                        "description": "The view to navigate to: 'inbox', 'today', 'week', 'dashboard', 'upcoming', 'completed', or 'all'.",
+                        "description": "The view to navigate to: 'inbox', 'today', 'week', 'dashboard', 'notes', 'upcoming', 'completed', or 'all'.",
                     },
                     "project_name": {
                         "type": ["string", "null"],

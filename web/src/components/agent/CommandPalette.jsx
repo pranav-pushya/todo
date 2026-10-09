@@ -6,6 +6,7 @@ import {
   Calendar,
   CalendarDays,
   BarChart3,
+  FileText,
   X,
   ArrowRight,
 } from 'lucide-react';
@@ -174,6 +175,21 @@ export default function CommandPalette({ onOpenAddTask, onOpenCreateProject }) {
               <span>Productivity Dashboard & Consistency</span>
             </span>
             <span className="text-[10px] text-slate-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">D</span>
+          </button>
+
+          <button
+            onClick={() =>
+              handleAction(() => {
+                setActiveFilter('notes');
+              })
+            }
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.06] text-slate-300 hover:text-white transition-colors group text-left"
+          >
+            <span className="flex items-center gap-2.5">
+              <FileText className="w-4 h-4 text-purple-400" />
+              <span>Notes Workspace (2x-click logo)</span>
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">2x</span>
           </button>
 
           <button

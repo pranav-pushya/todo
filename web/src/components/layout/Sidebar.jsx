@@ -51,13 +51,24 @@ export default function Sidebar({ onOpenCreateProject }) {
 
   return (
     <aside className="w-64 border-r border-white/[0.08] bg-obsidian-950 flex flex-col h-screen select-none">
-      {/* Brand Logo */}
-      <div className="h-16 border-b border-white/[0.08] px-6 flex items-center justify-between">
+      {/* Brand Logo - Double click triggers Notes Workspace */}
+      <div
+        onDoubleClick={() => handleSelectNav('notes')}
+        title="Double-click logo to open Notes Workspace!"
+        className="h-16 border-b border-white/[0.08] px-6 flex items-center justify-between cursor-pointer group hover:bg-white/[0.02] transition-colors"
+      >
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-cobalt-700 flex items-center justify-center shadow-glow-cobalt">
+          <div className="w-7 h-7 rounded-lg bg-cobalt-700 flex items-center justify-center shadow-glow-cobalt group-hover:scale-105 transition-transform">
             <CheckCircle className="w-4 h-4 text-white stroke-[2.5]" />
           </div>
-          <span className="font-semibold text-sm tracking-tight text-white">AI To-Do</span>
+          <div className="flex flex-col">
+            <span className="font-semibold text-sm tracking-tight text-white group-hover:text-cobalt-300 transition-colors">
+              AI To-Do
+            </span>
+            <span className="text-[9px] text-slate-500 font-mono hidden group-hover:block transition-all">
+              2x click: Notes
+            </span>
+          </div>
         </div>
         <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-cobalt-950 border border-cobalt-800 text-cobalt-300">
           v1.0

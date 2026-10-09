@@ -3,5 +3,6 @@
 from app.models.project import Project
 from app.models.task import Task
 from app.models.log import AgentActionLog
+from app.models.note import Note
 
-__all__ = ["Project", "Task", "AgentActionLog"]
+__all__ = ["Project", "Task", "AgentActionLog", "Note"]

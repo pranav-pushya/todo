@@ -205,3 +205,52 @@ export const AgentAPI = {
     });
   },
 };
+
+// ==================== NOTE API ====================
+
+export const NoteAPI = {
+  /**
+   * Fetch notes with optional search keyword and pinned filter.
+   */
+  async getNotes({ search, pinnedOnly = false, skip = 0, limit = 200 } = {}) {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (pinnedOnly) params.append('pinned_only', 'true');
+    if (skip) params.append('skip', skip);
+    if (limit) params.append('limit', limit);
+
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return request(`/notes/${query}`);
+  },
+
+  async getNote(noteId) {
+    return request(`/notes/${noteId}`);
+  },
+
+  async createNote(noteData) {
+    return request('/notes/', {
+      method: 'POST',
+      body: JSON.stringify(noteData),
+    });
+  },
+
+  async updateNote(noteId, updates) {
+    return request(`/notes/${noteId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+  },
+
+  async togglePin(noteId) {
+    return request(`/notes/${noteId}/pin`, {
+      method: 'PATCH',
+    });
+  },
+
+  async deleteNote(noteId) {
+    return request(`/notes/${noteId}`, {
+      method: 'DELETE',
+    });
+  },
+};
+

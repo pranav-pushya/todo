@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { ProjectProvider, useProjects } from './context/ProjectContext';
 import { TaskProvider, useTasks } from './context/TaskContext';
 import { AgentProvider, useAgent } from './context/AgentContext';
+import { NoteProvider } from './context/NoteContext';
 
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
@@ -188,9 +189,11 @@ export default function App() {
   return (
     <ProjectProvider>
       <TaskProvider>
-        <AgentProvider>
-          <AppContent />
-        </AgentProvider>
+        <NoteProvider>
+          <AgentProvider>
+            <AppContent />
+          </AgentProvider>
+        </NoteProvider>
       </TaskProvider>
     </ProjectProvider>
   );
