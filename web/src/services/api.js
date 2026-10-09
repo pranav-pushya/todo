@@ -339,4 +339,51 @@ export const MLAPI = {
   },
 };
 
+// ==================== AGILE SPRINT & BURNDOWN API ====================
+
+export const SprintAPI = {
+  /**
+   * Get active sprint with assigned tasks.
+   */
+  async getActiveSprint() {
+    return request('/sprints/active');
+  },
+
+  /**
+   * Start a new sprint.
+   */
+  async createSprint(sprintData) {
+    return request('/sprints/', {
+      method: 'POST',
+      body: JSON.stringify(sprintData),
+    });
+  },
+
+  /**
+   * Assign task to sprint.
+   */
+  async addTaskToSprint(sprintId, taskId) {
+    return request(`/sprints/${sprintId}/tasks/${taskId}`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Get ideal vs actual burndown series.
+   */
+  async getBurndown(sprintId) {
+    return request(`/sprints/${sprintId}/burndown`);
+  },
+
+  /**
+   * Mark sprint completed.
+   */
+  async completeSprint(sprintId) {
+    return request(`/sprints/${sprintId}/complete`, {
+      method: 'PATCH',
+    });
+  },
+};
+
+
 

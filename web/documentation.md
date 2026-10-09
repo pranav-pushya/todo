@@ -2392,3 +2392,104 @@ npm run dev
 1. **Zero-Latency Workflow for Power Developers**: Developers who use Vim, Neovim, or Linear expect keyboard-first ergonomics. Switching between keyboard and mouse introduces physical micro-delays.
 2. **Effortless Triage**: Going through a morning inbox using `j` + `x` or `j` + `1` allows developers to triage dozens of tasks in seconds.
 3. **Discoverable Ergonomics**: Having the `?` cheatsheet readily available eliminates cognitive load and helps new users learn the system instantly.
+
+---
+
+## 🏃‍♂️ Feature 8: Sprint Mode & Agile Burndown Chart (Solo-Developer Engine)
+
+### A. What was done:
+
+1. **Relational Sprint Data Model & RESTful API**:
+   - Created [`backend/app/models/sprint.py`](file:///d:/Coding/Projects/todo/backend/app/models/sprint.py) with `Sprint` table storing `title`, `goal`, `start_date`, `end_date`, and `is_active`.
+   - Linked `Task.sprint_id = Column(Integer, ForeignKey("sprints.id", ondelete="SET NULL"))` with two-way SQLAlchemy relationship in [`backend/app/models/task.py`](file:///d:/Coding/Projects/todo/backend/app/models/task.py).
+   - Created Pydantic validation schemas in [`backend/app/schemas/sprint.py`](file:///d:/Coding/Projects/todo/backend/app/schemas/sprint.py): `SprintCreate`, `SprintResponse`, `BurndownPoint`, and `BurndownResponse`.
+   - Implemented CRUD and mathematical linear burndown computation in [`backend/app/crud/sprint.py`](file:///d:/Coding/Projects/todo/backend/app/crud/sprint.py).
+   - Exposed API endpoints in [`backend/app/api/v1/sprints.py`](file:///d:/Coding/Projects/todo/backend/app/api/v1/sprints.py):
+     - `GET /api/v1/sprints/active`: Returns active sprint, assigned tasks, and summary metrics.
+     - `POST /api/v1/sprints/`: Initializes a new sprint milestone.
+     - `POST /api/v1/sprints/{id}/tasks/{task_id}`: Assigns backlog tasks to the sprint.
+     - `GET /api/v1/sprints/{id}/burndown`: Computes day-by-day linear ideal slope, actual remaining tasks, and velocity prediction (`ahead`, `on_track`, `behind`).
+     - `PATCH /api/v1/sprints/{id}/complete`: Marks sprint complete and archives milestone.
+
+2. **Interactive SVG Agile Burndown Chart ([`web/src/components/sprint/SprintBoardView.jsx`](file:///d:/Coding/Projects/todo/web/src/components/sprint/SprintBoardView.jsx))**:
+   - Designed a custom SVG burndown component:
+     - **Dashed Slate Line**: Ideal burndown trajectory from Total Scope at Day 0 down to 0 at sprint deadline.
+     - **Glowing Emerald Curve & Area Gradient**: Actual remaining scope day-by-day based on real completion timestamps.
+     - **Interactive Point Hover Tooltips**: Displays date, remaining tasks, ideal tasks, and completed tasks on each day.
+     - **Velocity Metric Cards**: Scope, Burnt Down, Remaining, and Velocity (tasks/day).
+     - **Predictive Status Pills**: Dynamically flags status as `🚀 Ahead of Schedule`, `🎯 On Track`, or `⚠️ Behind Schedule`.
+
+3. **Solo-Developer 3-Column Kanban Board**:
+   - **📋 Sprint Backlog**: Tasks scheduled for the milestone.
+   - **⚡ In Active Flow**: Pinned / high-focus tasks with 1-click launch into the Zen Focus Chamber.
+   - **✅ Burnt Down (Done)**: Tasks completed during the sprint.
+   - **Add from Backlog Modal**: Allows assigning unassigned backlog tasks into the active sprint with one click.
+   - **Launch New Sprint Modal**: Modal allowing custom sprint naming, goal definition, and date ranges.
+
+4. **Integrated Navigation & Global Hotkeys**:
+   - Added `Sprint Mode` with `Flame` icon to [`web/src/components/layout/Sidebar.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Sidebar.jsx).
+   - Added Sprint view to [`web/src/components/agent/CommandPalette.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/CommandPalette.jsx).
+   - Added `s` / `S` hotkey in [`web/src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx) and listed it in [`web/src/components/common/KeyboardCheatsheetModal.jsx`](file:///d:/Coding/Projects/todo/web/src/components/common/KeyboardCheatsheetModal.jsx).
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **Sprint Burndown Engine ([`backend/app/crud/sprint.py`](file:///d:/Coding/Projects/todo/backend/app/crud/sprint.py))**:
+   ```python
+   def compute_sprint_burndown(db: Session, sprint_id: int) -> Dict[str, Any]:
+       sprint = db.query(Sprint).filter(Sprint.id == sprint_id).first()
+       total_tasks = len(sprint.tasks)
+       total_days = max(1, (sprint.end_date - sprint.start_date).days)
+       
+       # Day-by-day linear descent
+       series = []
+       for day_idx in range(total_days + 1):
+           current_date = sprint.start_date + timedelta(days=day_idx)
+           ideal_remaining = max(0.0, total_tasks - (day_idx / total_days) * total_tasks)
+           
+           # Actual completed tasks up to this date
+           completed_count = sum(
+               1 for t in sprint.tasks
+               if t.is_completed and t.completed_at and t.completed_at.date() <= current_date
+           )
+           actual_remaining = max(0, total_tasks - completed_count)
+           series.append({
+               "day_index": day_idx,
+               "date": current_date.isoformat(),
+               "ideal_remaining": round(ideal_remaining, 2),
+               "actual_remaining": actual_remaining,
+               "completed_on_day": ...
+           })
+       ...
+   ```
+
+2. **Interactive SVG Burndown Graphic ([`web/src/components/sprint/SprintBoardView.jsx`](file:///d:/Coding/Projects/todo/web/src/components/sprint/SprintBoardView.jsx))**:
+   ```jsx
+   // Renders ideal dashed line and solid emerald line with data hover
+   <path d={idealPath} fill="none" stroke="#64748b" strokeWidth="2" strokeDasharray="5,5" opacity="0.8" />
+   <path d={actualPath} fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+   ```
+
+3. **Production Build Verification**:
+   ```powershell
+   cd d:\Coding\Projects\todo\web
+   npm run build
+   ```
+   **Output**:
+   ```text
+   ✓ 1611 modules transformed.
+   rendering chunks...
+   dist/index.html                               0.86 kB │ gzip:   0.48 kB
+   dist/assets/index-jTjDflVw.css               82.41 kB │ gzip:  17.13 kB
+   dist/assets/index-BKHqKRxn.js               606.17 kB │ gzip: 170.25 kB
+   ✓ built in 10.74s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Solo-Developer Accountability**: Solo engineers and student developers often struggle with scope creep. Sprints enforce fixed timeboxes (e.g. 7 or 14 days) and explicit milestone goals.
+2. **Visual Trajectory Feedback**: The burndown chart immediately shows whether the developer is on track to hit their deadline, replacing vague feelings of progress with mathematical certainty.
+3. **Agile Without Jira Overhead**: Enterprise tools like Jira are bloated and heavy. This built-in lightweight Kanban and burndown gives students and indie hackers the discipline of Agile without context switching.

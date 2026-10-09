@@ -180,6 +180,21 @@ export default function CommandPalette({ onOpenAddTask, onOpenCreateProject }) {
           <button
             onClick={() =>
               handleAction(() => {
+                setActiveFilter('sprint');
+              })
+            }
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.06] text-slate-300 hover:text-white transition-colors group text-left"
+          >
+            <span className="flex items-center gap-2.5">
+              <Sparkles className="w-4 h-4 text-orange-400" />
+              <span>Agile Sprint Mode & Burndown Chart</span>
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">S</span>
+          </button>
+
+          <button
+            onClick={() =>
+              handleAction(() => {
                 setActiveFilter('notes');
               })
             }

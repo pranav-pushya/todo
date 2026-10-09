@@ -11,6 +11,7 @@ import {
   Sparkles,
   Command,
   FlaskConical,
+  Flame,
 } from 'lucide-react';
 import { useTasks } from '../../context/TaskContext';
 import { useProjects } from '../../context/ProjectContext';
@@ -53,6 +54,7 @@ export default function Sidebar({ onOpenCreateProject, onOpenML }) {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, badge: 'Overview' },
+    { id: 'sprint', label: 'Sprint Mode', icon: Flame, badge: 'Agile' },
     { id: 'inbox', label: 'Inbox', icon: Inbox },
     { id: 'today', label: 'Today', icon: Calendar },
     { id: 'week', label: 'This Week', icon: CalendarDays },

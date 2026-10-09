@@ -239,6 +239,10 @@ function AppContent() {
         e.preventDefault();
         setSelectedProjectId(null);
         setActiveFilter('inbox');
+      } else if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        setSelectedProjectId(null);
+        setActiveFilter('sprint');
       } else if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
         setIsDrawerOpen((prev) => !prev);

@@ -24,6 +24,7 @@ export default function KeyboardCheatsheetModal({ isOpen, onClose }) {
         { key: 'w', desc: 'Jump to This Week view' },
         { key: 'i', desc: 'Jump to Inbox' },
         { key: 'd', desc: 'Jump to Productivity Dashboard' },
+        { key: 's', desc: 'Jump to Sprint Mode & Burndown Chart' },
         { key: '2x Logo', desc: 'Double-click logo to open Notes Workspace' },
       ],
     },

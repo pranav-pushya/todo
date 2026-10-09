@@ -27,6 +27,12 @@ class Task(Base):
         nullable=True,
         index=True,
     )
+    sprint_id = Column(
+        Integer,
+        ForeignKey("sprints.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     title = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
     due_date = Column(Date, nullable=True, index=True)
@@ -37,8 +43,9 @@ class Task(Base):
     created_at = Column(DateTime, default=utcnow, nullable=False)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
 
-    # Relationship back to the parent Project (if any)
+    # Relationships
     project = relationship("Project", back_populates="tasks")
+    sprint = relationship("Sprint", back_populates="tasks")
     subtasks = relationship(
         "Subtask",
         back_populates="task",

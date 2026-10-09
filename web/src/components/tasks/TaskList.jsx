@@ -4,6 +4,7 @@ import { useProjects } from '../../context/ProjectContext';
 import TaskItem from './TaskItem';
 import DashboardView from '../dashboard/DashboardView';
 import NotesApp from '../notes/NotesApp';
+import SprintBoardView from '../sprint/SprintBoardView';
 import { CheckCircle2, ListFilter, Plus } from 'lucide-react';
 
 export default function TaskList({
@@ -36,6 +37,17 @@ export default function TaskList({
   // If user navigated to Dashboard view and no project is selected, render DashboardView
   if (!selectedProjectId && activeFilter === 'dashboard') {
     return <DashboardView onOpenAddTask={onOpenAddTask} />;
+  }
+
+  // If user navigated to Sprint view and no project is selected, render SprintBoardView
+  if (!selectedProjectId && activeFilter === 'sprint') {
+    return (
+      <SprintBoardView
+        onOpenAddTask={onOpenAddTask}
+        onEditTask={onEditTask}
+        onFocusTask={onFocusTask}
+      />
+    );
   }
 
   // Compute view header title
