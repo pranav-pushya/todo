@@ -41,6 +41,7 @@ export function NoteProvider({ children }) {
       const payload = {
         title: initialData.title || 'Untitled Note',
         content: initialData.content || '',
+        format: initialData.format || 'markdown',
         color: initialData.color || '#1d4ed8',
         pinned: Boolean(initialData.pinned),
         tags: initialData.tags || '',

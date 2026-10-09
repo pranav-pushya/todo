@@ -16,6 +16,7 @@ def to_note_response(note: Note) -> NoteResponse:
         id=note.id,
         title=note.title,
         content=note.content or "",
+        format=getattr(note, "format", "markdown") or "markdown",
         color=note.color,
         pinned=note.pinned,
         tags=note.tags or "",
@@ -61,6 +62,7 @@ def create_note(db: Session, note_in: NoteCreate) -> Note:
     db_note = Note(
         title=note_in.title.strip() if note_in.title else "Untitled Note",
         content=note_in.content or "",
+        format=note_in.format or "markdown",
         color=note_in.color or "#1d4ed8",
         pinned=bool(note_in.pinned),
         tags=note_in.tags or "",

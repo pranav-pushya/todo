@@ -2934,3 +2934,69 @@ npm run dev
 2. **Frictionless Onboarding**: The demo auto-login ensures new developers aren't stopped by aggressive login walls while still providing real authentication and profile customizability.
 3. **Ergonomic Vim Hotkey**: Adding `u` to the hacker keyboard suite ensures developers can inspect or update their profile at the speed of thought without lifting their hands from the keyboard.
 
+---
+
+### 🟢 Step 30: Notes Markdown vs Plain Text Format Toggle, File Export & Environment Secrets Migration (COMPLETED)
+
+> **💡 Hinglish Summary:**  
+> Is update mein humne notes ke liye Markdown (.md) aur Plain Text (.txt) ka seamless format switcher banaya aur direct file download feature add kiya. Saath hi Groq API key ko code se nikaal kar secure `.env` file mein daal diya taaki security badhe aur keys kabhi public na ho.
+
+#### A. What was done:
+
+1. **Groq API Key Relocation to `.env` Secrets Management**:
+   - Extracted API keys completely out of source code.
+   - Configured `backend/.env` and workspace `.env` with `GROQ_API_KEY` and `GROQ_MODEL`.
+   - Updated `backend/app/core/config.py` using Pydantic `BaseSettings` with `env_file=(".env", "../.env")` to dynamically read keys.
+   - Updated `backend/app/services/groq_client.py` to fetch via `settings.get_api_key()`.
+   - Added `.env.example` as a template for other environments and verified that `.env` files are ignored by git in `.gitignore`.
+
+2. **Backend Note Format Schema & Database Model**:
+   - `backend/app/models/note.py`: Added `format = Column(String(20), default="markdown", nullable=False)`.
+   - `backend/app/schemas/note.py`: Added `format: Optional[str] = Field(default="markdown")` to `NoteBase`, `NoteCreate`, `NoteUpdate`, and `NoteResponse`.
+   - `backend/app/crud/note.py`: Updated creation and response serialization to map note format.
+   - `backend/main.py`: Added automated SQLite schema migration in `auto_migrate_sqlite` for `notes.format`.
+
+3. **Frontend Notes Workspace Interactive Format Selection**:
+   - **Format Selector Dropdown**: Switch dynamically between `Markdown (.md)` (with KaTeX and code blocks) and `Plain Text (.txt)` (clean, distraction-free raw text).
+   - **One-Click File Download / Export**: Added export button with options to download note files as `.md` or `.txt` directly to disk with sanitized file names.
+   - **Format Badges in Sidebar**: Notes list cards display emerald `TXT` and cobalt `MD` pill badges.
+   - **New Note Split Button**: Quick option to create either a new Markdown note or a new Plain Text note.
+   - **Adaptive Editor & Preview Canvas**: When in Plain Text mode, renders clean text editing and preview without markdown clutter or unneeded LaTeX math tools.
+
+---
+
+#### B. Verification & Production Build:
+
+1. **Vite Production Bundler Execution**:
+   ```powershell
+   npm run build
+   ```
+   **Output**:
+   ```text
+   vite v6.4.4 building for production...
+   ✓ 1627 modules transformed.
+   dist/index.html                   0.86 kB │ gzip:   0.49 kB
+   dist/assets/index-Bykv9_Qg.css   86.25 kB │ gzip:  17.73 kB
+   dist/assets/index-DggHBOHp.js   838.72 kB │ gzip: 218.48 kB
+   ✓ built in 7.93s
+   ```
+
+2. **Automated Backend CRUD & Migration Tests**:
+   ```text
+   Created note 1: id=13, format=markdown
+   Created note 2: id=14, format=text
+   Updated note 1 format: text
+   All note format tests passed successfully!
+   ```
+
+---
+
+#### C. Why it was done:
+
+1. **Security & Best Practices**:
+   > **💡 Hinglish Summary:**  
+   > Hardcoded API keys ko code se hatana production best practices ke liye bohot zaroori tha. Ab developers aur CI/CD pipelines `.env` file ke through securely API keys inject kar sakte hain bina git leak ke risk ke.
+   
+2. **Note Taking Flexibility**:
+   > **💡 Hinglish Summary:**  
+   > Har note ke liye markdown zaroori nahi hota; raw code snippets, lists ya simple drafting ke liye Plain Text format bohot convenient hota hai. Isliye user ko Markdown aur Plain Text dono formats choose karne aur export karne ka control diya gaya hai.

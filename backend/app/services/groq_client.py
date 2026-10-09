@@ -333,14 +333,13 @@ def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
     Supports iterative multi-tool execution loops so multiple commands
     (e.g., creating tasks, navigating views, opening menus) are executed collectively.
     """
-    api_key = settings.GROQ_API_KEY
+    api_key = settings.get_api_key()
     if not api_key:
         return {
             "status": "needs_key",
             "message": (
                 "Groq API key not configured yet. "
-                "Please open 'backend/app/core/config.py' and insert your key pieces (k1, k2, k3) "
-                "or set GROQ_API_KEY in your .env file."
+                "Please set GROQ_API_KEY in your .env file."
             ),
             "executed_actions": [],
             "reply": "Please configure your Groq API key in backend/app/core/config.py to enable AI Agent control.",
@@ -443,7 +442,7 @@ def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
 
 def deconstruct_task_with_llm(title: str, description: Optional[str] = None) -> List[Dict[str, Any]]:
     """Use Groq LPU with Llama 3.3 to break down an overwhelming task into actionable 15-minute subtasks."""
-    api_key = settings.GROQ_API_KEY
+    api_key = settings.get_api_key()
     if not api_key:
         return [
             {"title": f"Plan architecture & specs for '{title}'", "estimated_minutes": 15},

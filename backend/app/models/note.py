@@ -22,6 +22,7 @@ class Note(Base):
     task_id = Column(Integer, ForeignKey("tasks.id", ondelete="SET NULL"), nullable=True, index=True)
     title = Column(String(255), nullable=False, index=True, default="Untitled Note")
     content = Column(Text, nullable=True, default="")
+    format = Column(String(20), default="markdown", nullable=False)  # 'markdown' or 'text'
     color = Column(String(50), nullable=False, default="#1d4ed8")  # Accent / category color
     pinned = Column(Boolean, default=False, nullable=False, index=True)
     tags = Column(String(255), default="", nullable=False)  # Comma-separated tags

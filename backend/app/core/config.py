@@ -33,20 +33,22 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 Days token validity
 
 
-    # Groq AI Split-Key structure
-    # You can paste your key pieces here or in a .env file
-    k1: str = "gsk_i9BLxswr5co"
-    k2: str = "YrWZ5X339WGdyb3FYMe"
-    k3: str = "Y1aGo5cpCTdWldHCiQATWD"
+    # Groq AI Configuration (loaded securely from .env or environment)
+    GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "openai/gpt-oss-120b"
+    k1: str = ""
+    k2: str = ""
+    k3: str = ""
 
-    @property
-    def GROQ_API_KEY(self) -> str:
-        """Dynamically assemble the full Groq API key from its split parts."""
-        return (self.k1 + self.k2 + self.k3).strip()
+    def get_api_key(self) -> str:
+        """Resolve Groq API key from GROQ_API_KEY or split pieces."""
+        if self.GROQ_API_KEY and self.GROQ_API_KEY.strip():
+            return self.GROQ_API_KEY.strip()
+        parts = (self.k1 + self.k2 + self.k3).strip()
+        return parts
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
         extra="ignore"
     )

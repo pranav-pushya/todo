@@ -10,6 +10,7 @@ class NoteBase(BaseModel):
 
     title: str = Field(default="Untitled Note", max_length=255, description="Note title")
     content: Optional[str] = Field(default="", description="Markdown or text note content")
+    format: Optional[str] = Field(default="markdown", description="Document format: 'markdown' or 'text'")
     color: Optional[str] = Field(default="#1d4ed8", max_length=50, description="Accent hex color")
     pinned: Optional[bool] = Field(default=False, description="Whether the note is pinned to top")
     tags: Optional[str] = Field(default="", max_length=255, description="Comma-separated tags")
@@ -27,6 +28,7 @@ class NoteUpdate(BaseModel):
 
     title: Optional[str] = Field(None, max_length=255)
     content: Optional[str] = None
+    format: Optional[str] = None
     color: Optional[str] = Field(None, max_length=50)
     pinned: Optional[bool] = None
     tags: Optional[str] = Field(None, max_length=255)

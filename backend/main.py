@@ -23,10 +23,13 @@ def auto_migrate_sqlite():
             conn.execute(text("ALTER TABLE tasks ADD COLUMN sprint_id INTEGER REFERENCES sprints(id) ON DELETE SET NULL"))
             conn.commit()
 
-        # 2. Migrate notes.task_id if missing
+        # 2. Migrate notes.task_id and format if missing
         note_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(notes)")).fetchall()]
         if "task_id" not in note_cols:
             conn.execute(text("ALTER TABLE notes ADD COLUMN task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL"))
+            conn.commit()
+        if "format" not in note_cols:
+            conn.execute(text("ALTER TABLE notes ADD COLUMN format VARCHAR(20) DEFAULT 'markdown'"))
             conn.commit()
 
         # 3. Migrate user_id across tasks, projects, notes, sprints, experiment_runs
