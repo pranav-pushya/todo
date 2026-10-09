@@ -67,7 +67,7 @@ To make the app look clean, futuristic, and distraction-free:
 | **Step 2** | API Client Service Layer        | Connect frontend to FastAPI backend endpoints      | 🟢 Completed |
 | **Step 3** | Global State Contexts           | TaskContext, ProjectContext, AgentContext          | 🟢 Completed |
 | **Step 4** | Navigation & Layout Shell       | Minimalist Sidebar, Header & Search                | 🟢 Completed |
-| **Step 5** | Task & Project Management Views | TaskList, TaskItem, AddTask & Project Modals       | ⏳ Pending   |
+| **Step 5** | Task & Project Management Views | TaskList, TaskItem, AddTask & Project Modals       | 🟢 Completed |
 | **Step 6** | AI Copilot & Command Palette    | Ctrl+K Command Bar & Groq Chat Drawer              | ⏳ Pending   |
 | **Step 7** | Production Build & Verification | Verification testing and full build audit          | ⏳ Pending   |
 
@@ -694,6 +694,136 @@ Setting up Vite and Tailwind first establishes a modern, fast development enviro
 
 - **Commit**: [`0e82d14`](https://github.com/pranav-pushya/todo/commit/0e82d14)
 - **Commit Message**: `feat(web): implement Step 4 responsive navigation layout with Sidebar, Header, and App shell`
+- **Branch**: `main` (Pushed to `origin/main`)
+
+---
+
+### 🟢 Step 5: Task & Project Management Views (COMPLETED)
+
+#### A. What was done:
+1. Created [`src/components/tasks/TaskItem.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/TaskItem.jsx):
+   - Interactive round checkbox with check animation that calls `toggleTask(task.id)`.
+   - Title strikethrough and muted text on completed tasks.
+   - Dynamic overdue date detector (renders red for overdue, cobalt for today, neutral slate for upcoming).
+   - Priority badges mapped to curated color tokens:
+     - `P1 Urgent`: Red / Rose
+     - `P2 High`: Amber / Yellow
+     - `P3 Medium`: Cobalt / Blue
+     - `P4 Low`: Slate / Gray
+   - Project badge displaying the parent project's title and color dot indicator.
+   - Tag chips for task labels.
+   - Hover quick action buttons: Edit task modal trigger and Delete task with confirmation dialog.
+2. Created [`src/components/tasks/TaskList.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/TaskList.jsx):
+   - Header displaying the active view title ("Inbox", "Today", "Upcoming", "Completed", or Project name).
+   - Dynamic task count badge (`X tasks`).
+   - Project description subtitle when a project is selected.
+   - Horizontal priority filter chip bar (`All`, `P1`, `P2`, `P3`, `P4`).
+   - Clean empty state with icon and "+ Create Task" call-to-action button.
+   - Loading skeleton cards while tasks are fetching.
+3. Created [`src/components/tasks/AddTaskModal.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/AddTaskModal.jsx):
+   - Reusable modal supporting both **creating new tasks** and **editing existing tasks**.
+   - Input fields: Title (required with autofocus), Description textarea, Priority dropdown (`P1`-`P4`), Due date picker, Project selector (Inbox or project list), and comma-separated Tags.
+   - Error alert banner for validation failures.
+   - Save and Cancel buttons with loading state.
+4. Created [`src/components/projects/CreateProjectModal.jsx`](file:///d:/Coding/Projects/todo/web/src/components/projects/CreateProjectModal.jsx):
+   - Modal to create projects.
+   - Input fields: Project Name, Description, and 8 color theme swatches (Cobalt, Emerald, Amber, Rose, Purple, Cyan, Pink, Indigo).
+   - Automatically selects the newly created project in the Sidebar upon submission.
+5. Updated [`src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx):
+   - Integrated `TaskList`, `AddTaskModal`, and `CreateProjectModal` into the main application.
+6. Verified that the production build bundles cleanly (`npm run build`).
+
+---
+
+#### B. How it was done (commands & code explanation):
+
+1. **Priority & Overdue Due Date Logic ([`src/components/tasks/TaskItem.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/TaskItem.jsx))**:
+   ```javascript
+   const PRIORITY_CONFIG = {
+     P1: { label: 'P1 Urgent', bg: 'bg-rose-500/10 text-rose-300 border-rose-500/30' },
+     P2: { label: 'P2 High', bg: 'bg-amber-500/10 text-amber-300 border-amber-500/30' },
+     P3: { label: 'P3 Medium', bg: 'bg-cobalt-500/10 text-cobalt-300 border-cobalt-500/30' },
+     P4: { label: 'P4 Low', bg: 'bg-slate-500/10 text-slate-400 border-slate-500/30' },
+   };
+
+   const formatDueDate = (dateStr) => {
+     if (!dateStr) return null;
+     const date = new Date(dateStr);
+     const today = new Date();
+     today.setHours(0, 0, 0, 0);
+
+     const isToday =
+       date.getDate() === today.getDate() &&
+       date.getMonth() === today.getMonth() &&
+       date.getFullYear() === today.getFullYear();
+
+     const isOverdue = date < today && !task.completed;
+     const formatted = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+     return { text: isToday ? 'Today' : formatted, isOverdue, isToday };
+   };
+   ```
+
+2. **Dual-Mode Task Modal ([`src/components/tasks/AddTaskModal.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/AddTaskModal.jsx))**:
+   ```javascript
+   const handleSubmit = async (e) => {
+     e.preventDefault();
+     if (!title.trim()) {
+       setError('Please provide a task title');
+       return;
+     }
+
+     const payload = {
+       title: title.trim(),
+       description: description.trim() || null,
+       priority,
+       due_date: dueDate ? new Date(dueDate).toISOString() : null,
+       project_id: projectId ? Number(projectId) : null,
+       tags: tagsInput.split(',').map((t) => t.trim()).filter(Boolean),
+     };
+
+     if (taskToEdit) {
+       await editTask(taskToEdit.id, payload);
+     } else {
+       await addTask(payload);
+     }
+     onClose();
+   };
+   ```
+
+3. **Production Build Verification**:
+   ```powershell
+   npm run build
+   ```
+   **Output**:
+   ```text
+   > todo-web@0.1.0 build
+   > vite build
+
+   vite v6.4.4 building for production...
+   transforming...
+   ✓ 1598 modules transformed.
+   rendering chunks...
+   computing gzip size...
+   dist/index.html                   0.86 kB │ gzip:  0.48 kB
+   dist/assets/index-qgaPIKzv.css   21.68 kB │ gzip:  4.67 kB
+   dist/assets/index-Wh8ak2Sq.js   182.37 kB │ gzip: 55.71 kB
+   ✓ built in 4.81s
+   ```
+
+---
+
+#### C. Why it was done:
+1. **Complete CRUD Experience**: Users need to create, read, update, complete, and delete tasks and projects effortlessly without confusing page reloads.
+2. **Immediate Visual Cues**: Overdue tasks immediately stand out with a rose red badge, today's tasks are highlighted with cobalt blue, and priorities are instantly recognizable.
+3. **Modal Reusability**: Using a single modal (`AddTaskModal`) for both creating and editing tasks reduces code duplication and guarantees a consistent form experience.
+
+---
+
+### 📦 Git Commit & Push Information
+
+- **Commit**: `[Pending push]`
+- **Commit Message**: `feat(web): implement Step 5 task and project views with TaskList, TaskItem, and modals`
 - **Branch**: `main` (Pushed to `origin/main`)
 
 ---
