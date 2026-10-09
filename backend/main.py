@@ -31,6 +31,8 @@ def auto_migrate_sqlite():
         if "format" not in note_cols:
             conn.execute(text("ALTER TABLE notes ADD COLUMN format VARCHAR(20) DEFAULT 'markdown'"))
             conn.commit()
+        conn.execute(text("UPDATE notes SET format = 'markdown' WHERE format IS NULL OR format = ''"))
+        conn.commit()
 
         # 3. Migrate user_id across tasks, projects, notes, sprints, experiment_runs
         for tbl in ["tasks", "projects", "notes", "sprints", "experiment_runs"]:

@@ -17,7 +17,9 @@ export function NoteProvider({ children }) {
     setError(null);
     try {
       const data = await NoteAPI.getNotes({ search: searchQuery.trim() || undefined });
-      const safeNotes = Array.isArray(data) ? data : [];
+      const safeNotes = Array.isArray(data)
+        ? data.map((n) => ({ ...n, format: n.format || 'markdown' }))
+        : [];
       setNotes(safeNotes);
       setActiveNoteId((curr) => {
         if (!curr && safeNotes.length > 0) return safeNotes[0].id;
@@ -47,9 +49,10 @@ export function NoteProvider({ children }) {
         tags: initialData.tags || '',
       };
       const created = await NoteAPI.createNote(payload);
-      setNotes((prev) => [created, ...prev]);
-      setActiveNoteId(created.id);
-      return created;
+      const normalizedCreated = { ...created, format: created.format || payload.format };
+      setNotes((prev) => [normalizedCreated, ...prev]);
+      setActiveNoteId(normalizedCreated.id);
+      return normalizedCreated;
     } catch (err) {
       setError(err.message);
       throw err;
@@ -63,7 +66,13 @@ export function NoteProvider({ children }) {
         prev.map((n) => (n.id === noteId ? { ...n, ...updates, updated_at: new Date().toISOString() } : n))
       );
       const updated = await NoteAPI.updateNote(noteId, updates);
-      setNotes((prev) => prev.map((n) => (n.id === noteId ? updated : n)));
+      setNotes((prev) =>
+        prev.map((n) =>
+          n.id === noteId
+            ? { ...updated, format: updated.format || updates.format || n.format || 'markdown' }
+            : n
+        )
+      );
       return updated;
     } catch (err) {
       setError(err.message);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   FileText,
   Plus,
@@ -56,11 +56,26 @@ export default function NotesApp({ onBackToTasks }) {
   const { toast, confirm } = useUIFeedback();
   const [isSyncing, setIsSyncing] = useState(false);
   const [editorMode, setEditorMode] = useState('split'); // 'edit' | 'split' | 'preview'
-  const [showFormatMenu, setShowFormatMenu] = useState(false);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const [showNewMenu, setShowNewMenu] = useState(false);
 
-  const isPlainText = activeNote?.format === 'text';
+  const downloadMenuRef = useRef(null);
+  const newMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target)) {
+        setShowDownloadMenu(false);
+      }
+      if (newMenuRef.current && !newMenuRef.current.contains(e.target)) {
+        setShowNewMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const isPlainText = (activeNote?.format || 'markdown') === 'text';
 
   const handleInsertLatex = () => {
     if (!activeNote) return;
@@ -93,13 +108,11 @@ export default function NotesApp({ onBackToTasks }) {
 
   const handleToggleFormat = async (newFormat) => {
     if (!activeNote) return;
-    if (activeNote.format === newFormat) {
-      setShowFormatMenu(false);
-      return;
-    }
+    const currentFormat = activeNote.format || 'markdown';
+    if (currentFormat === newFormat) return;
+
     try {
       await editNote(activeNote.id, { format: newFormat });
-      setShowFormatMenu(false);
       toast.success(`Format changed to ${newFormat === 'text' ? 'Plain Text (.txt)' : 'Markdown (.md)'}`);
     } catch (err) {
       toast.error('Failed to change note format');
@@ -204,7 +217,7 @@ export default function NotesApp({ onBackToTasks }) {
           </div>
 
           {/* New Note Button with Format Picker */}
-          <div className="relative">
+          <div className="relative" ref={newMenuRef}>
             <div className="inline-flex rounded-lg bg-cobalt-700 hover:bg-cobalt-600 shadow-glow-cobalt overflow-hidden transition-all">
               <button
                 onClick={() => handleCreateNewNote('markdown')}
@@ -226,7 +239,6 @@ export default function NotesApp({ onBackToTasks }) {
             {showNewMenu && (
               <div
                 className="absolute top-full right-0 mt-1.5 w-48 bg-obsidian-900 border border-white/10 rounded-xl shadow-2xl p-1.5 z-50 flex flex-col gap-1 backdrop-blur-xl animate-fadeIn"
-                onMouseLeave={() => setShowNewMenu(false)}
               >
                 <button
                   onClick={() => {
@@ -360,66 +372,34 @@ export default function NotesApp({ onBackToTasks }) {
 
                   <div className="h-4 w-px bg-white/[0.08]" />
 
-                  {/* Format Selector Dropdown (Markdown vs Plain Text) */}
-                  <div className="relative">
+                  {/* Format Segmented Toggle: Markdown vs Plain Text */}
+                  <div className="flex items-center bg-obsidian-950 p-0.5 rounded-lg border border-white/[0.08] text-xs">
                     <button
-                      onClick={() => setShowFormatMenu((v) => !v)}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-obsidian-950 hover:bg-obsidian-850 text-slate-300 hover:text-white border border-white/[0.08] text-xs font-medium transition-colors"
-                      title="Click to toggle between Markdown (.md) and Plain Text (.txt)"
+                      type="button"
+                      onClick={() => handleToggleFormat('markdown')}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all ${
+                        !isPlainText
+                          ? 'bg-cobalt-700 text-white font-semibold shadow-glow-cobalt'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                      title="Format as Markdown (.md) with KaTeX math & syntax-highlighted code"
                     >
-                      {isPlainText ? (
-                        <FileType className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <FileCode className="w-3.5 h-3.5 text-cobalt-400" />
-                      )}
-                      <span className="font-medium">
-                        {isPlainText ? 'Plain Text (.txt)' : 'Markdown (.md)'}
-                      </span>
-                      <ChevronDown className="w-3 h-3 text-slate-500" />
+                      <FileCode className="w-3.5 h-3.5 text-cobalt-300" />
+                      <span>Markdown (.md)</span>
                     </button>
-
-                    {showFormatMenu && (
-                      <div
-                        className="absolute top-full left-0 mt-1.5 w-52 bg-obsidian-900 border border-white/10 rounded-xl shadow-2xl p-1.5 z-50 flex flex-col gap-1 backdrop-blur-xl animate-fadeIn"
-                        onMouseLeave={() => setShowFormatMenu(false)}
-                      >
-                        <button
-                          onClick={() => handleToggleFormat('markdown')}
-                          className={`flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
-                            !isPlainText
-                              ? 'bg-cobalt-950/80 text-white font-medium border border-cobalt-600/30'
-                              : 'text-slate-300 hover:bg-white/[0.06] hover:text-white'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <FileCode className="w-3.5 h-3.5 text-cobalt-400" />
-                            <div className="text-left">
-                              <div className="font-semibold">Markdown (.md)</div>
-                              <div className="text-[10px] text-slate-500">KaTeX formulas & syntax highlighting</div>
-                            </div>
-                          </div>
-                          {!isPlainText && <Check className="w-3.5 h-3.5 text-cobalt-400" />}
-                        </button>
-
-                        <button
-                          onClick={() => handleToggleFormat('text')}
-                          className={`flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
-                            isPlainText
-                              ? 'bg-emerald-950/80 text-white font-medium border border-emerald-600/30'
-                              : 'text-slate-300 hover:bg-white/[0.06] hover:text-white'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <FileType className="w-3.5 h-3.5 text-emerald-400" />
-                            <div className="text-left">
-                              <div className="font-semibold">Plain Text (.txt)</div>
-                              <div className="text-[10px] text-slate-500">Simple unformatted text notes</div>
-                            </div>
-                          </div>
-                          {isPlainText && <Check className="w-3.5 h-3.5 text-emerald-400" />}
-                        </button>
-                      </div>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleFormat('text')}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all ${
+                        isPlainText
+                          ? 'bg-emerald-600 text-white font-semibold shadow-glow-emerald'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                      title="Format as Plain Text (.txt) with clean unformatted notes"
+                    >
+                      <FileType className="w-3.5 h-3.5 text-emerald-300" />
+                      <span>Plain Text (.txt)</span>
+                    </button>
                   </div>
                 </div>
 
@@ -466,7 +446,7 @@ export default function NotesApp({ onBackToTasks }) {
                   </div>
 
                   {/* Download / Export Button with Dropdown */}
-                  <div className="relative">
+                  <div className="relative" ref={downloadMenuRef}>
                     <div className="inline-flex rounded-lg bg-obsidian-950 border border-white/[0.08] overflow-hidden">
                       <button
                         onClick={() => handleDownloadFile()}
@@ -488,7 +468,6 @@ export default function NotesApp({ onBackToTasks }) {
                     {showDownloadMenu && (
                       <div
                         className="absolute top-full right-0 mt-1.5 w-44 bg-obsidian-900 border border-white/10 rounded-xl shadow-2xl p-1.5 z-50 flex flex-col gap-1 backdrop-blur-xl animate-fadeIn"
-                        onMouseLeave={() => setShowDownloadMenu(false)}
                       >
                         <button
                           onClick={() => {

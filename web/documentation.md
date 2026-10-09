@@ -3000,3 +3000,23 @@ npm run dev
 2. **Note Taking Flexibility**:
    > **💡 Hinglish Summary:**  
    > Har note ke liye markdown zaroori nahi hota; raw code snippets, lists ya simple drafting ke liye Plain Text format bohot convenient hota hai. Isliye user ko Markdown aur Plain Text dono formats choose karne aur export karne ka control diya gaya hai.
+
+---
+
+### 🟢 Hotfix: Stale Process Resolution, One-Click Format Switcher & .gitignore Security (.env.example)
+
+> **💡 Hinglish Summary:**  
+> Is hotfix mein humne `.env.example` ko git cache se delete karke `.gitignore` mein securely daal diya taaki GitHub par koi bhi env template na dikhe. Saath hi notes format switcher ko 1-click segmented toggle button bana diya aur backend process ko restart karke format toggle na hone ka issue permanently solve kiya.
+
+#### A. What was fixed:
+1. **Removed `.env.example` from Git Tracking & Added to `.gitignore`**:
+   - Ran `git rm --cached .env.example` to remove the file from GitHub.
+   - Updated `.gitignore` with `.env.example`, `*.env.example`, and `backend/.env*`.
+   - Deleted local template so no secret template files remain tracked in version control.
+
+2. **Resolved Notes Format Switch Issue (Markdown ↔ Plain Text)**:
+   - **Root Cause**: Backend process on port 8001 was running an older in-memory process without `--reload` that did not yet serialize the `format` column, causing state to revert to `null`.
+   - **Backend Fix**: Added auto-migration query in `auto_migrate_sqlite()` ensuring any `NULL` or empty format rows in SQLite are defaulted to `'markdown'`. Terminated stale process and verified `PATCH /api/v1/notes/{id}` updates `format` to `'text'` and `'markdown'` reliably.
+   - **Context Normalization**: Updated `NoteContext.jsx` `fetchNotes` and `editNote` so `format` is always normalized with fallback (`updated.format || updates.format || n.format || 'markdown'`), preventing any accidental resets.
+   - **Instant 1-Click Segmented Toggle in Toolbar**: Replaced the hidden dropdown with prominent 1-click toggle buttons directly on the editor toolbar (`Markdown (.md)` in cobalt and `Plain Text (.txt)` in emerald).
+   - **Outside-Click Refs**: Replaced `onMouseLeave` with document click-outside `useRef` event listeners for the Download and New Note menus.
