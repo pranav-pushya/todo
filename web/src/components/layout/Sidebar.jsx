@@ -10,13 +10,15 @@ import {
   Trash2,
   Sparkles,
   Command,
+  FlaskConical,
 } from 'lucide-react';
 import { useTasks } from '../../context/TaskContext';
 import { useProjects } from '../../context/ProjectContext';
 import { useAgent } from '../../context/AgentContext';
 import { useUIFeedback } from '../../context/UIFeedbackContext';
 
-export default function Sidebar({ onOpenCreateProject }) {
+export default function Sidebar({ onOpenCreateProject, onOpenML }) {
+
   const { activeFilter, setActiveFilter } = useTasks();
   const { projects, selectedProjectId, setSelectedProjectId, removeProject } = useProjects();
   const { setIsDrawerOpen, setIsCommandPaletteOpen } = useAgent();
@@ -125,6 +127,20 @@ export default function Sidebar({ onOpenCreateProject }) {
               </button>
             );
           })}
+
+          {/* ML Experiment Lab Trigger */}
+          <button
+            onClick={onOpenML}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-purple-300 hover:text-white bg-purple-950/20 hover:bg-purple-900/40 border border-purple-500/20 transition-all cursor-pointer mt-2 group"
+          >
+            <div className="flex items-center gap-2.5">
+              <FlaskConical className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
+              <span>ML Experiment Lab</span>
+            </div>
+            <span className="text-[9px] font-mono uppercase bg-purple-500/20 px-1.5 py-0.5 rounded text-purple-300 border border-purple-500/30">
+              Webhooks
+            </span>
+          </button>
         </div>
 
         {/* Projects Section */}

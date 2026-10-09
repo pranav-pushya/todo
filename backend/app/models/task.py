@@ -51,6 +51,12 @@ class Task(Base):
         cascade="all, delete-orphan",
         order_by="Note.id",
     )
+    experiments = relationship(
+        "ExperimentRun",
+        back_populates="task",
+        cascade="all, delete-orphan",
+        order_by="ExperimentRun.id.desc()",
+    )
 
     def __repr__(self) -> str:
         return f"<Task(id={self.id}, title='{self.title}', priority='{self.priority}', completed={self.completed})>"

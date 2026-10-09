@@ -2111,3 +2111,104 @@ npm run dev
 1. **Leveraging the Developer Mental Model**: Developers already check GitHub daily. Bringing the visual satisfaction of a green/cobalt contribution grid into everyday task management creates a strong habit loop.
 2. **Preventing "Zero Days"**: Seeing a blank square on today's column triggers an instinctual urge to knock out at least one task to keep the glowing chain unbroken.
 3. **Holistic Long-Term Momentum**: Daily to-do lists only show short-term horizons; the consistency matrix visualizes months of sustained hard work at a single glance.
+
+---
+
+## 🧪 Feature 5: AI/ML Experiment & Model Training Webhook Integration
+
+### A. What was done:
+
+1. **Relational Model & Schemas ([`backend/app/models/experiment.py`](file:///d:/Coding/Projects/todo/backend/app/models/experiment.py))**:
+   - Implemented `ExperimentRun` ORM model recording `model_name`, `framework`, `status`, `current_epoch`, `total_epochs`, `metrics_json`, `training_time_seconds`, and `dataset_name`.
+   - Connected `Task.experiments` relationship with cascade deletion and export in [`backend/app/models/__init__.py`](file:///d:/Coding/Projects/todo/backend/app/models/__init__.py).
+   - Created Pydantic schemas in [`backend/app/schemas/experiment.py`](file:///d:/Coding/Projects/todo/backend/app/schemas/experiment.py) to validate incoming webhook payloads.
+
+2. **Automated Task Resolution & Completion Engine ([`backend/app/crud/experiment.py`](file:///d:/Coding/Projects/todo/backend/app/crud/experiment.py))**:
+   - Implemented `process_experiment_webhook(db, payload)`:
+     - Resolves existing tasks by ID or fuzzy task title matching.
+     - Automatically generates a new task if none exists.
+     - On `status == 'success'`, automatically marks the task (and its subtasks) as completed with UTC timestamp.
+     - On `status == 'failed'`, raises priority to `P1 Urgent` and annotates the task description.
+     - Serializes metrics dictionary (`val_loss`, `accuracy`, `mAP50`, `f1_score`, etc.).
+
+3. **Master REST Endpoints ([`backend/app/api/v1/ml.py`](file:///d:/Coding/Projects/todo/backend/app/api/v1/ml.py))**:
+   - `POST /api/v1/ml/webhook`: Ingestion point for model callbacks.
+   - `GET /api/v1/ml/experiments`: Lists all logged runs with metrics.
+   - `DELETE /api/v1/ml/experiments/{id}`: Deletes a logged experiment run.
+   - Mounted router in [`backend/app/api/router.py`](file:///d:/Coding/Projects/todo/backend/app/api/router.py).
+
+4. **Frontend ML Experiment Lab ([`web/src/components/ml/MLExperimentsModal.jsx`](file:///d:/Coding/Projects/todo/web/src/components/ml/MLExperimentsModal.jsx))**:
+   - Added **"🧪 ML Experiment Lab"** button with Webhooks badge to [`web/src/components/layout/Sidebar.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Sidebar.jsx).
+   - Built three tabs:
+     - 📊 **Live Runs & Metrics**: Real-time cards displaying model name, epoch counts, validation loss, accuracy pills, and linked tasks.
+     - 🔌 **Integration Snippets**: 1-click copy-to-clipboard code for Python `requests`, PyTorch training loops, and HuggingFace `TrainerCallback`.
+     - 🚀 **Test Webhook Dispatcher**: Interactive form to simulate model completion callbacks with live task auto-completion.
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **Webhook Processing Engine ([`backend/app/crud/experiment.py`](file:///d:/Coding/Projects/todo/backend/app/crud/experiment.py))**:
+   ```python
+   def process_experiment_webhook(db: Session, payload: ExperimentWebhookPayload):
+       task = None
+       if payload.task_id:
+           task = db.query(Task).filter(Task.id == payload.task_id).first()
+       elif payload.task_title:
+           task = db.query(Task).filter(Task.title.ilike(f"%{payload.task_title.strip()}%"), Task.completed == False).first()
+
+       if not task:
+           task = Task(title=payload.task_title or f"Train {payload.model_name}", priority="P2", tags="ml,training")
+           db.add(task)
+           db.flush()
+
+       if payload.status == "success":
+           task.completed = True
+           task.completed_at = datetime.now(timezone.utc)
+           if task.subtasks:
+               for st in task.subtasks:
+                   st.completed = True
+
+       experiment = ExperimentRun(task_id=task.id, model_name=payload.model_name, metrics_json=json.dumps(payload.metrics))
+       db.add(experiment)
+       db.commit()
+       return experiment, task
+   ```
+
+2. **Frontend Service Method ([`web/src/services/api.js`](file:///d:/Coding/Projects/todo/web/src/services/api.js))**:
+   ```javascript
+   export const MLAPI = {
+     async sendWebhook(payload) {
+       return request('/ml/webhook', {
+         method: 'POST',
+         body: JSON.stringify(payload),
+       });
+     },
+     async getExperiments(limit = 50) {
+       return request(`/ml/experiments?limit=${limit}`);
+     },
+   };
+   ```
+
+3. **Production Build Verification**:
+   ```powershell
+   cd d:\Coding\Projects\todo\web
+   npm run build
+   ```
+   **Output**:
+   ```text
+   ✓ 1607 modules transformed.
+   rendering chunks...
+   dist/index.html                   0.86 kB │ gzip:  0.48 kB
+   dist/assets/index-DMHHQfDQ.css   47.87 kB │ gzip:  8.19 kB
+   dist/assets/index-Dc08yy1_.js   299.59 kB │ gzip: 81.60 kB
+   ✓ built in 6.35s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Bridging the Terminal-to-Planner Disconnect**: ML engineers spend hours in Jupyter notebooks, Google Colab, or SSH terminals running training loops. Manually alt-tabbing to check off a task when training finishes is cumbersome.
+2. **Automated Run Telemetry**: Storing validation loss, accuracy, and training duration directly alongside tasks gives developers context on model performance without needing separate external tracking tools for lightweight experiments.
+3. **Urgent Failure Notifications**: If an overnight training run crashes on epoch 42, the webhook auto-flags the task as urgent P1 with failure tags so developers can triage immediately the next morning.

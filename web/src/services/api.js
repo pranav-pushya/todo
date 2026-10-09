@@ -309,3 +309,34 @@ export const NoteAPI = {
   },
 };
 
+// ==================== AI/ML EXPERIMENT & WEBHOOK API ====================
+
+export const MLAPI = {
+  /**
+   * Dispatch an experiment completion or training webhook.
+   */
+  async sendWebhook(payload) {
+    return request('/ml/webhook', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  /**
+   * Retrieve list of logged experiment runs.
+   */
+  async getExperiments(limit = 50) {
+    return request(`/ml/experiments?limit=${limit}`);
+  },
+
+  /**
+   * Delete an experiment run record.
+   */
+  async deleteExperiment(experimentId) {
+    return request(`/ml/experiments/${experimentId}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+

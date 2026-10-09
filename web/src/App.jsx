@@ -14,8 +14,10 @@ import CreateProjectModal from './components/projects/CreateProjectModal';
 import AICopilotDrawer from './components/agent/AICopilotDrawer';
 import CommandPalette from './components/agent/CommandPalette';
 import ZenFocusChamber from './components/focus/ZenFocusChamber';
+import MLExperimentsModal from './components/ml/MLExperimentsModal';
 
 function AppContent() {
+
   const {
     isCommandPaletteOpen,
     setIsCommandPaletteOpen,
@@ -34,6 +36,7 @@ function AppContent() {
 
   const [isZenOpen, setIsZenOpen] = useState(false);
   const [zenTaskId, setZenTaskId] = useState(null);
+  const [isMLOpen, setIsMLOpen] = useState(false);
 
   const handleOpenAddTask = () => {
     setTaskToEdit(null);
@@ -55,6 +58,10 @@ function AppContent() {
     const handleKeyDown = (e) => {
       // 1. ESCAPE: Closes any open modal, palette, drawer, or zen mode
       if (e.key === 'Escape') {
+        if (isMLOpen) {
+          setIsMLOpen(false);
+          return;
+        }
         if (isZenOpen) {
           setIsZenOpen(false);
           return;
@@ -165,7 +172,10 @@ function AppContent() {
     <div className="flex h-screen w-screen overflow-hidden bg-obsidian-900 text-white font-sans select-none relative">
       {/* Left Navigation Sidebar - Hidden when in Notes Workspace */}
       {!isNotesView && (
-        <Sidebar onOpenCreateProject={() => setIsCreateProjectOpen(true)} />
+        <Sidebar
+          onOpenCreateProject={() => setIsCreateProjectOpen(true)}
+          onOpenML={() => setIsMLOpen(true)}
+        />
       )}
 
       {/* Main Content Area */}
@@ -235,6 +245,12 @@ function AppContent() {
         isOpen={isZenOpen}
         onClose={() => setIsZenOpen(false)}
         initialTaskId={zenTaskId}
+      />
+
+      {/* AI/ML Experiment & Webhook Integration Modal */}
+      <MLExperimentsModal
+        isOpen={isMLOpen}
+        onClose={() => setIsMLOpen(false)}
       />
     </div>
   );
