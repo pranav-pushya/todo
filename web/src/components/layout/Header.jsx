@@ -1,0 +1,61 @@
+import React from 'react';
+import { Search, Plus, Sparkles, Command } from 'lucide-react';
+import { useAgent } from '../../context/AgentContext';
+import { useTasks } from '../../context/TaskContext';
+
+export default function Header({ onOpenAddTask }) {
+  const { setIsCommandPaletteOpen, setIsDrawerOpen, isDrawerOpen } = useAgent();
+  const { searchQuery, setSearchQuery } = useTasks();
+
+  return (
+    <header className="h-16 border-b border-white/[0.08] bg-obsidian-950/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
+      {/* Search & Command Bar Trigger */}
+      <div className="flex items-center gap-3 flex-1 max-w-lg">
+        <div className="relative w-full">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search tasks, tags, or press Ctrl+K for AI..."
+            className="w-full bg-obsidian-850 hover:bg-obsidian-800 focus:bg-obsidian-800 text-sm text-white placeholder-slate-500 rounded-lg pl-10 pr-20 py-2 border border-white/[0.06] focus:border-cobalt-500 focus:outline-none transition-all"
+          />
+          <button
+            onClick={() => setIsCommandPaletteOpen(true)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/[0.06] border border-white/[0.08] text-[11px] text-slate-400 hover:text-white transition-colors"
+            title="Open Command Bar (Ctrl+K)"
+          >
+            <Command className="w-3 h-3" />
+            <span>K</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex items-center gap-3">
+        {/* AI Copilot Trigger */}
+        <button
+          onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium border transition-all ${
+            isDrawerOpen
+              ? 'bg-cobalt-900 border-cobalt-600 text-white shadow-glow-subtle'
+              : 'bg-obsidian-850 hover:bg-obsidian-800 border-white/[0.08] text-slate-300 hover:text-white'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5 text-cobalt-400 animate-pulse-subtle" />
+          <span>AI Copilot</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        </button>
+
+        {/* Add Task Primary Button */}
+        <button
+          onClick={onOpenAddTask}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-cobalt-700 hover:bg-cobalt-600 text-white text-xs font-semibold shadow-glow-cobalt transition-all hover:scale-[1.02] active:scale-[0.98]"
+        >
+          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <span>Add Task</span>
+        </button>
+      </div>
+    </header>
+  );
+}

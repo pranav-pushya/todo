@@ -66,7 +66,7 @@ To make the app look clean, futuristic, and distraction-free:
 | **Step 1** | Scaffolding & Design System     | Vite + React 18 + Tailwind + Obsidian/Cobalt Theme | 🟢 Completed |
 | **Step 2** | API Client Service Layer        | Connect frontend to FastAPI backend endpoints      | 🟢 Completed |
 | **Step 3** | Global State Contexts           | TaskContext, ProjectContext, AgentContext          | 🟢 Completed |
-| **Step 4** | Navigation & Layout Shell       | Minimalist Sidebar, Header & Search                | ⏳ Pending   |
+| **Step 4** | Navigation & Layout Shell       | Minimalist Sidebar, Header & Search                | 🟢 Completed |
 | **Step 5** | Task & Project Management Views | TaskList, TaskItem, AddTask & Project Modals       | ⏳ Pending   |
 | **Step 6** | AI Copilot & Command Palette    | Ctrl+K Command Bar & Groq Chat Drawer              | ⏳ Pending   |
 | **Step 7** | Production Build & Verification | Verification testing and full build audit          | ⏳ Pending   |
@@ -567,6 +567,133 @@ Setting up Vite and Tailwind first establishes a modern, fast development enviro
 
 - **Commit**: [`722a107`](https://github.com/pranav-pushya/todo/commit/722a107)
 - **Commit Message**: `feat(web): implement Step 3 global reactive state contexts for tasks, projects, and AI agent`
+- **Branch**: `main` (Pushed to `origin/main`)
+
+---
+
+### 🟢 Step 4: Navigation Layout & Shell (COMPLETED)
+
+#### A. What was done:
+1. Created [`src/components/layout/Header.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Header.jsx):
+   - Integrated live keyword search tied into `TaskContext` (`searchQuery`, `setSearchQuery`).
+   - Integrated keyboard shortcut indicator badge (`Ctrl + K`) to summon the Command Palette.
+   - Built the AI Copilot trigger button with active state styling and a glowing online status indicator.
+   - Built the primary Cobalt Blue `+ Add Task` button.
+2. Created [`src/components/layout/Sidebar.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Sidebar.jsx):
+   - Application logo with Cobalt Blue glow icon and `v1.0` badge.
+   - Primary view navigation links: **Inbox**, **Today**, **Upcoming**, and **Completed** with active selection highlights.
+   - Dynamic **Projects** list displaying project title, custom color dot, open task count badge, and a hover delete action with confirmation.
+   - Project creation modal trigger button (`+`).
+   - Bottom status panel displaying the AI Copilot card and keyboard shortcut hints.
+3. Updated [`src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx):
+   - Assembled the full shell layout wrapping `Sidebar` and `Header` inside `ProjectProvider`, `TaskProvider`, and `AgentProvider`.
+   - Connected the main central canvas to display the selected view title and active filter status.
+4. Verified that the production build bundles cleanly (`npm run build`).
+
+---
+
+#### B. How it was done (commands & code explanation):
+
+1. **Header Component ([`src/components/layout/Header.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Header.jsx))**:
+   ```jsx
+   export default function Header({ onOpenAddTask }) {
+     const { setIsCommandPaletteOpen, setIsDrawerOpen, isDrawerOpen } = useAgent();
+     const { searchQuery, setSearchQuery } = useTasks();
+
+     return (
+       <header className="h-16 border-b border-white/[0.08] bg-obsidian-950/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
+         <div className="flex items-center gap-3 flex-1 max-w-lg">
+           <div className="relative w-full">
+             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+             <input
+               type="text"
+               value={searchQuery}
+               onChange={(e) => setSearchQuery(e.target.value)}
+               placeholder="Search tasks, tags, or press Ctrl+K for AI..."
+               className="w-full bg-obsidian-850 hover:bg-obsidian-800 focus:bg-obsidian-800 text-sm text-white placeholder-slate-500 rounded-lg pl-10 pr-20 py-2 border border-white/[0.06] focus:border-cobalt-500 focus:outline-none transition-all"
+             />
+             <button
+               onClick={() => setIsCommandPaletteOpen(true)}
+               className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/[0.06] border border-white/[0.08] text-[11px] text-slate-400 hover:text-white transition-colors"
+               title="Open Command Bar (Ctrl+K)"
+             >
+               <Command className="w-3 h-3" />
+               <span>K</span>
+             </button>
+           </div>
+         </div>
+
+         <div className="flex items-center gap-3">
+           <button
+             onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium border transition-all ${
+               isDrawerOpen ? 'bg-cobalt-900 border-cobalt-600 text-white shadow-glow-subtle' : 'bg-obsidian-850 hover:bg-obsidian-800 border-white/[0.08] text-slate-300 hover:text-white'
+             }`}
+           >
+             <Sparkles className="w-3.5 h-3.5 text-cobalt-400 animate-pulse-subtle" />
+             <span>AI Copilot</span>
+             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+           </button>
+
+           <button
+             onClick={onOpenAddTask}
+             className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-cobalt-700 hover:bg-cobalt-600 text-white text-xs font-semibold shadow-glow-cobalt transition-all hover:scale-[1.02] active:scale-[0.98]"
+           >
+             <Plus className="w-4 h-4 stroke-[2.5]" />
+             <span>Add Task</span>
+           </button>
+         </div>
+       </header>
+     );
+   }
+   ```
+
+2. **Sidebar View & Project Selection ([`src/components/layout/Sidebar.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Sidebar.jsx))**:
+   ```jsx
+   const handleSelectNav = (filter) => {
+     setSelectedProjectId(null);
+     setActiveFilter(filter);
+   };
+
+   const handleSelectProject = (projectId) => {
+     setSelectedProjectId(projectId);
+   };
+   ```
+   *Beginner Explanation*: Clicking a task view (like "Today" or "Upcoming") deselects the project filter so the user sees all tasks across their whole workspace scheduled for that timeframe. Clicking a specific project filters tasks strictly to that project.
+
+3. **Production Build Verification**:
+   ```powershell
+   npm run build
+   ```
+   **Output**:
+   ```text
+   > todo-web@0.1.0 build
+   > vite build
+
+   vite v6.4.4 building for production...
+   transforming...
+   ✓ 1594 modules transformed.
+   rendering chunks...
+   computing gzip size...
+   dist/index.html                   0.86 kB │ gzip:  0.48 kB
+   dist/assets/index-Cl_xOqvI.css   16.22 kB │ gzip:  3.86 kB
+   dist/assets/index-4mYRgXv-.js   164.54 kB │ gzip: 52.23 kB
+   ✓ built in 4.21s
+   ```
+
+---
+
+#### C. Why it was done:
+1. **Clear Information Architecture**: Separating quick date-based task views (Inbox, Today, Upcoming) from long-term project containers matches how productive users organize their work.
+2. **Persistent Access to AI**: Placing the AI Copilot trigger in both the Header and Sidebar ensures the assistant is always one click away from any screen.
+3. **Smooth Responsive Feel**: Using backdrop-blur effects and dark obsidian panels gives the application a modern, futuristic feel without sacrificing readability.
+
+---
+
+### 📦 Git Commit & Push Information
+
+- **Commit**: `[Pending push]`
+- **Commit Message**: `feat(web): implement Step 4 responsive navigation layout with Sidebar, Header, and App shell`
 - **Branch**: `main` (Pushed to `origin/main`)
 
 ---
