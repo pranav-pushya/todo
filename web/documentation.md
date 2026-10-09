@@ -2212,3 +2212,90 @@ npm run dev
 1. **Bridging the Terminal-to-Planner Disconnect**: ML engineers spend hours in Jupyter notebooks, Google Colab, or SSH terminals running training loops. Manually alt-tabbing to check off a task when training finishes is cumbersome.
 2. **Automated Run Telemetry**: Storing validation loss, accuracy, and training duration directly alongside tasks gives developers context on model performance without needing separate external tracking tools for lightweight experiments.
 3. **Urgent Failure Notifications**: If an overnight training run crashes on epoch 42, the webhook auto-flags the task as urgent P1 with failure tags so developers can triage immediately the next morning.
+
+---
+
+## 📐 Feature 6: LaTeX & Syntax-Highlighted Code in Notes
+
+### A. What was done:
+
+1. **KaTeX Integration & Math Processing Engine**:
+   - Installed `katex` and imported `@import "katex/dist/katex.min.css"` in [`web/src/index.css`](file:///d:/Coding/Projects/todo/web/src/index.css).
+   - Created [`web/src/components/notes/MarkdownNotePreview.jsx`](file:///d:/Coding/Projects/todo/web/src/components/notes/MarkdownNotePreview.jsx):
+     - Parses and renders display math `$$...$$` with centered equation formatting in dark framed cards.
+     - Parses and renders inline LaTeX math `$E = mc^2$` or `$\nabla_\theta J(\theta)$` directly within paragraphs.
+
+2. **Developer Syntax Highlighting & Code Frames**:
+   - Fenced code blocks with language badge headers (e.g. `PYTHON`, `JAVASCRIPT`, `BASH`).
+   - Keyword token highlighting (keywords in cobalt, string literals in emerald, function calls in amber, numbers in indigo, comments in slate).
+   - 1-click **"Copy"** button with checkmark feedback.
+
+3. **Tri-Mode Editor (Edit, Split, Preview) in [`web/src/components/notes/NotesApp.jsx`](file:///d:/Coding/Projects/todo/web/src/components/notes/NotesApp.jsx)**:
+   - Added an editor mode switcher:
+     - ✏️ **Edit**: Full-width raw markdown editing.
+     - ⚡ **Split**: Dual-pane real-time view (raw editor on left, live KaTeX and syntax-highlighted code on right).
+     - 👁️ **Preview**: Distraction-free formatted document view.
+   - Interactive Checklists (`- [ ] `): Clicking boxes directly in preview mode updates the source note content.
+   - Quick Template Inserters:
+     - **`+ LaTeX`**: Inserts binary cross-entropy loss formula & gradients.
+     - **`+ Code`**: Inserts a sample PyTorch module code block.
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **KaTeX Inline & Display Math Parsing ([`web/src/components/notes/MarkdownNotePreview.jsx`](file:///d:/Coding/Projects/todo/web/src/components/notes/MarkdownNotePreview.jsx))**:
+   ```javascript
+   function renderKaTeX(tex, displayMode = false) {
+     try {
+       return katex.renderToString(tex, {
+         displayMode,
+         throwOnError: false,
+       });
+     } catch (e) {
+       return tex;
+     }
+   }
+   ```
+
+2. **Split View Live Layout ([`web/src/components/notes/NotesApp.jsx`](file:///d:/Coding/Projects/todo/web/src/components/notes/NotesApp.jsx))**:
+   ```jsx
+   {editorMode === 'split' && (
+     <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[450px]">
+       <textarea
+         value={activeNote.content || ''}
+         onChange={(e) => editNote(activeNote.id, { content: e.target.value })}
+         className="flex-1 w-full bg-obsidian-950/60 p-4 rounded-xl border font-mono"
+       />
+       <div className="flex-1 overflow-y-auto bg-obsidian-950/40 p-4 rounded-xl border">
+         <MarkdownNotePreview
+           content={activeNote.content || ''}
+           onContentChange={(c) => editNote(activeNote.id, { content: c })}
+         />
+       </div>
+     </div>
+   )}
+   ```
+
+3. **Production Build Verification**:
+   ```powershell
+   cd d:\Coding\Projects\todo\web
+   npm run build
+   ```
+   **Output**:
+   ```text
+   ✓ 1609 modules transformed.
+   rendering chunks...
+   dist/index.html                   0.86 kB │ gzip:   0.48 kB
+   dist/assets/index-BlH5lhMv.css   78.88 kB │ gzip:  16.60 kB
+   dist/assets/index-MeKDw43V.js   574.95 kB │ gzip: 163.49 kB
+   ✓ built in 7.91s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Essential for CSE & AI/ML Students**: Computer science research notes are filled with mathematical loss functions, backpropagation derivations, and code snippets. Plain text notes fail to represent these accurately.
+2. **Instant Visual Verification**: The split view gives developers the immediate confidence that their equations and code blocks are syntactically and visually correct without context switching.
+3. **Interactive Document Flow**: Being able to toggle checkboxes directly in rendered preview mode keeps notes functional as interactive checklists.

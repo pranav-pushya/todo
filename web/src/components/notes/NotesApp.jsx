@@ -12,9 +12,16 @@ import {
   ListChecks,
   Link2,
   ExternalLink,
+  Eye,
+  Edit3,
+  Columns,
+  Code2,
+  Sigma,
 } from 'lucide-react';
 import { useNotes } from '../../context/NoteContext';
 import { useUIFeedback } from '../../context/UIFeedbackContext';
+import MarkdownNotePreview from './MarkdownNotePreview';
+
 
 const NOTE_COLORS = [
   { label: 'Cobalt', hex: '#1d4ed8', border: 'border-blue-500/40', bg: 'bg-blue-500/10' },
@@ -43,6 +50,22 @@ export default function NotesApp({ onBackToTasks }) {
 
   const { toast, confirm } = useUIFeedback();
   const [isSyncing, setIsSyncing] = useState(false);
+  const [editorMode, setEditorMode] = useState('split'); // 'edit' | 'split' | 'preview'
+
+  const handleInsertLatex = () => {
+    if (!activeNote) return;
+    const latexSnippet = `\n\n### Mathematical Formulation\n$$\n\\mathcal{L}_{\\text{BCE}} = -\\frac{1}{N} \\sum_{i=1}^N \\left[ y_i \\log(\\hat{y}_i) + (1 - y_i)\\log(1 - \\hat{y}_i) \\right]\n$$\n\nInline gradient: $\\nabla_\\theta J(\\theta) = \\frac{1}{m} X^T (h_\\theta(X) - y)$\n`;
+    editNote(activeNote.id, { content: (activeNote.content || '') + latexSnippet });
+    toast.success('LaTeX Math template inserted! 📐');
+  };
+
+  const handleInsertCode = () => {
+    if (!activeNote) return;
+    const codeSnippet = `\n\n\`\`\`python\nimport torch\nimport torch.nn as nn\n\nclass ResidualBlock(nn.Module):\n    def __init__(self, in_features):\n        super().__init__()\n        self.block = nn.Sequential(\n            nn.Conv2d(in_features, in_features, 3, padding=1),\n            nn.BatchNorm2d(in_features),\n            nn.ReLU(inplace=True)\n        )\n\n    def forward(self, x):\n        return x + self.block(x)\n\`\`\`\n`;
+    editNote(activeNote.id, { content: (activeNote.content || '') + codeSnippet });
+    toast.success('Python code block template inserted! 💻');
+  };
+
 
   const handleCreateNewNote = async () => {
     await addNote({
@@ -229,6 +252,66 @@ export default function NotesApp({ onBackToTasks }) {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {/* Mode Switcher: Edit, Split, Preview */}
+                  <div className="flex items-center bg-obsidian-950 p-0.5 rounded-lg border border-white/[0.06] text-xs mr-2">
+                    <button
+                      onClick={() => setEditorMode('edit')}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-all ${
+                        editorMode === 'edit'
+                          ? 'bg-cobalt-700 text-white font-semibold shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                      title="Edit raw markdown"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      onClick={() => setEditorMode('split')}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-all ${
+                        editorMode === 'split'
+                          ? 'bg-cobalt-700 text-white font-semibold shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                      title="Side-by-side Edit and Live LaTeX Preview"
+                    >
+                      <Columns className="w-3 h-3" />
+                      <span>Split</span>
+                    </button>
+                    <button
+                      onClick={() => setEditorMode('preview')}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-all ${
+                        editorMode === 'preview'
+                          ? 'bg-cobalt-700 text-white font-semibold shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                      title="Preview rendered document"
+                    >
+                      <Eye className="w-3 h-3" />
+                      <span>Preview</span>
+                    </button>
+                  </div>
+
+                  {/* Insert LaTeX Template */}
+                  <button
+                    onClick={handleInsertLatex}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-950/40 hover:bg-indigo-900/60 border border-indigo-500/30 text-indigo-300 hover:text-white text-xs font-medium transition-colors"
+                    title="Insert sample LaTeX equation"
+                  >
+                    <Sigma className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>+ LaTeX</span>
+                  </button>
+
+                  {/* Insert Code Template */}
+                  <button
+                    onClick={handleInsertCode}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-950/40 hover:bg-purple-900/60 border border-purple-500/30 text-purple-300 hover:text-white text-xs font-medium transition-colors"
+                    title="Insert sample syntax-highlighted code block"
+                  >
+                    <Code2 className="w-3.5 h-3.5 text-purple-400" />
+                    <span>+ Code</span>
+                  </button>
+
                   {/* Pin Toggle */}
                   <button
                     onClick={() => togglePin(activeNote.id)}
@@ -286,8 +369,8 @@ export default function NotesApp({ onBackToTasks }) {
                 </div>
               </div>
 
-              {/* Note Content Editor */}
-              <div className="flex-1 overflow-y-auto p-8 max-w-4xl mx-auto w-full flex flex-col space-y-4">
+              {/* Note Content Editor Canvas */}
+              <div className="flex-1 overflow-y-auto p-6 max-w-6xl mx-auto w-full flex flex-col space-y-4">
                 {/* Linked Task Scratchpad Banner */}
                 {activeNote.task_id && (
                   <div className="flex items-center justify-between p-3.5 rounded-xl bg-cobalt-950/60 border border-cobalt-700/40 text-xs text-cobalt-200 shadow-glow-subtle animate-fadeIn">
@@ -310,6 +393,7 @@ export default function NotesApp({ onBackToTasks }) {
                     </button>
                   </div>
                 )}
+
                 {/* Title */}
                 <input
                   type="text"
@@ -326,18 +410,61 @@ export default function NotesApp({ onBackToTasks }) {
                     type="text"
                     value={activeNote.tags || ''}
                     onChange={(e) => editNote(activeNote.id, { tags: e.target.value })}
-                    placeholder="Add tags separated by comma (e.g. ideas, work, meeting)..."
+                    placeholder="Add tags separated by comma (e.g. math, deeplearning, pytorch)..."
                     className="flex-1 bg-transparent text-xs text-slate-300 placeholder-slate-600 focus:outline-none"
                   />
                 </div>
 
-                {/* Content Textarea */}
-                <textarea
-                  value={activeNote.content || ''}
-                  onChange={(e) => editNote(activeNote.id, { content: e.target.value })}
-                  placeholder="Start typing your note here... Use it for meeting notes, ideas, code snippets, or draft outlines."
-                  className="flex-1 w-full bg-transparent text-sm text-slate-200 placeholder-slate-600 focus:outline-none resize-none leading-relaxed min-h-[350px] font-sans"
-                />
+                {/* Content Area Based on Editor Mode */}
+                {editorMode === 'edit' && (
+                  <textarea
+                    value={activeNote.content || ''}
+                    onChange={(e) => editNote(activeNote.id, { content: e.target.value })}
+                    placeholder="Start typing markdown, LaTeX formulas ($E=mc^2$), and ```python code blocks..."
+                    className="flex-1 w-full bg-transparent text-sm text-slate-200 placeholder-slate-600 focus:outline-none resize-none leading-relaxed min-h-[400px] font-mono"
+                  />
+                )}
+
+                {editorMode === 'preview' && (
+                  <div className="flex-1 overflow-y-auto bg-obsidian-950/40 p-6 rounded-2xl border border-white/[0.04]">
+                    <MarkdownNotePreview
+                      content={activeNote.content || ''}
+                      onContentChange={(c) => editNote(activeNote.id, { content: c })}
+                    />
+                  </div>
+                )}
+
+                {editorMode === 'split' && (
+                  <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[450px]">
+                    {/* Left: Raw Editor */}
+                    <div className="flex flex-col h-full">
+                      <div className="text-[10px] uppercase font-mono text-slate-500 mb-1.5 flex items-center gap-1">
+                        <Edit3 className="w-3 h-3 text-cobalt-400" />
+                        <span>Markdown & LaTeX Input</span>
+                      </div>
+                      <textarea
+                        value={activeNote.content || ''}
+                        onChange={(e) => editNote(activeNote.id, { content: e.target.value })}
+                        placeholder="Write markdown, $inline math$, $$display math$$, or code blocks here..."
+                        className="flex-1 w-full bg-obsidian-950/60 p-4 rounded-xl border border-white/[0.06] text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cobalt-500/50 resize-none leading-relaxed font-mono"
+                      />
+                    </div>
+
+                    {/* Right: Live Render with KaTeX & Code Syntax */}
+                    <div className="flex flex-col h-full overflow-hidden">
+                      <div className="text-[10px] uppercase font-mono text-emerald-400 mb-1.5 flex items-center gap-1">
+                        <Eye className="w-3 h-3 text-emerald-400" />
+                        <span>Live KaTeX & Code Preview</span>
+                      </div>
+                      <div className="flex-1 overflow-y-auto bg-obsidian-950/40 p-4 rounded-xl border border-white/[0.06]">
+                        <MarkdownNotePreview
+                          content={activeNote.content || ''}
+                          onContentChange={(c) => editNote(activeNote.id, { content: c })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Editor Footer / Word Count */}
