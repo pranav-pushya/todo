@@ -163,3 +163,14 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserProfileResponse
+
+
+class FirebaseSyncRequest(BaseModel):
+    """Schema for syncing a Firebase authenticated user with the backend SQLite database."""
+
+    id_token: str = Field(..., description="Firebase RS256 ID Token")
+    full_name: Optional[str] = Field(None, max_length=100)
+    role: Optional[str] = Field("Fullstack Developer", max_length=50)
+    bio: Optional[str] = Field(None, max_length=1000)
+    github_username: Optional[str] = Field(None, max_length=100)
+    avatar_url: Optional[str] = Field(None, max_length=500)

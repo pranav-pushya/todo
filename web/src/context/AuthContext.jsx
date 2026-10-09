@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { AuthAPI } from '../services/api';
+import {
+  firebaseLoginUser,
+  firebaseRegisterUser,
+  firebaseGoogleSignIn,
+  firebaseSendPasswordReset,
+  firebaseSignOut,
+} from '../services/firebase';
 
 const AuthContext = createContext(null);
 
@@ -21,7 +28,7 @@ export function AuthProvider({ children }) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  // Synchronize state with localStorage
+  // Synchronize session tokens with localStorage
   const saveAuthSession = (authToken, userProfile) => {
     setToken(authToken);
     setUser(userProfile);
@@ -75,6 +82,78 @@ export function AuthProvider({ children }) {
     refreshProfile();
   }, [refreshProfile]);
 
+  /**
+   * Firebase Email/Password Sign-In with backend sync
+   */
+  const loginWithFirebase = async ({ email, password }) => {
+    setIsLoading(true);
+    try {
+      const { idToken } = await firebaseLoginUser({ email, password });
+      const res = await AuthAPI.firebaseSync({ id_token: idToken });
+      saveAuthSession(res.access_token, res.user);
+      setIsAuthModalOpen(false);
+      return res;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Firebase Registration with backend sync
+   */
+  const registerWithFirebase = async ({ email, password, full_name, username, role, bio, github_username }) => {
+    setIsLoading(true);
+    try {
+      const { idToken } = await firebaseRegisterUser({
+        email,
+        password,
+        displayName: full_name || username,
+      });
+      const res = await AuthAPI.firebaseSync({
+        id_token: idToken,
+        full_name: full_name || undefined,
+        role: role || 'Fullstack Developer',
+        bio: bio || undefined,
+        github_username: github_username || undefined,
+      });
+      saveAuthSession(res.access_token, res.user);
+      setIsAuthModalOpen(false);
+      return res;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * 1-Click Google Sign-In with backend sync
+   */
+  const loginWithGoogle = async () => {
+    setIsLoading(true);
+    try {
+      const { idToken, user: fbUser } = await firebaseGoogleSignIn();
+      const res = await AuthAPI.firebaseSync({
+        id_token: idToken,
+        full_name: fbUser.displayName,
+        avatar_url: fbUser.photoURL,
+      });
+      saveAuthSession(res.access_token, res.user);
+      setIsAuthModalOpen(false);
+      return res;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Send automated password reset email directly to user's inbox
+   */
+  const sendFirebasePasswordReset = async (email) => {
+    return firebaseSendPasswordReset(email);
+  };
+
+  /**
+   * Classic email/username login fallback (e.g. demo account)
+   */
   const login = async ({ email_or_username, password }) => {
     setIsLoading(true);
     try {
@@ -99,7 +178,12 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await firebaseSignOut();
+    } catch {
+      // ignore
+    }
     clearAuthSession();
     setIsProfileModalOpen(false);
   };
@@ -115,18 +199,6 @@ export function AuthProvider({ children }) {
     return AuthAPI.changePassword({ current_password, new_password });
   };
 
-  const forgotPassword = async (email_or_username) => {
-    return AuthAPI.forgotPassword(email_or_username);
-  };
-
-  const resetPassword = async ({ email_or_username, recovery_code, new_password }) => {
-    const res = await AuthAPI.resetPassword({ email_or_username, recovery_code, new_password });
-    if (res && res.access_token) {
-      setAuthSession(res.access_token, res.user);
-    }
-    return res;
-  };
-
   const value = {
     user,
     token,
@@ -138,11 +210,13 @@ export function AuthProvider({ children }) {
     setIsProfileModalOpen,
     login,
     register,
+    loginWithFirebase,
+    registerWithFirebase,
+    loginWithGoogle,
+    sendFirebasePasswordReset,
     logout,
     updateProfile,
     changePassword,
-    forgotPassword,
-    resetPassword,
     refreshProfile,
   };
 

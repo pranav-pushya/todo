@@ -410,6 +410,16 @@ export const SprintAPI = {
 
 export const AuthAPI = {
   /**
+   * Exchange Firebase ID token for local application session & profile.
+   */
+  async firebaseSync({ id_token, full_name, role, bio, github_username, avatar_url }) {
+    return request('/auth/firebase-sync', {
+      method: 'POST',
+      body: JSON.stringify({ id_token, full_name, role, bio, github_username, avatar_url }),
+    });
+  },
+
+  /**
    * Log in using email or username and password.
    */
   async login({ email_or_username, password }) {

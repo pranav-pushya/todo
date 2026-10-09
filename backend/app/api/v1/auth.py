@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.auth import get_current_user
 from app.core.database import get_db
+from app.core.firebase import verify_firebase_id_token
 from app.core.security import create_access_token
 from app.crud.user import (
     authenticate_user,
@@ -18,10 +19,12 @@ from app.crud.user import (
     get_user_by_username,
     get_user_profile_dict,
     reset_password_with_code,
+    sync_firebase_user,
     update_user_profile,
 )
 from app.models.user import User
 from app.schemas.user import (
+    FirebaseSyncRequest,
     TokenResponse,
     UserForgotPassword,
     UserForgotPasswordResponse,
@@ -271,4 +274,45 @@ def reset_password(
         token_type="bearer",
         user=UserProfileResponse(**profile_dict),
     )
+
+
+@router.post(
+    "/firebase-sync",
+    response_model=TokenResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Authenticate and sync with Firebase ID token",
+)
+def firebase_sync(
+    sync_data: FirebaseSyncRequest,
+    db: Session = Depends(get_db),
+):
+    """Verify Firebase ID token against Google certs and return active session token & profile."""
+    payload = verify_firebase_id_token(sync_data.id_token)
+    user = sync_firebase_user(
+        db,
+        firebase_payload=payload,
+        full_name=sync_data.full_name,
+        role=sync_data.role or "Fullstack Developer",
+        bio=sync_data.bio,
+        github_username=sync_data.github_username,
+        avatar_url=sync_data.avatar_url,
+    )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This account has been deactivated.",
+        )
+
+    # Issue session access token linked to SQLite user
+    access_token = create_access_token(
+        data={"sub": str(user.id), "email": user.email, "username": user.username}
+    )
+
+    profile_dict = get_user_profile_dict(db, user)
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=UserProfileResponse(**profile_dict),
+    )
+
 

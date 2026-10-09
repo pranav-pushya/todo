@@ -36,8 +36,11 @@ def auto_migrate_sqlite():
                 conn.execute(text(f"ALTER TABLE {tbl} ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE"))
                 conn.commit()
 
-        # 3b. Migrate users reset_token columns if missing
+        # 3b. Migrate users reset_token and firebase_uid columns if missing
         user_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(users)")).fetchall()]
+        if "firebase_uid" not in user_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN firebase_uid VARCHAR(128)"))
+            conn.commit()
         if "reset_token" not in user_cols:
             conn.execute(text("ALTER TABLE users ADD COLUMN reset_token VARCHAR(100)"))
             conn.commit()

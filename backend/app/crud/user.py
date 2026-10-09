@@ -185,3 +185,69 @@ def get_user_profile_dict(db: Session, user: User) -> dict:
         "sprints_count": sprints_count,
         "experiments_count": experiments_count,
     }
+
+
+def sync_firebase_user(
+    db: Session,
+    firebase_payload: dict,
+    full_name: Optional[str] = None,
+    role: Optional[str] = "Fullstack Developer",
+    bio: Optional[str] = None,
+    github_username: Optional[str] = None,
+    avatar_url: Optional[str] = None,
+) -> User:
+    """Find or create a local SQLite user record matching a verified Firebase account."""
+    firebase_uid = firebase_payload.get("sub") or firebase_payload.get("user_id")
+    email = (firebase_payload.get("email") or f"{firebase_uid}@firebase.user").lower().strip()
+    name = full_name or firebase_payload.get("name")
+    picture = avatar_url or firebase_payload.get("picture")
+
+    # 1. Try finding by firebase_uid
+    user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
+    if user:
+        if name and not user.full_name:
+            user.full_name = name
+        if picture and not user.avatar_url:
+            user.avatar_url = picture
+        db.commit()
+        db.refresh(user)
+        return user
+
+    # 2. Try finding by email (in case user already registered earlier)
+    user_by_email = db.query(User).filter(func.lower(User.email) == email).first()
+    if user_by_email:
+        user_by_email.firebase_uid = firebase_uid
+        if name and not user_by_email.full_name:
+            user_by_email.full_name = name
+        if picture and not user_by_email.avatar_url:
+            user_by_email.avatar_url = picture
+        db.commit()
+        db.refresh(user_by_email)
+        return user_by_email
+
+    # 3. Create a new user with unique username
+    base_username = (email.split("@")[0] or "dev").replace(".", "_")[:40]
+    username = base_username
+    counter = 1
+    while db.query(User).filter(func.lower(User.username) == username.lower()).first():
+        username = f"{base_username}_{counter}"
+        counter += 1
+
+    new_user = User(
+        email=email,
+        username=username,
+        firebase_uid=firebase_uid,
+        full_name=name or username,
+        hashed_password=None,
+        avatar_url=picture,
+        bio=bio or "Developer using Firebase Authentication.",
+        role=role or "Fullstack Developer",
+        github_username=github_username,
+        theme_preference="dark",
+        is_active=True,
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
