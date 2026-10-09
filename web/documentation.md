@@ -692,7 +692,7 @@ Setting up Vite and Tailwind first establishes a modern, fast development enviro
 
 ### 📦 Git Commit & Push Information
 
-- **Commit**: `[Pending push]`
+- **Commit**: [`0e82d14`](https://github.com/pranav-pushya/todo/commit/0e82d14)
 - **Commit Message**: `feat(web): implement Step 4 responsive navigation layout with Sidebar, Header, and App shell`
 - **Branch**: `main` (Pushed to `origin/main`)
 
