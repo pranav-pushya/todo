@@ -1919,8 +1919,95 @@ npm run dev
 1. **Eliminating the Context-Switching Gap**: Developers constantly write brainstorming thoughts, architectural decisions, and API notes in text documents, only to separately re-type them as To-Do tasks. This bridge makes ideation immediately actionable.
 2. **Contextual Task Scratchpads**: Complex coding and research tasks need reference notes (links, math formulas, commands) right where the task lives, rather than floating in disconnected external apps.
 
+---
 
+## 🎯 Feature 3: Fullscreen "Zen Flow" / Focus Chamber (`F` Hotkey with Timer Feature)
 
+### A. What was done:
 
+1. **Fullscreen Focus Chamber Component ([`web/src/components/focus/ZenFocusChamber.jsx`](file:///d:/Coding/Projects/todo/web/src/components/focus/ZenFocusChamber.jsx))**:
+   - Built an immersive Obsidian-950 fullscreen distraction-free canvas with ambient Cobalt glow.
+   - Instant activation from anywhere via the **`F`** global hotkey, the top Header **"🎯 Zen Focus"** trigger, or the hover **"🎯 Focus"** button on any task item.
+   - Quick exit via `Esc` or `F`.
 
+2. **Multi-Mode Pomodoro & Deep Work Engine**:
+   - Five productivity modes:
+     - 🍅 **Pomodoro** (25 min focus)
+     - ⚡ **Deep Work Flow** (50 min deep session)
+     - ☕ **Short Break** (5 min)
+     - 🌴 **Long Break** (15 min)
+     - ⏱️ **Stopwatch** (Count-up focus tracking without time pressure)
+   - Large radial SVG countdown progress ring with glowing cobalt drop-shadows.
+   - Keyboard accessibility: `Space` to Play/Pause, `R` to Reset, and `+5m` extension button.
 
+3. **Native Web Audio Synthesizer (Zero External Dependencies)**:
+   - Implemented `FocusSoundEngine` directly on standard browser `AudioContext`:
+     - **Harmonic Solfeggio Chime**: Dual sine oscillators (528Hz clarity frequency + 1056Hz harmonic) with exponential decay when focus intervals finish.
+     - **Ambient Noise Synthesizer**: Procedural Brownian noise integration filter (effective for ADHD and programmer flow state), rain & stream simulation, and 432Hz ambient waves.
+
+4. **Task Pinning & Inline Flow Checklists**:
+   - Pinned task card displaying title, description, priority badge, and tags.
+   - Task switcher dropdown to change focus target without exiting Zen mode.
+   - Interactive subtasks checklist: check off subtask steps as you code, with instant progress updates.
+   - Inline form to add focus steps on the fly.
+   - One-click "Mark Completed" button with celebratory chime.
+
+5. **Distraction Jot-Pad ("Brain Dump")**:
+   - Rapid-capture input field: type distracting thoughts (*"check paper on Arxiv"*, *"reply to email"*) and press `Enter` to auto-file them into the Inbox tagged `#brain-dump` so developers can clear their mind and stay in flow.
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **Synthesized Web Audio Engine ([`web/src/components/focus/ZenFocusChamber.jsx`](file:///d:/Coding/Projects/todo/web/src/components/focus/ZenFocusChamber.jsx))**:
+   ```javascript
+   class FocusSoundEngine {
+     playChime() {
+       this.init();
+       const now = this.ctx.currentTime;
+       const osc1 = this.ctx.createOscillator();
+       const osc2 = this.ctx.createOscillator();
+       const gain = this.ctx.createGain();
+
+       osc1.type = 'sine';
+       osc1.frequency.setValueAtTime(528, now); // Solfeggio 528Hz clarity
+       osc2.type = 'sine';
+       osc2.frequency.setValueAtTime(1056, now);
+
+       gain.gain.setValueAtTime(0.3, now);
+       gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+       ...
+     }
+   }
+   ```
+
+2. **Global `F` Hotkey & Header Binding ([`web/src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx))**:
+   ```jsx
+   } else if (e.key === 'f' || e.key === 'F') {
+     e.preventDefault();
+     handleOpenZen();
+   }
+   ```
+
+3. **Production Build Verification**:
+   ```powershell
+   cd d:\Coding\Projects\todo\web
+   npm run build
+   ```
+   **Output**:
+   ```text
+   ✓ 1605 modules transformed.
+   rendering chunks...
+   dist/index.html                   0.86 kB │ gzip:  0.48 kB
+   dist/assets/index-hiJnA-Cf.css   42.79 kB │ gzip:  7.51 kB
+   dist/assets/index-D7pYflAg.js   272.33 kB │ gzip: 75.35 kB
+   ✓ built in 5.15s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Protecting Deep Flow State**: Multitasking is the enemy of software engineering and machine learning. Fullscreen Zen Mode strips away sidebars, unread counters, and navigation, creating a hyper-focused coding tunnel.
+2. **Preventing Sidetracking with Brain Dumps**: When in deep work, developers often get distracted by random intrusive ideas. The distraction jot-pad lets them deposit thoughts into the Inbox in 2 seconds without derailing the current task.
+3. **Cognitive Sound Science**: Brown noise masks high-frequency auditory distractions in busy labs or dorms, enabling longer unbroken coding sessions.

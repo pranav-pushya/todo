@@ -6,7 +6,7 @@ import DashboardView from '../dashboard/DashboardView';
 import NotesApp from '../notes/NotesApp';
 import { CheckCircle2, ListFilter, Plus } from 'lucide-react';
 
-export default function TaskList({ onOpenAddTask, onEditTask }) {
+export default function TaskList({ onOpenAddTask, onEditTask, onFocusTask }) {
   const {
     tasks,
     loading,
@@ -160,7 +160,12 @@ export default function TaskList({ onOpenAddTask, onEditTask }) {
         /* Task List */
         <div className="space-y-2.5">
           {tasks.map((task) => (
-            <TaskItem key={task.id} task={task} onEdit={onEditTask} />
+            <TaskItem
+              key={task.id}
+              task={task}
+              onEdit={onEditTask}
+              onFocus={onFocusTask}
+            />
           ))}
         </div>
       )}

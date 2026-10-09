@@ -3,7 +3,7 @@ import { Search, Plus, Sparkles, Command } from 'lucide-react';
 import { useAgent } from '../../context/AgentContext';
 import { useTasks } from '../../context/TaskContext';
 
-export default function Header({ onOpenAddTask }) {
+export default function Header({ onOpenAddTask, onOpenZen }) {
   const { setIsCommandPaletteOpen, setIsDrawerOpen, isDrawerOpen } = useAgent();
   const { searchQuery, setSearchQuery } = useTasks();
 
@@ -33,6 +33,19 @@ export default function Header({ onOpenAddTask }) {
 
       {/* Action Buttons */}
       <div className="flex items-center gap-3">
+        {/* Zen Focus Chamber Trigger */}
+        <button
+          onClick={onOpenZen}
+          className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium border border-indigo-500/30 bg-indigo-950/40 hover:bg-indigo-900/60 text-indigo-300 hover:text-white shadow-glow-subtle transition-all cursor-pointer group"
+          title="Open Zen Focus Chamber (Shortcut: F)"
+        >
+          <span className="text-base group-hover:scale-110 transition-transform">🎯</span>
+          <span className="font-semibold">Zen Focus</span>
+          <span className="text-[10px] text-indigo-200 bg-indigo-900/80 px-1.5 py-0.5 rounded border border-indigo-500/40 font-mono">
+            F
+          </span>
+        </button>
+
         {/* AI Copilot Trigger */}
         <button
           onClick={() => setIsDrawerOpen(!isDrawerOpen)}

@@ -26,7 +26,7 @@ const PRIORITY_CONFIG = {
   P4: { label: 'P4 Low', bg: 'bg-slate-500/10 text-slate-400 border-slate-500/30' },
 };
 
-export default function TaskItem({ task, onEdit }) {
+export default function TaskItem({ task, onEdit, onFocus }) {
   const {
     toggleTask,
     removeTask,
@@ -398,6 +398,18 @@ export default function TaskItem({ task, onEdit }) {
 
       {/* Action Buttons on Hover */}
       <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Zen Focus Button */}
+        {onFocus && !task.completed && (
+          <button
+            onClick={() => onFocus(task.id)}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700/60 text-[10px] font-semibold text-indigo-300 hover:text-white transition-all shadow-glow-subtle cursor-pointer"
+            title="🎯 Enter Zen Flow Chamber focused on this task (F)"
+          >
+            <span>🎯</span>
+            <span>Focus</span>
+          </button>
+        )}
+
         {/* Magic Subtasking Button */}
         <button
           onClick={handleDeconstruct}

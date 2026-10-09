@@ -13,6 +13,7 @@ import AddTaskModal from './components/tasks/AddTaskModal';
 import CreateProjectModal from './components/projects/CreateProjectModal';
 import AICopilotDrawer from './components/agent/AICopilotDrawer';
 import CommandPalette from './components/agent/CommandPalette';
+import ZenFocusChamber from './components/focus/ZenFocusChamber';
 
 function AppContent() {
   const {
@@ -31,6 +32,9 @@ function AppContent() {
   const { activeFilter, setActiveFilter, searchQuery, setSearchQuery } = useTasks();
   const { selectedProjectId, setSelectedProjectId } = useProjects();
 
+  const [isZenOpen, setIsZenOpen] = useState(false);
+  const [zenTaskId, setZenTaskId] = useState(null);
+
   const handleOpenAddTask = () => {
     setTaskToEdit(null);
     setIsAddTaskOpen(true);
@@ -41,11 +45,20 @@ function AppContent() {
     setIsAddTaskOpen(true);
   };
 
+  const handleOpenZen = (taskId = null) => {
+    setZenTaskId(taskId);
+    setIsZenOpen(true);
+  };
+
   // Global Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // 1. ESCAPE: Closes any open modal, palette, or drawer, or clears search
+      // 1. ESCAPE: Closes any open modal, palette, drawer, or zen mode
       if (e.key === 'Escape') {
+        if (isZenOpen) {
+          setIsZenOpen(false);
+          return;
+        }
         if (isCommandPaletteOpen) {
           setIsCommandPaletteOpen(false);
           return;
@@ -113,6 +126,9 @@ function AppContent() {
       } else if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
         setIsDrawerOpen((prev) => !prev);
+      } else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        handleOpenZen();
       } else if (e.key === '/') {
         e.preventDefault();
         const searchInput = document.querySelector('input[placeholder*="Search tasks"]');
@@ -131,6 +147,7 @@ function AppContent() {
     isAddTaskOpen,
     isCreateProjectOpen,
     isDrawerOpen,
+    isZenOpen,
     setIsCommandPaletteOpen,
     setIsDrawerOpen,
     setIsAddTaskOpen,
@@ -154,12 +171,18 @@ function AppContent() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* Top Header - Hidden when in Notes Workspace */}
-        {!isNotesView && <Header onOpenAddTask={handleOpenAddTask} />}
+        {!isNotesView && (
+          <Header
+            onOpenAddTask={handleOpenAddTask}
+            onOpenZen={() => handleOpenZen()}
+          />
+        )}
 
         <main className="flex-1 overflow-y-auto flex flex-col bg-obsidian-900">
           <TaskList
             onOpenAddTask={handleOpenAddTask}
             onEditTask={handleEditTask}
+            onFocusTask={(taskId) => handleOpenZen(taskId)}
           />
         </main>
       </div>
@@ -205,6 +228,13 @@ function AppContent() {
       <CreateProjectModal
         isOpen={isCreateProjectOpen}
         onClose={() => setIsCreateProjectOpen(false)}
+      />
+
+      {/* Fullscreen Zen Focus Chamber */}
+      <ZenFocusChamber
+        isOpen={isZenOpen}
+        onClose={() => setIsZenOpen(false)}
+        initialTaskId={zenTaskId}
       />
     </div>
   );
