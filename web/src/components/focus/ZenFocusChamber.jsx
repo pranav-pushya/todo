@@ -486,11 +486,17 @@ export default function ZenFocusChamber({ isOpen, onClose, initialTaskId = null 
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-cobalt-500/20 text-cobalt-300 border border-cobalt-500/30">
                         {activeTask.priority || 'P3'}
                       </span>
-                      {activeTask.tags && activeTask.tags.map((tag) => (
+                      {(Array.isArray(activeTask.tags)
+                        ? activeTask.tags
+                        : typeof activeTask.tags === 'string' && activeTask.tags.trim()
+                        ? activeTask.tags.split(',').map((t) => t.trim()).filter(Boolean)
+                        : []
+                      ).map((tag) => (
                         <span key={tag} className="text-[10px] px-2 py-0.5 rounded bg-white/[0.05] text-slate-400">
                           #{tag}
                         </span>
                       ))}
+
                     </div>
 
                     <button

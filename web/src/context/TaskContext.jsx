@@ -4,6 +4,20 @@ import { useProjects } from './ProjectContext';
 
 const TaskContext = createContext(null);
 
+const normalizeTask = (t) => {
+  if (!t) return t;
+  let normalizedTags = [];
+  if (Array.isArray(t.tags)) {
+    normalizedTags = t.tags;
+  } else if (typeof t.tags === 'string' && t.tags.trim()) {
+    normalizedTags = t.tags.split(',').map((x) => x.trim()).filter(Boolean);
+  }
+  return {
+    ...t,
+    tags: normalizedTags,
+  };
+};
+
 export function TaskProvider({ children }) {
   const { selectedProjectId, fetchProjects } = useProjects();
   const [tasks, setTasks] = useState([]);
@@ -43,7 +57,7 @@ export function TaskProvider({ children }) {
       }
 
       const data = await TaskAPI.getTasks(options);
-      setTasks(data);
+      setTasks(Array.isArray(data) ? data.map(normalizeTask) : []);
 
       // Auto-load analytics whenever tasks or view updates
       fetchAnalytics();
@@ -61,7 +75,7 @@ export function TaskProvider({ children }) {
   const addTask = async (taskData) => {
     try {
       const created = await TaskAPI.createTask(taskData);
-      setTasks((prev) => [created, ...prev]);
+      setTasks((prev) => [normalizeTask(created), ...prev]);
       fetchProjects();
       fetchAnalytics();
       return created;
@@ -74,7 +88,7 @@ export function TaskProvider({ children }) {
   const editTask = async (taskId, updates) => {
     try {
       const updated = await TaskAPI.updateTask(taskId, updates);
-      setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? normalizeTask(updated) : t)));
       fetchProjects();
       fetchAnalytics();
       return updated;
@@ -87,7 +101,7 @@ export function TaskProvider({ children }) {
   const toggleTask = async (taskId) => {
     try {
       const updated = await TaskAPI.toggleTask(taskId);
-      setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? normalizeTask(updated) : t)));
       fetchProjects();
       fetchAnalytics();
       return updated;
@@ -96,6 +110,7 @@ export function TaskProvider({ children }) {
       throw err;
     }
   };
+
 
   const removeTask = async (taskId) => {
     try {

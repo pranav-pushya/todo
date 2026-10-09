@@ -287,17 +287,21 @@ export default function TaskItem({ task, onEdit, onFocus, isHighlighted }) {
           )}
 
           {/* Tags */}
-          {task.tags &&
-            task.tags.length > 0 &&
-            task.tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/[0.03] text-slate-400 text-[10px]"
-              >
-                <Tag className="w-2.5 h-2.5" />
-                <span>{tag}</span>
-              </span>
-            ))}
+          {(Array.isArray(task.tags)
+            ? task.tags
+            : typeof task.tags === 'string' && task.tags.trim()
+            ? task.tags.split(',').map((t) => t.trim()).filter(Boolean)
+            : []
+          ).map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/[0.03] text-slate-400 text-[10px]"
+            >
+              <Tag className="w-2.5 h-2.5" />
+              <span>{tag}</span>
+            </span>
+          ))}
+
 
           {/* Linked Scratchpad Pill */}
           <button

@@ -25,7 +25,14 @@ export default function AddTaskModal({ isOpen, onClose, taskToEdit = null }) {
       setPriority(taskToEdit.priority || 'P4');
       setDueDate(taskToEdit.due_date ? taskToEdit.due_date.slice(0, 10) : '');
       setProjectId(taskToEdit.project_id ? String(taskToEdit.project_id) : '');
-      setTagsInput(taskToEdit.tags ? taskToEdit.tags.join(', ') : '');
+      const rawTags = taskToEdit.tags;
+      const formattedTags = Array.isArray(rawTags)
+        ? rawTags.join(', ')
+        : typeof rawTags === 'string'
+        ? rawTags
+        : '';
+      setTagsInput(formattedTags);
+
     } else {
       setTitle('');
       setDescription('');
