@@ -5,13 +5,25 @@ from typing import List, Optional
 from sqlalchemy import case
 from sqlalchemy.orm import Session
 
-from app.models.task import Task
+from app.models.task import Task, Subtask
 from app.schemas.common import PriorityEnum, TaskViewFilter
-from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
+from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate, SubtaskResponse
 
 
 def to_task_response(task: Task) -> TaskResponse:
-    """Helper to convert a Task ORM instance into TaskResponse with project details."""
+    """Helper to convert a Task ORM instance into TaskResponse with project and subtask details."""
+    subtasks_list = [
+        SubtaskResponse(
+            id=s.id,
+            task_id=s.task_id,
+            title=s.title,
+            completed=s.completed,
+            estimated_minutes=s.estimated_minutes,
+            created_at=s.created_at,
+        )
+        for s in (task.subtasks or [])
+    ]
+
     return TaskResponse(
         id=task.id,
         title=task.title,
@@ -26,6 +38,7 @@ def to_task_response(task: Task) -> TaskResponse:
         updated_at=task.updated_at,
         project_title=task.project.title if task.project else None,
         project_color=task.project.color if task.project else None,
+        subtasks=subtasks_list,
     )
 
 
@@ -248,4 +261,61 @@ def get_task_analytics(db: Session) -> dict:
         "daily_consistency": daily_consistency,
         "weekly_consistency": weekly_consistency,
     }
+
+
+def add_subtask(
+    db: Session,
+    task_id: int,
+    title: str,
+    estimated_minutes: int = 15,
+) -> Subtask:
+    """Create and persist a subtask under a parent task."""
+    subtask = Subtask(
+        task_id=task_id,
+        title=title.strip(),
+        completed=False,
+        estimated_minutes=estimated_minutes,
+    )
+    db.add(subtask)
+    db.commit()
+    db.refresh(subtask)
+    return subtask
+
+
+def toggle_subtask(
+    db: Session,
+    task_id: int,
+    subtask_id: int,
+) -> Optional[Subtask]:
+    """Toggle a subtask's completion status."""
+    subtask = db.query(Subtask).filter(
+        Subtask.id == subtask_id,
+        Subtask.task_id == task_id,
+    ).first()
+    if not subtask:
+        return None
+
+    subtask.completed = not subtask.completed
+    db.commit()
+    db.refresh(subtask)
+    return subtask
+
+
+def delete_subtask(
+    db: Session,
+    task_id: int,
+    subtask_id: int,
+) -> bool:
+    """Delete a subtask."""
+    subtask = db.query(Subtask).filter(
+        Subtask.id == subtask_id,
+        Subtask.task_id == task_id,
+    ).first()
+    if not subtask:
+        return False
+
+    db.delete(subtask)
+    db.commit()
+    return True
+
 

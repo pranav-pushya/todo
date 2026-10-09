@@ -1729,6 +1729,104 @@ npm run dev
 2. **Accessible, Non-Blocking Interactions**: Floating toasts automatically dismiss without interrupting workflow, while modal popups offer clear danger indicators, title explanations, and keyboard shortcuts (`Escape` to cancel).
 3. **Promise-Driven Async Confirmation**: Provides seamless integration with async React handlers (`const ok = await confirm(...)`) without callback fragmentation.
 
+---
+
+# 🚀 Developer Edition Features (CSE & AI/ML Platform)
+
+## ⚡ Feature 1: "Magic Subtasking" (AI Task Deconstruction)
+
+### A. What was done:
+
+1. **Relational Subtask Model & Endpoints**:
+   - Added the `Subtask` ORM model in [`backend/app/models/task.py`](file:///d:/Coding/Projects/todo/backend/app/models/task.py) with fields `id`, `task_id`, `title`, `completed`, `estimated_minutes`, and `created_at`, wired via a cascade relationship to `Task`.
+   - Exported `Subtask` in [`backend/app/models/__init__.py`](file:///d:/Coding/Projects/todo/backend/app/models/__init__.py).
+   - Created Pydantic schemas `SubtaskBase`, `SubtaskCreate`, and `SubtaskResponse` in [`backend/app/schemas/task.py`](file:///d:/Coding/Projects/todo/backend/app/schemas/task.py), and nested `subtasks: List[SubtaskResponse]` inside `TaskResponse`.
+   - Implemented CRUD helpers in [`backend/app/crud/task.py`](file:///d:/Coding/Projects/todo/backend/app/crud/task.py): `add_subtask`, `toggle_subtask`, `delete_subtask`, and updated `to_task_response`.
+   - Exposed 4 REST endpoints in [`backend/app/api/v1/tasks.py`](file:///d:/Coding/Projects/todo/backend/app/api/v1/tasks.py):
+     - `POST /api/v1/tasks/{task_id}/deconstruct`
+     - `POST /api/v1/tasks/{task_id}/subtasks`
+     - `PATCH /api/v1/tasks/{task_id}/subtasks/{subtask_id}/toggle`
+     - `DELETE /api/v1/tasks/{task_id}/subtasks/{subtask_id}`
+
+2. **Ultra-Fast Groq Llama 3.3 Task Deconstructor**:
+   - Built `deconstruct_task_with_llm(title, description)` in [`backend/app/services/groq_client.py`](file:///d:/Coding/Projects/todo/backend/app/services/groq_client.py).
+   - Prompts Groq LPU Llama 3.3 to analyze any complex or overwhelming programming/academic task and generate 3 to 5 bite-sized, sequential, actionable subtasks (10-30 mins each) with realistic estimated completion times.
+
+3. **Interactive Frontend Subtasks UI**:
+   - Extended `TaskAPI` in [`web/src/services/api.js`](file:///d:/Coding/Projects/todo/web/src/services/api.js) and `TaskContext` in [`web/src/context/TaskContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/TaskContext.jsx).
+   - Redesigned [`web/src/components/tasks/TaskItem.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/TaskItem.jsx):
+     - Added a glowing cobalt **"⚡ Deconstruct"** button on every task item.
+     - Displays live subtask count pill (e.g., `Subtasks: 2/4`) with smooth accordion expansion.
+     - Renders a gradient completion progress bar (`0%` to `100%`).
+     - Checkbox toggle for each subtask with immediate completion feedback.
+     - Pill showing estimated time for each step (e.g. `⏱️ 15m`).
+     - Inline quick-add form (`+ Add step`) and delete subtask button.
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **AI Deconstruction Engine ([`backend/app/services/groq_client.py`](file:///d:/Coding/Projects/todo/backend/app/services/groq_client.py))**:
+   ```python
+   def deconstruct_task_with_llm(title: str, description: Optional[str] = None) -> List[Dict[str, Any]]:
+       client = Groq(api_key=settings.GROQ_API_KEY)
+       response = client.chat.completions.create(
+           model=settings.GROQ_MODEL,
+           messages=[
+               {
+                   "role": "system",
+                   "content": (
+                       "You are an expert software engineer and productivity coach. "
+                       "Break down the user's task into 3 to 5 bite-sized, sequential, actionable subtasks (10-30 mins each). "
+                       "Return ONLY a raw JSON array of objects with keys 'title' (string) and 'estimated_minutes' (integer)."
+                   ),
+               },
+               {"role": "user", "content": f"Task Title: {title}\nTask Details: {description or 'None'}"},
+           ],
+           temperature=0.2,
+       )
+   ```
+
+2. **Subtask Checklist & Progress Bar ([`web/src/components/tasks/TaskItem.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/TaskItem.jsx))**:
+   ```jsx
+   {/* Gradient Progress Bar */}
+   <div className="w-full h-1 bg-obsidian-950 rounded-full overflow-hidden border border-white/[0.04]">
+     <div
+       className="h-full bg-gradient-to-r from-cobalt-600 to-emerald-400 transition-all duration-300 rounded-full"
+       style={{ width: `${(completedSubtasksCount / subtasks.length) * 100}%` }}
+     />
+   </div>
+   ```
+
+3. **Production Build Verification**:
+   ```powershell
+   cd d:\Coding\Projects\todo\web
+   npm run build
+   ```
+   **Output**:
+   ```text
+   > todo-web@0.1.0 build
+   > vite build
+
+   vite v6.4.4 building for production...
+   transforming...
+   ✓ 1604 modules transformed.
+   rendering chunks...
+   computing gzip size...
+   dist/index.html                   0.86 kB │ gzip:  0.48 kB
+   dist/assets/index-DAsrZ-kq.css   37.22 kB │ gzip:  6.81 kB
+   dist/assets/index-B0i-hPM9.js   245.83 kB │ gzip: 68.98 kB
+   ✓ built in 7.46s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Conquering Task Paralysis**: Large engineering tasks (like *"Implement YOLOv8 Object Detection"* or *"Refactor Authentication Service"*) frequently trigger procrastination. Deconstructing them into 15-minute concrete steps removes the psychological barrier to starting.
+2. **Quantifiable Micro-Wins**: Progress bars and individual checkboxes provide dopamine feedback as developers knock out sub-steps one by one.
+
+
 
 
 

@@ -7,17 +7,21 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.crud.project import get_project_by_id
 from app.crud.task import (
+    add_subtask,
     create_task,
+    delete_subtask,
     delete_task,
     get_task_analytics,
     get_task_by_id,
     get_tasks,
     to_task_response,
+    toggle_subtask,
     toggle_task_completion,
     update_task,
 )
 from app.schemas.common import PriorityEnum, TaskViewFilter
-from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
+from app.schemas.task import SubtaskCreate, TaskCreate, TaskResponse, TaskUpdate
+from app.services.groq_client import deconstruct_task_with_llm
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -140,3 +144,105 @@ def remove_task(
         )
     delete_task(db=db, db_task=task)
     return None
+
+
+@router.post("/{task_id}/deconstruct", response_model=TaskResponse)
+def deconstruct_task(
+    task_id: int,
+    db: Session = Depends(get_db),
+):
+    """Magic Subtasking: AI deconstructs an overwhelming task into actionable 15-minute subtasks."""
+    task = get_task_by_id(db=db, task_id=task_id)
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Task with ID {task_id} not found.",
+        )
+
+    # Call AI deconstruction
+    items = deconstruct_task_with_llm(title=task.title, description=task.description)
+    for item in items:
+        add_subtask(
+            db=db,
+            task_id=task.id,
+            title=item["title"],
+            estimated_minutes=item.get("estimated_minutes", 15),
+        )
+
+    db.refresh(task)
+    return to_task_response(task)
+
+
+@router.post("/{task_id}/subtasks", response_model=TaskResponse)
+def create_manual_subtask(
+    task_id: int,
+    subtask_in: SubtaskCreate,
+    db: Session = Depends(get_db),
+):
+    """Add a manual subtask under a parent task."""
+    task = get_task_by_id(db=db, task_id=task_id)
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Task with ID {task_id} not found.",
+        )
+
+    add_subtask(
+        db=db,
+        task_id=task.id,
+        title=subtask_in.title,
+        estimated_minutes=subtask_in.estimated_minutes or 15,
+    )
+    db.refresh(task)
+    return to_task_response(task)
+
+
+@router.patch("/{task_id}/subtasks/{subtask_id}/toggle", response_model=TaskResponse)
+def toggle_task_subtask(
+    task_id: int,
+    subtask_id: int,
+    db: Session = Depends(get_db),
+):
+    """Toggle completion status of a subtask."""
+    task = get_task_by_id(db=db, task_id=task_id)
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Task with ID {task_id} not found.",
+        )
+
+    updated_subtask = toggle_subtask(db=db, task_id=task_id, subtask_id=subtask_id)
+    if not updated_subtask:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Subtask with ID {subtask_id} not found.",
+        )
+
+    db.refresh(task)
+    return to_task_response(task)
+
+
+@router.delete("/{task_id}/subtasks/{subtask_id}", response_model=TaskResponse)
+def remove_task_subtask(
+    task_id: int,
+    subtask_id: int,
+    db: Session = Depends(get_db),
+):
+    """Delete a subtask."""
+    task = get_task_by_id(db=db, task_id=task_id)
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Task with ID {task_id} not found.",
+        )
+
+    success = delete_subtask(db=db, task_id=task_id, subtask_id=subtask_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Subtask with ID {subtask_id} not found.",
+        )
+
+    db.refresh(task)
+    return to_task_response(task)
+

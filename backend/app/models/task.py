@@ -39,6 +39,35 @@ class Task(Base):
 
     # Relationship back to the parent Project (if any)
     project = relationship("Project", back_populates="tasks")
+    subtasks = relationship(
+        "Subtask",
+        back_populates="task",
+        cascade="all, delete-orphan",
+        order_by="Subtask.id",
+    )
 
     def __repr__(self) -> str:
         return f"<Task(id={self.id}, title='{self.title}', priority='{self.priority}', completed={self.completed})>"
+
+
+class Subtask(Base):
+    """Represents a fine-grained, bite-sized subtask under a parent Task."""
+
+    __tablename__ = "subtasks"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    task_id = Column(
+        Integer,
+        ForeignKey("tasks.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    title = Column(String(255), nullable=False)
+    completed = Column(Boolean, default=False, nullable=False, index=True)
+    estimated_minutes = Column(Integer, default=15, nullable=True)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+
+    task = relationship("Task", back_populates="subtasks")
+
+    def __repr__(self) -> str:
+        return f"<Subtask(id={self.id}, task_id={self.task_id}, title='{self.title}', completed={self.completed})>"

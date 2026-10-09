@@ -112,6 +112,43 @@ export const TaskAPI = {
       method: 'DELETE',
     });
   },
+
+  /**
+   * AI Magic Subtasking: Deconstruct task into 15-minute actionable subtasks.
+   */
+  async deconstructTask(taskId) {
+    return request(`/tasks/${taskId}/deconstruct`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Add a manual subtask.
+   */
+  async addSubtask(taskId, subtaskData) {
+    return request(`/tasks/${taskId}/subtasks`, {
+      method: 'POST',
+      body: JSON.stringify(subtaskData),
+    });
+  },
+
+  /**
+   * Toggle a subtask's completion status.
+   */
+  async toggleSubtask(taskId, subtaskId) {
+    return request(`/tasks/${taskId}/subtasks/${subtaskId}/toggle`, {
+      method: 'PATCH',
+    });
+  },
+
+  /**
+   * Delete a subtask.
+   */
+  async deleteSubtask(taskId, subtaskId) {
+    return request(`/tasks/${taskId}/subtasks/${subtaskId}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 // ==================== PROJECT API ====================

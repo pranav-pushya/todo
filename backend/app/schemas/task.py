@@ -1,10 +1,33 @@
 """Pydantic validation schemas for Tasks."""
 
 from datetime import date, datetime
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.common import PriorityEnum
+
+
+class SubtaskBase(BaseModel):
+    """Base schema for subtask items."""
+
+    title: str = Field(..., min_length=1, max_length=255, description="Subtask title")
+    completed: bool = Field(False, description="Completion status")
+    estimated_minutes: Optional[int] = Field(15, description="Estimated minutes to finish")
+
+
+class SubtaskCreate(SubtaskBase):
+    """Schema to add a new subtask."""
+    pass
+
+
+class SubtaskResponse(SubtaskBase):
+    """Schema returned for subtasks."""
+
+    id: int
+    task_id: int
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TaskBase(BaseModel):
@@ -47,5 +70,8 @@ class TaskResponse(TaskBase):
     # Optional metadata from joined parent project
     project_title: Optional[str] = None
     project_color: Optional[str] = None
+
+    # Nested subtasks list
+    subtasks: List[SubtaskResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)

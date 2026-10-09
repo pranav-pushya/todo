@@ -109,6 +109,53 @@ export function TaskProvider({ children }) {
     }
   };
 
+  const deconstructTask = async (taskId) => {
+    try {
+      const updated = await TaskAPI.deconstructTask(taskId);
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
+      return updated;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const addSubtask = async (taskId, title, estimatedMinutes = 15) => {
+    try {
+      const updated = await TaskAPI.addSubtask(taskId, {
+        title,
+        estimated_minutes: estimatedMinutes,
+      });
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
+      return updated;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const toggleSubtask = async (taskId, subtaskId) => {
+    try {
+      const updated = await TaskAPI.toggleSubtask(taskId, subtaskId);
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
+      return updated;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const deleteSubtask = async (taskId, subtaskId) => {
+    try {
+      const updated = await TaskAPI.deleteSubtask(taskId, subtaskId);
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
+      return updated;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
   return (
     <TaskContext.Provider
       value={{
@@ -129,6 +176,10 @@ export function TaskProvider({ children }) {
         editTask,
         toggleTask,
         removeTask,
+        deconstructTask,
+        addSubtask,
+        toggleSubtask,
+        deleteSubtask,
       }}
     >
       {children}

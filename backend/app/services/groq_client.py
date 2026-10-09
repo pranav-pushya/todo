@@ -5,6 +5,7 @@ and execution loops using the ultra-fast Groq LPU inference engine.
 """
 
 import json
+import re
 from datetime import date, datetime, timezone
 from typing import Any, Dict, List, Optional
 from groq import Groq
@@ -343,4 +344,64 @@ def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
         "executed_actions": executed_actions,
         "reply": final_reply,
     }
+
+
+def deconstruct_task_with_llm(title: str, description: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Use Groq LPU with Llama 3.3 to break down an overwhelming task into actionable 15-minute subtasks."""
+    api_key = settings.GROQ_API_KEY
+    if not api_key:
+        return [
+            {"title": f"Plan architecture & specs for '{title}'", "estimated_minutes": 15},
+            {"title": f"Implement core logic for '{title}'", "estimated_minutes": 30},
+            {"title": f"Test edge cases and verify outputs", "estimated_minutes": 20},
+            {"title": f"Review, document, and clean up", "estimated_minutes": 15},
+        ]
+
+    try:
+        client = Groq(api_key=api_key)
+        prompt = f"Task Title: {title}\nTask Details: {description or 'None'}"
+        response = client.chat.completions.create(
+            model=settings.GROQ_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an expert software engineer and productivity coach. "
+                        "Break down the user's task into 3 to 5 bite-sized, sequential, actionable subtasks "
+                        "(10-30 mins each). "
+                        "Return ONLY a raw JSON array of objects with keys 'title' (string) and 'estimated_minutes' (integer). "
+                        "Example format: [{\"title\": \"Create unit test fixtures\", \"estimated_minutes\": 15}]. "
+                        "Do not return markdown code blocks, backticks, or any conversational text."
+                    ),
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.2,
+        )
+        content = (response.choices[0].message.content or "").strip()
+        # Clean potential markdown codeblock formatting if model returned ```json ... ```
+        content = re.sub(r"^```(?:json)?\s*", "", content, flags=re.IGNORECASE)
+        content = re.sub(r"\s*```$", "", content)
+        data = json.loads(content)
+        if isinstance(data, list) and len(data) > 0:
+            parsed = []
+            for item in data:
+                if isinstance(item, dict) and item.get("title"):
+                    parsed.append({
+                        "title": str(item["title"]).strip(),
+                        "estimated_minutes": int(item.get("estimated_minutes", 15)),
+                    })
+            if parsed:
+                return parsed
+    except Exception as e:
+        print(f"Groq task deconstruction error: {e}")
+
+    # Fallback to intelligent steps if LLM fails
+    return [
+        {"title": f"Plan architecture & specs for '{title}'", "estimated_minutes": 15},
+        {"title": f"Implement core logic for '{title}'", "estimated_minutes": 30},
+        {"title": f"Test edge cases and verify outputs", "estimated_minutes": 20},
+        {"title": f"Review, document, and clean up", "estimated_minutes": 15},
+    ]
+
 
