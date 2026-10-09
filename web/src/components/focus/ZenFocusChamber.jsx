@@ -284,7 +284,7 @@ export default function ZenFocusChamber({ isOpen, onClose, initialTaskId = null 
         title,
         description: 'Captured in Zen Focus Chamber Brain Dump',
         priority: 'P4',
-        tags: ['brain-dump', 'zen'],
+        tags: 'brain-dump, zen',
       });
       setDistractionList((prev) => [title, ...prev]);
       setDistractionInput('');

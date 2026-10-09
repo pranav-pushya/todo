@@ -10,6 +10,7 @@ from app.crud.sprint import (
     complete_sprint,
     compute_sprint_burndown,
     create_sprint,
+    get_all_sprints,
     get_or_create_active_sprint,
     to_sprint_response,
 )
@@ -18,6 +19,21 @@ from app.schemas.sprint import BurndownResponse, SprintCreate, SprintResponse
 from app.schemas.task import TaskResponse
 
 router = APIRouter(prefix="/sprints", tags=["Agile Sprints & Burndown"])
+
+
+@router.get(
+    "/",
+    response_model=List[SprintResponse],
+    summary="List all sprints",
+)
+def list_sprints(
+    skip: int = 0,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+):
+    """Retrieve all sprints ordered by creation date descending."""
+    sprints = get_all_sprints(db, skip=skip, limit=limit)
+    return [to_sprint_response(s) for s in sprints]
 
 
 @router.get(

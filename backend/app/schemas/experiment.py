@@ -10,7 +10,8 @@ class ExperimentWebhookPayload(BaseModel):
 
     task_id: Optional[int] = Field(default=None, description="ID of an existing task to link and complete")
     task_title: Optional[str] = Field(default=None, description="Title of task to link or auto-create")
-    model_name: str = Field(..., description="Name of the model e.g. yolov8n, llama-3-8b, resnet50")
+    model_name: Optional[str] = Field(default="ML Model Run", description="Name of the model e.g. yolov8n, llama-3-8b, resnet50")
+    run_name: Optional[str] = Field(default=None, description="Alternative run alias or experiment title")
     framework: Optional[str] = Field(default="PyTorch", description="Framework e.g. PyTorch, TensorFlow, HuggingFace")
     status: Optional[str] = Field(default="success", description="Status: 'success', 'failed', or 'running'")
     current_epoch: Optional[int] = Field(default=None, description="Completed epoch count")

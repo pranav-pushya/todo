@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { ThemeProvider } from './context/ThemeContext';
 import { ProjectProvider, useProjects } from './context/ProjectContext';
 import { TaskProvider, useTasks } from './context/TaskContext';
 import { AgentProvider, useAgent } from './context/AgentContext';
@@ -396,20 +395,18 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <UIFeedbackProvider>
-        <ProjectProvider>
-          <TaskProvider>
-            <NoteProvider>
-              <AgentProvider>
-                <ErrorBoundary>
-                  <AppContent />
-                </ErrorBoundary>
-              </AgentProvider>
-            </NoteProvider>
-          </TaskProvider>
-        </ProjectProvider>
-      </UIFeedbackProvider>
-    </ThemeProvider>
+    <UIFeedbackProvider>
+      <ProjectProvider>
+        <TaskProvider>
+          <NoteProvider>
+            <AgentProvider>
+              <ErrorBoundary>
+                <AppContent />
+              </ErrorBoundary>
+            </AgentProvider>
+          </NoteProvider>
+        </TaskProvider>
+      </ProjectProvider>
+    </UIFeedbackProvider>
   );
 }

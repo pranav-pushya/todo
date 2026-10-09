@@ -18,16 +18,18 @@ export function NoteProvider({ children }) {
     try {
       const data = await NoteAPI.getNotes({ search: searchQuery.trim() || undefined });
       setNotes(data);
-      if (data.length > 0 && !activeNoteId) {
-        setActiveNoteId(data[0].id);
-      }
+      setActiveNoteId((curr) => {
+        if (!curr && data.length > 0) return data[0].id;
+        if (curr && data.some((n) => n.id === curr)) return curr;
+        return data.length > 0 ? data[0].id : null;
+      });
     } catch (err) {
       console.error('Failed to load notes:', err);
       setError(err.message || 'Failed to load notes');
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, activeNoteId]);
+  }, [searchQuery]);
 
   useEffect(() => {
     fetchNotes();
@@ -103,7 +105,7 @@ export function NoteProvider({ children }) {
         title: note.title || 'Action from Note',
         description: note.content || null,
         priority: 'P3',
-        tags: note.tags ? note.tags.split(',').map((t) => t.trim()) : [],
+        tags: typeof note.tags === 'string' ? note.tags : (Array.isArray(note.tags) ? note.tags.join(', ') : ''),
       };
       const created = await TaskAPI.createTask(taskData);
       fetchTasks();

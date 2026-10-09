@@ -23,7 +23,7 @@ import { useTasks } from '../../context/TaskContext';
 import { useUIFeedback } from '../../context/UIFeedbackContext';
 
 export default function SprintBoardView({ onOpenAddTask, onEditTask, onFocusTask }) {
-  const { tasks: allGlobalTasks, refreshTasks, toggleTask } = useTasks();
+  const { tasks: allGlobalTasks, fetchTasks, toggleTask } = useTasks();
   const { toast, confirm } = useUIFeedback();
 
   const [activeSprint, setActiveSprint] = useState(null);
@@ -89,7 +89,7 @@ export default function SprintBoardView({ onOpenAddTask, onEditTask, onFocusTask
       setNewTitle('');
       setNewGoal('');
       await fetchSprintData();
-      await refreshTasks();
+      await fetchTasks();
     } catch (err) {
       toast.error(err.message || 'Failed to create sprint');
     }
@@ -120,7 +120,7 @@ export default function SprintBoardView({ onOpenAddTask, onEditTask, onFocusTask
       await SprintAPI.addTaskToSprint(activeSprint.id, taskId);
       toast.success('Task assigned to sprint backlog');
       await fetchSprintData();
-      await refreshTasks();
+      await fetchTasks();
     } catch (err) {
       toast.error(err.message || 'Failed to assign task');
     }
@@ -130,15 +130,17 @@ export default function SprintBoardView({ onOpenAddTask, onEditTask, onFocusTask
     try {
       await toggleTask(task.id);
       await fetchSprintData();
+      await fetchTasks();
     } catch (err) {
       toast.error('Failed to update task');
     }
   };
 
-  // Divide sprint tasks into columns
-  const backlogTasks = sprintTasks.filter((t) => !t.is_completed && !t.is_pinned);
-  const inProgressTasks = sprintTasks.filter((t) => !t.is_completed && t.is_pinned);
-  const doneTasks = sprintTasks.filter((t) => t.is_completed);
+  // Divide sprint tasks into columns: Done (completed), In Active Flow (P1/P2/pinned), Backlog (other active)
+  const isDone = (t) => Boolean(t.completed || t.is_completed);
+  const doneTasks = sprintTasks.filter((t) => isDone(t));
+  const inProgressTasks = sprintTasks.filter((t) => !isDone(t) && (t.priority === 'P1' || t.priority === 'P2' || t.is_pinned));
+  const backlogTasks = sprintTasks.filter((t) => !isDone(t) && t.priority !== 'P1' && t.priority !== 'P2' && !t.is_pinned);
 
   // Available tasks to add to sprint (not already assigned to active sprint)
   const sprintTaskIds = new Set(sprintTasks.map((t) => t.id));

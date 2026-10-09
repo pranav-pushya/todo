@@ -2,7 +2,6 @@ import React from 'react';
 import { Search, Plus, Sparkles, Command } from 'lucide-react';
 import { useAgent } from '../../context/AgentContext';
 import { useTasks } from '../../context/TaskContext';
-import ThemeSwitcher from '../common/ThemeSwitcher';
 
 export default function Header({ onOpenAddTask, onOpenZen }) {
   const { setIsCommandPaletteOpen, setIsDrawerOpen, isDrawerOpen } = useAgent();
@@ -33,10 +32,7 @@ export default function Header({ onOpenAddTask, onOpenZen }) {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-2.5">
-        {/* Interactive Theme Switcher */}
-        <ThemeSwitcher />
-
+      <div className="flex items-center gap-3">
         {/* Zen Focus Chamber Trigger */}
         <button
           onClick={onOpenZen}
@@ -44,7 +40,7 @@ export default function Header({ onOpenAddTask, onOpenZen }) {
           title="Open Zen Focus Chamber (Shortcut: F)"
         >
           <span className="text-base group-hover:scale-110 transition-transform">🎯</span>
-          <span className="hidden md:inline font-semibold">Zen Focus</span>
+          <span className="font-semibold">Zen Focus</span>
           <span className="text-[10px] text-indigo-200 bg-indigo-900/80 px-1.5 py-0.5 rounded border border-indigo-500/40 font-mono">
             F
           </span>

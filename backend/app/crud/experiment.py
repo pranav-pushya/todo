@@ -54,12 +54,16 @@ def process_experiment_webhook(
             .first()
         )
 
+    effective_model_name = (
+        payload.run_name if (payload.run_name and (not payload.model_name or payload.model_name == "ML Model Run")) else (payload.model_name or "ML Model Run")
+    )
+
     # 3. If no matching task was found, auto-create one!
     if not task:
-        title = payload.task_title or f"Train {payload.model_name}"
+        title = payload.task_title or f"Train {effective_model_name}"
         task = Task(
             title=title,
-            description=f"Auto-generated via ML Training Webhook for {payload.model_name} ({payload.framework})",
+            description=f"Auto-generated via ML Training Webhook for {effective_model_name} ({payload.framework})",
             priority="P2",
             tags="ml,training",
             completed=False,
@@ -79,14 +83,14 @@ def process_experiment_webhook(
         task.priority = "P1"
         if not task.description:
             task.description = ""
-        task.description += f"\n[!] Training Run Failed for {payload.model_name}"
+        task.description += f"\n[!] Training Run Failed for {effective_model_name}"
 
     # 5. Persist the ExperimentRun record
     metrics_str = json.dumps(payload.metrics) if payload.metrics else None
 
     experiment = ExperimentRun(
         task_id=task.id if task else None,
-        model_name=payload.model_name,
+        model_name=effective_model_name,
         framework=payload.framework or "PyTorch",
         status=payload.status or "success",
         current_epoch=payload.current_epoch,

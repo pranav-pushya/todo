@@ -49,18 +49,13 @@ export default function AddTaskModal({ isOpen, onClose, taskToEdit = null }) {
     setIsSubmitting(true);
     setError(null);
 
-    const tags = tagsInput
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
-
     const payload = {
       title: title.trim(),
       description: description.trim() || null,
       priority,
-      due_date: dueDate ? new Date(dueDate).toISOString() : null,
+      due_date: dueDate || null,
       project_id: projectId ? Number(projectId) : null,
-      tags: tags.length > 0 ? tags : null,
+      tags: tagsInput.trim() || '',
     };
 
     try {

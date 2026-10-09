@@ -43,6 +43,11 @@ def get_active_sprint(db: Session) -> Optional[Sprint]:
     return db.query(Sprint).filter(Sprint.is_active == True).order_by(Sprint.id.desc()).first()
 
 
+def get_all_sprints(db: Session, skip: int = 0, limit: int = 50) -> List[Sprint]:
+    """Retrieve all sprints ordered by ID descending."""
+    return db.query(Sprint).order_by(Sprint.id.desc()).offset(skip).limit(limit).all()
+
+
 def get_or_create_active_sprint(db: Session) -> Sprint:
     """Retrieve the active sprint, or auto-initialize one if none exists."""
     sprint = get_active_sprint(db)

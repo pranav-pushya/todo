@@ -1,8 +1,8 @@
 """Pydantic validation schemas for Tasks."""
 
 from datetime import date, datetime
-from typing import List, Optional
-from pydantic import BaseModel, ConfigDict, Field
+from typing import Any, List, Optional
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.schemas.common import PriorityEnum
 
@@ -40,6 +40,32 @@ class TaskBase(BaseModel):
     project_id: Optional[int] = Field(None, description="Parent project ID (null = Inbox)")
     tags: Optional[str] = Field("", description="Comma-separated tags (e.g. 'work, urgent')")
 
+    @field_validator("tags", mode="before")
+    @classmethod
+    def normalize_tags(cls, v: Any) -> str:
+        if v is None:
+            return ""
+        if isinstance(v, list):
+            return ", ".join(str(item).strip() for item in v if item)
+        return str(v).strip()
+
+    @field_validator("due_date", mode="before")
+    @classmethod
+    def normalize_due_date(cls, v: Any) -> Optional[date]:
+        if not v:
+            return None
+        if isinstance(v, date):
+            return v
+        if isinstance(v, str):
+            clean = v.strip()
+            if "T" in clean:
+                clean = clean.split("T")[0]
+            try:
+                return datetime.strptime(clean, "%Y-%m-%d").date()
+            except ValueError:
+                return None
+        return None
+
 
 class TaskCreate(TaskBase):
     """Schema used to create a new task."""
@@ -56,6 +82,32 @@ class TaskUpdate(BaseModel):
     project_id: Optional[int] = None
     completed: Optional[bool] = None
     tags: Optional[str] = None
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def normalize_tags(cls, v: Any) -> Optional[str]:
+        if v is None:
+            return None
+        if isinstance(v, list):
+            return ", ".join(str(item).strip() for item in v if item)
+        return str(v).strip()
+
+    @field_validator("due_date", mode="before")
+    @classmethod
+    def normalize_due_date(cls, v: Any) -> Optional[date]:
+        if not v:
+            return None
+        if isinstance(v, date):
+            return v
+        if isinstance(v, str):
+            clean = v.strip()
+            if "T" in clean:
+                clean = clean.split("T")[0]
+            try:
+                return datetime.strptime(clean, "%Y-%m-%d").date()
+            except ValueError:
+                return None
+        return None
 
 
 class TaskResponse(TaskBase):

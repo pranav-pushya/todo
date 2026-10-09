@@ -63,7 +63,11 @@ export default function TaskItem({ task, onEdit, onFocus, isHighlighted }) {
   // Format and determine overdue status
   const formatDueDate = (dateStr) => {
     if (!dateStr) return null;
-    const date = new Date(dateStr);
+    const parts = dateStr.split('T')[0].split('-').map(Number);
+    const date = parts.length === 3 && parts.every((n) => !isNaN(n))
+      ? new Date(parts[0], parts[1] - 1, parts[2])
+      : new Date(dateStr);
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

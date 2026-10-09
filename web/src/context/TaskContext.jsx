@@ -171,6 +171,7 @@ export function TaskProvider({ children }) {
         analytics,
         analyticsLoading,
         fetchTasks,
+        refreshTasks: fetchTasks,
         fetchAnalytics,
         addTask,
         editTask,

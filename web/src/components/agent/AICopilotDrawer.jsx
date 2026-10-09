@@ -41,7 +41,7 @@ export default function AICopilotDrawer() {
   } = useAgent();
 
   const { addNote, fetchNotes } = useNotes();
-  const { addTask, setActiveFilter, setSelectedProjectId } = useTasks();
+  const { addTask } = useTasks();
   const { toast } = useUIFeedback();
 
   const [input, setInput] = useState('');

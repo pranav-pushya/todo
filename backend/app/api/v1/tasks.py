@@ -66,6 +66,7 @@ def add_task(
 
 
 @router.get("/analytics")
+@router.get("/analytics/consistency")
 def read_task_analytics(
     db: Session = Depends(get_db),
 ):
