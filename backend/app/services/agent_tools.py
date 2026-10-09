@@ -297,6 +297,38 @@ def tool_list_tasks(
     }
 
 
+def tool_ui_control(
+    db: Session,
+    action: str,
+    view: Optional[str] = None,
+    project_name: Optional[str] = None,
+    priority: Optional[str] = None,
+    search_query: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Tool: Instruct frontend web application to perform UI interactions.
+
+    Supports opening/closing modals, command palette, navigation views, priority filters, and search.
+    """
+    clean_action = action.strip().lower()
+    project_id = None
+    if project_name and project_name.strip():
+        proj = get_project_by_title(db, project_name.strip())
+        if proj:
+            project_id = proj.id
+
+    return {
+        "status": "success",
+        "action": "ui_control",
+        "ui_action": clean_action,
+        "view": view.lower() if view else None,
+        "project_name": project_name,
+        "project_id": project_id,
+        "priority": priority.upper() if priority else None,
+        "search_query": search_query,
+        "message": f"UI command executed: {clean_action}",
+    }
+
+
 # Map tool name string to callable function
 TOOL_MAP = {
     "create_task": tool_create_task,
@@ -305,4 +337,6 @@ TOOL_MAP = {
     "reschedule_tasks": tool_reschedule_tasks,
     "create_project": tool_create_project,
     "list_tasks": tool_list_tasks,
+    "ui_control": tool_ui_control,
 }
+

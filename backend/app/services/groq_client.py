@@ -34,9 +34,8 @@ TOOL_DEFINITIONS = [
                         "description": "When the task is due: 'today', 'tomorrow', 'next week', or 'YYYY-MM-DD'",
                     },
                     "priority": {
-                        "type": "string",
-                        "enum": ["P1", "P2", "P3", "P4"],
-                        "description": "P1 (Urgent), P2 (High), P3 (Medium), P4 (Low)",
+                        "type": ["string", "null"],
+                        "description": "Task priority: 'P1' (Urgent), 'P2' (High), 'P3' (Medium), or 'P4' (Low). Defaults to 'P4' if omitted or null.",
                     },
                     "project_name": {
                         "type": ["string", "null"],
@@ -152,6 +151,50 @@ TOOL_DEFINITIONS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "ui_control",
+            "description": "Control the web application interface: open command menu/palette, open modals, navigate views, apply priority filters, or search tasks. Use this whenever the user wants to open, view, show, navigate, or filter anything in the UI.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": [
+                            "open_command_palette",
+                            "close_command_palette",
+                            "open_add_task_modal",
+                            "open_create_project_modal",
+                            "navigate_view",
+                            "filter_priority",
+                            "search_tasks",
+                            "clear_search",
+                            "close_modals",
+                        ],
+                        "description": "The UI action to execute in the webapp.",
+                    },
+                    "view": {
+                        "type": ["string", "null"],
+                        "description": "The view to navigate to: 'inbox', 'today', 'upcoming', 'completed', or 'all'.",
+                    },
+                    "project_name": {
+                        "type": ["string", "null"],
+                        "description": "The name of the project to open/select if navigating to a project.",
+                    },
+                    "priority": {
+                        "type": ["string", "null"],
+                        "description": "Priority filter to apply: 'P1', 'P2', 'P3', 'P4', or 'all'.",
+                    },
+                    "search_query": {
+                        "type": ["string", "null"],
+                        "description": "Search keyword if action is search_tasks.",
+                    },
+                },
+                "required": ["action"],
+            },
+        },
+    },
 ]
 
 
@@ -161,22 +204,36 @@ def build_system_prompt() -> str:
     day_name = date.today().strftime("%A")
 
     return (
-        f"You are the autonomous AI Copilot for the AI-Controlled To-Do Platform.\n"
+        f"You are the autonomous AI Copilot and UI Controller for the AI-Controlled To-Do Platform.\n"
         f"Today is {day_name}, {today_str}.\n\n"
-        "Your mission is to understand user natural language commands and execute the appropriate database tools.\n"
-        "- If the user asks to add tasks (even multiple), call 'create_task' for each one.\n"
+        "Your mission is to understand user natural language commands and execute the appropriate database and UI tools.\n"
+        "IMPORTANT - WEB APPLICATION UI CONTROL:\n"
+        "You HAVE FULL CAPABILITY to control the web application interface via the 'ui_control' tool!\n"
+        "- If the user asks to open the command menu / cmd palette / menu (e.g., 'open cmd menu', 'open command menu', 'cmd palette'), call 'ui_control' with action='open_command_palette'.\n"
+        "- If the user asks to open the add task modal/form/dialog, call 'ui_control' with action='open_add_task_modal'.\n"
+        "- If the user asks to open the project creation modal, call 'ui_control' with action='open_create_project_modal'.\n"
+        "- If the user asks to show or switch to Today, Inbox, Upcoming, Completed, or a specific Project, call 'ui_control' with action='navigate_view' and the respective view or project_name.\n"
+        "- If the user asks to filter tasks by priority (e.g. 'filter by P1'), call 'ui_control' with action='filter_priority'.\n"
+        "- If the user asks to search for tasks, call 'ui_control' with action='search_tasks'.\n"
+        "- If the user asks to close modals or dialogs, call 'ui_control' with action='close_modals'.\n\n"
+        "DATABASE ACTIONS:\n"
+        "- If the user asks to add tasks, call 'create_task'.\n"
         "- If the user says 'done with X' or 'finish X', call 'complete_task'.\n"
         "- If the user asks to reschedule overdue tasks, call 'reschedule_tasks'.\n"
-        "- If the user asks what they have to do, call 'list_tasks'.\n"
-        "- If the user mentions notes or meeting items, extract the action items and create tasks.\n"
-        "Always be concise, proactive, and helpful."
+        "- If the user asks what they have to do, call 'list_tasks'.\n\n"
+        "MULTIPLE / COMPOUND COMMANDS:\n"
+        "The user CAN and OFTEN WILL give MULTIPLE commands collectively in a single prompt (e.g. 'Create task deploy api due tomorrow, switch to today view, and open the cmd menu').\n"
+        "YOU MUST CALL ALL CORRESPONDING TOOLS TOGETHER IN A SINGLE TURN.\n"
+        "Always be concise, proactive, and confirm what was opened, navigated, or created."
     )
+
 
 
 def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
     """Execute a natural language command through Groq LLM tool calling.
 
-    If Groq API key is not configured, provides a helpful prompt explaining how to configure it.
+    Supports iterative multi-tool execution loops so multiple commands
+    (e.g., creating tasks, navigating views, opening menus) are executed collectively.
     """
     api_key = settings.GROQ_API_KEY
     if not api_key:
@@ -197,29 +254,37 @@ def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
         {"role": "user", "content": prompt},
     ]
 
-    try:
-        response = client.chat.completions.create(
-            model=settings.GROQ_MODEL,
-            messages=messages,
-            tools=TOOL_DEFINITIONS,
-            tool_choice="auto",
-            temperature=0.1,
-        )
-    except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Groq API call failed: {str(e)}",
-            "executed_actions": [],
-            "reply": f"Error contacting AI model: {str(e)}",
-        }
-
-    response_message = response.choices[0].message
-    tool_calls = response_message.tool_calls
-
     executed_actions = []
+    final_reply = ""
+    max_steps = 4
 
-    # If the model chose to call tools:
-    if tool_calls:
+    for _ in range(max_steps):
+        try:
+            response = client.chat.completions.create(
+                model=settings.GROQ_MODEL,
+                messages=messages,
+                tools=TOOL_DEFINITIONS,
+                tool_choice="auto",
+                temperature=0.1,
+            )
+        except Exception as e:
+            if not executed_actions:
+                return {
+                    "status": "error",
+                    "message": f"Groq API call failed: {str(e)}",
+                    "executed_actions": [],
+                    "reply": f"Error contacting AI model: {str(e)}",
+                }
+            break
+
+        response_message = response.choices[0].message
+        tool_calls = response_message.tool_calls
+
+        # If no further tools called, we've reached the final conversational response
+        if not tool_calls:
+            final_reply = response_message.content or ""
+            break
+
         messages.append(response_message)
 
         for tool_call in tool_calls:
@@ -229,10 +294,8 @@ def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
             except json.JSONDecodeError:
                 function_args = {}
 
-            # Filter out null values for optional arguments
             clean_args = {k: v for k, v in function_args.items() if v is not None}
 
-            # Execute tool if mapped
             if function_name in TOOL_MAP:
                 tool_func = TOOL_MAP[function_name]
                 try:
@@ -260,7 +323,6 @@ def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
                 except Exception:
                     db.rollback()
 
-                # Provide tool result back to message thread
                 messages.append({
                     "tool_call_id": tool_call.id,
                     "role": "tool",
@@ -268,26 +330,15 @@ def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
                     "content": json.dumps(tool_result),
                 })
 
-        # Ask the model for a natural summary after tool execution
-        try:
-            second_response = client.chat.completions.create(
-                model=settings.GROQ_MODEL,
-                messages=messages,
-                temperature=0.2,
-            )
-            final_reply = second_response.choices[0].message.content or f"Successfully executed {len(executed_actions)} action(s)."
-        except Exception:
+    if not final_reply:
+        if executed_actions:
             final_reply = f"Successfully executed {len(executed_actions)} action(s)."
+        else:
+            final_reply = "Understood."
 
-        return {
-            "status": "success",
-            "executed_actions": executed_actions,
-            "reply": final_reply,
-        }
-
-    # If the user asked a general question without requiring tools:
     return {
         "status": "success",
-        "executed_actions": [],
-        "reply": response_message.content or "Understood.",
+        "executed_actions": executed_actions,
+        "reply": final_reply,
     }
+

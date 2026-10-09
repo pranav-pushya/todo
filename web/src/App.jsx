@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { ProjectProvider, useProjects } from './context/ProjectContext';
 import { TaskProvider, useTasks } from './context/TaskContext';
 import { AgentProvider, useAgent } from './context/AgentContext';
@@ -12,12 +12,20 @@ import AICopilotDrawer from './components/agent/AICopilotDrawer';
 import CommandPalette from './components/agent/CommandPalette';
 
 function AppContent() {
-  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState(null);
-  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+  const {
+    isCommandPaletteOpen,
+    setIsCommandPaletteOpen,
+    isDrawerOpen,
+    setIsDrawerOpen,
+    isAddTaskOpen,
+    setIsAddTaskOpen,
+    taskToEdit,
+    setTaskToEdit,
+    isCreateProjectOpen,
+    setIsCreateProjectOpen,
+  } = useAgent();
 
-  const { isCommandPaletteOpen, setIsCommandPaletteOpen, isDrawerOpen, setIsDrawerOpen } = useAgent();
-  const { setActiveFilter } = useTasks();
+  const { setActiveFilter, searchQuery, setSearchQuery } = useTasks();
   const { setSelectedProjectId } = useProjects();
 
   const handleOpenAddTask = () => {
@@ -33,7 +41,7 @@ function AppContent() {
   // Global Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // 1. ESCAPE: Closes any open modal, palette, or drawer
+      // 1. ESCAPE: Closes any open modal, palette, or drawer, or clears search
       if (e.key === 'Escape') {
         if (isCommandPaletteOpen) {
           setIsCommandPaletteOpen(false);
@@ -50,6 +58,10 @@ function AppContent() {
         }
         if (isDrawerOpen) {
           setIsDrawerOpen(false);
+          return;
+        }
+        if (searchQuery) {
+          setSearchQuery('');
           return;
         }
       }
@@ -92,7 +104,12 @@ function AppContent() {
         setIsDrawerOpen((prev) => !prev);
       } else if (e.key === '/') {
         e.preventDefault();
-        setIsCommandPaletteOpen(true);
+        const searchInput = document.querySelector('input[placeholder*="Search tasks"]');
+        if (searchInput) {
+          searchInput.focus();
+        } else {
+          setIsCommandPaletteOpen(true);
+        }
       }
     };
 
@@ -105,8 +122,13 @@ function AppContent() {
     isDrawerOpen,
     setIsCommandPaletteOpen,
     setIsDrawerOpen,
+    setIsAddTaskOpen,
+    setIsCreateProjectOpen,
+    setTaskToEdit,
     setActiveFilter,
     setSelectedProjectId,
+    searchQuery,
+    setSearchQuery,
   ]);
 
   return (

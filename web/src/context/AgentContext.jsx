@@ -6,11 +6,17 @@ import { useProjects } from './ProjectContext';
 const AgentContext = createContext(null);
 
 export function AgentProvider({ children }) {
-  const { fetchTasks } = useTasks();
-  const { fetchProjects } = useProjects();
+  const { fetchTasks, setActiveFilter, setPriorityFilter, setSearchQuery } = useTasks();
+  const { fetchProjects, projects, setSelectedProjectId } = useProjects();
 
+  // Drawers and Modals
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState(null);
+  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+
+  // Execution state & logs
   const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState(null);
   const [logs, setLogs] = useState([]);
@@ -18,7 +24,7 @@ export function AgentProvider({ children }) {
     {
       id: 'welcome',
       sender: 'agent',
-      text: "Hello! I am your AI Copilot. You can tell me in natural language to create tasks, organize projects, change priorities, or reschedule items.",
+      text: "Hello! I am your AI Copilot & UI Controller. You can tell me in natural language to open modals, navigate views, search tasks, create to-dos, or execute multiple commands collectively!",
       actions: [],
       timestamp: new Date().toISOString(),
     },
@@ -37,7 +43,7 @@ export function AgentProvider({ children }) {
     fetchLogs();
   }, [fetchLogs]);
 
-  // Global hotkey: Ctrl + K or Cmd + K to open Command Palette
+  // Global hotkey: Ctrl + K or Cmd + K to open/close Command Palette
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -47,6 +53,123 @@ export function AgentProvider({ children }) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  /**
+   * Directly executes a web application UI action requested by user or AI
+   */
+  const executeUiAction = useCallback(
+    (actionObj) => {
+      if (!actionObj) return;
+      const action = (actionObj.ui_action || actionObj.action || '').toLowerCase().trim();
+
+      switch (action) {
+        case 'open_command_palette':
+          setIsCommandPaletteOpen(true);
+          break;
+        case 'close_command_palette':
+          setIsCommandPaletteOpen(false);
+          break;
+        case 'open_add_task_modal':
+          setTaskToEdit(null);
+          setIsAddTaskOpen(true);
+          break;
+        case 'open_create_project_modal':
+          setIsCreateProjectOpen(true);
+          break;
+        case 'close_modals':
+          setIsAddTaskOpen(false);
+          setTaskToEdit(null);
+          setIsCreateProjectOpen(false);
+          setIsCommandPaletteOpen(false);
+          break;
+        case 'navigate_view':
+          if (actionObj.view) {
+            setSelectedProjectId(null);
+            setActiveFilter(actionObj.view.toLowerCase());
+          } else if (actionObj.project_id) {
+            setSelectedProjectId(Number(actionObj.project_id));
+          } else if (actionObj.project_name) {
+            const found = projects.find(
+              (p) => p.title.toLowerCase() === actionObj.project_name.toLowerCase()
+            );
+            if (found) {
+              setSelectedProjectId(found.id);
+            }
+          }
+          break;
+        case 'filter_priority':
+          if (actionObj.priority) {
+            const p = actionObj.priority.toUpperCase();
+            setPriorityFilter(p === 'ALL' || !p ? null : p);
+          }
+          break;
+        case 'search_tasks':
+          if (actionObj.search_query !== undefined && actionObj.search_query !== null) {
+            setSearchQuery(actionObj.search_query);
+          }
+          break;
+        case 'clear_search':
+          setSearchQuery('');
+          break;
+        default:
+          break;
+      }
+    },
+    [projects, setActiveFilter, setPriorityFilter, setSearchQuery, setSelectedProjectId]
+  );
+
+  /**
+   * Fast client-side intent extractor for instant UI responsiveness
+   */
+  const parseLocalUiIntents = useCallback((prompt) => {
+    const p = prompt.toLowerCase().trim();
+    const intents = [];
+
+    // 1. Open / Close Command Palette / Menu
+    if (
+      /\b(open|show)\s+(cmd|command)\s*(menu|palette|bar)?\b/i.test(p) ||
+      p === 'cmd menu' ||
+      p === 'command palette' ||
+      p === 'cmd' ||
+      p === 'menu'
+    ) {
+      intents.push({ action: 'open_command_palette' });
+    } else if (/\b(close|hide)\s+(cmd|command)\s*(menu|palette)?\b/i.test(p)) {
+      intents.push({ action: 'close_command_palette' });
+    }
+
+    // 2. Open Add Task Modal
+    if (
+      /\b(open|show)\s+(add\s*task|new\s*task)\s*(modal|dialog|form)?\b/i.test(p) ||
+      p === 'add task modal' ||
+      p === 'new task modal'
+    ) {
+      intents.push({ action: 'open_add_task_modal' });
+    }
+
+    // 3. Open Create Project Modal
+    if (
+      /\b(open|show)\s+(create\s*project|new\s*project)\s*(modal|dialog|form)?\b/i.test(p) ||
+      p === 'create project modal' ||
+      p === 'new project modal'
+    ) {
+      intents.push({ action: 'open_create_project_modal' });
+    }
+
+    // 4. View Navigation
+    const navMatch = p.match(/\b(go\s+to|show|open|navigate\s+to|switch\s+to)\s+(today|inbox|upcoming|completed)\b/i);
+    if (navMatch) {
+      intents.push({ action: 'navigate_view', view: navMatch[2].toLowerCase() });
+    }
+
+    // 5. Priority Filter
+    const priMatch = p.match(/\bfilter\s+(by\s+)?(p1|p2|p3|p4)\b/i);
+    if (priMatch) {
+      intents.push({ action: 'filter_priority', priority: priMatch[2].toUpperCase() });
+    }
+
+    return intents;
   }, []);
 
   const sendCommand = async (prompt) => {
@@ -64,6 +187,12 @@ export function AgentProvider({ children }) {
     setIsExecuting(true);
     setError(null);
 
+    // Instant local UI response
+    const localIntents = parseLocalUiIntents(prompt);
+    for (const intent of localIntents) {
+      executeUiAction(intent);
+    }
+
     try {
       const response = await AgentAPI.sendCommand(prompt);
 
@@ -75,10 +204,19 @@ export function AgentProvider({ children }) {
         'Command executed successfully.';
 
       // Support executed_actions (FastAPI schema) and actions_taken fallback
-      const actions =
-        response.executed_actions ||
-        response.actions_taken ||
-        [];
+      const actions = response.executed_actions || response.actions_taken || [];
+
+      // Execute all AI-instructed UI actions
+      for (const act of actions) {
+        if (act.tool === 'ui_control') {
+          const args = act.arguments || act.parameters || {};
+          executeUiAction({
+            action: args.action,
+            ...args,
+            ...(act.result || {}),
+          });
+        }
+      }
 
       const agentMessage = {
         id: (Date.now() + 1).toString(),
@@ -120,6 +258,13 @@ export function AgentProvider({ children }) {
         setIsDrawerOpen,
         isCommandPaletteOpen,
         setIsCommandPaletteOpen,
+        isAddTaskOpen,
+        setIsAddTaskOpen,
+        taskToEdit,
+        setTaskToEdit,
+        isCreateProjectOpen,
+        setIsCreateProjectOpen,
+        executeUiAction,
         isExecuting,
         error,
         logs,
