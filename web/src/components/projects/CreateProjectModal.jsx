@@ -51,8 +51,14 @@ export default function CreateProjectModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-obsidian-950/80 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-obsidian-900 border border-white/[0.1] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-obsidian-950/80 backdrop-blur-sm cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-2xl bg-obsidian-900 border border-white/[0.1] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 cursor-default"
+      >
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
           <div className="flex items-center gap-2">
             <FolderPlus className="w-4 h-4 text-cobalt-400" />

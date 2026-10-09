@@ -150,7 +150,7 @@ export default function AICopilotDrawer() {
                             ✔ {act.tool}
                           </div>
                           <div className="text-slate-400 truncate">
-                            {JSON.stringify(act.parameters)}
+                            {JSON.stringify(act.arguments || act.parameters || act.result || {})}
                           </div>
                         </div>
                       ))}

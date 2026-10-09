@@ -76,8 +76,14 @@ export default function AddTaskModal({ isOpen, onClose, taskToEdit = null }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-obsidian-950/80 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl bg-obsidian-900 border border-white/[0.1] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-obsidian-950/80 backdrop-blur-sm cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg rounded-2xl bg-obsidian-900 border border-white/[0.1] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 cursor-default"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
           <h2 className="text-base font-semibold text-white">

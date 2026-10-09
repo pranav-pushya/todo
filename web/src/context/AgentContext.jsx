@@ -67,20 +67,31 @@ export function AgentProvider({ children }) {
     try {
       const response = await AgentAPI.sendCommand(prompt);
 
+      // Support reply (FastAPI schema) and response fallback
+      const replyText =
+        response.reply ||
+        response.response ||
+        response.message ||
+        'Command executed successfully.';
+
+      // Support executed_actions (FastAPI schema) and actions_taken fallback
+      const actions =
+        response.executed_actions ||
+        response.actions_taken ||
+        [];
+
       const agentMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'agent',
-        text: response.response,
-        actions: response.actions_taken || [],
+        text: replyText,
+        actions: actions,
         timestamp: new Date().toISOString(),
       };
 
       setMessages((prev) => [...prev, agentMessage]);
 
-      // If the agent took any actions in SQLite, auto-refresh tasks and projects immediately
-      if (response.actions_taken && response.actions_taken.length > 0) {
-        await Promise.all([fetchTasks(), fetchProjects(), fetchLogs()]);
-      }
+      // Refresh tasks, projects, and logs so the UI is immediately in sync
+      await Promise.all([fetchTasks(), fetchProjects(), fetchLogs()]);
 
       return response;
     } catch (err) {

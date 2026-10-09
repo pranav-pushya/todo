@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   Plus,
@@ -18,10 +18,24 @@ export default function CommandPalette({ onOpenAddTask, onOpenCreateProject }) {
   const [query, setQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Close on Escape when Command Palette is open
+  useEffect(() => {
+    if (!isCommandPaletteOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsCommandPaletteOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCommandPaletteOpen, setIsCommandPaletteOpen]);
+
   if (!isCommandPaletteOpen) return null;
 
   const handleRunCommand = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     if (!query.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
@@ -43,8 +57,14 @@ export default function CommandPalette({ onOpenAddTask, onOpenCreateProject }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 bg-obsidian-950/80 backdrop-blur-sm animate-in fade-in duration-100">
-      <div className="w-full max-w-xl rounded-2xl bg-obsidian-900 border border-white/[0.12] shadow-2xl overflow-hidden">
+    <div
+      onClick={() => setIsCommandPaletteOpen(false)}
+      className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 bg-obsidian-950/80 backdrop-blur-sm animate-in fade-in duration-100"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-xl rounded-2xl bg-obsidian-900 border border-white/[0.12] shadow-2xl overflow-hidden"
+      >
         {/* Input Field */}
         <form onSubmit={handleRunCommand} className="relative flex items-center px-4 py-3 border-b border-white/[0.08]">
           <Sparkles className="w-5 h-5 text-cobalt-400 mr-3 animate-pulse-subtle flex-shrink-0" />
@@ -53,6 +73,12 @@ export default function CommandPalette({ onOpenAddTask, onOpenCreateProject }) {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                setIsCommandPaletteOpen(false);
+              }
+            }}
             placeholder="Type an AI command (e.g. 'Add task Test API due tomorrow') or pick below..."
             className="flex-1 bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none"
           />
@@ -83,24 +109,24 @@ export default function CommandPalette({ onOpenAddTask, onOpenCreateProject }) {
 
           <button
             onClick={() => handleAction(onOpenAddTask)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.06] text-slate-300 hover:text-white transition-colors group"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.06] text-slate-300 hover:text-white transition-colors group text-left"
           >
             <span className="flex items-center gap-2.5">
               <Plus className="w-4 h-4 text-cobalt-400" />
               <span>Create New Task</span>
             </span>
-            <span className="text-[10px] text-slate-500 font-mono">N</span>
+            <span className="text-[10px] text-slate-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">N</span>
           </button>
 
           <button
             onClick={() => handleAction(onOpenCreateProject)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.06] text-slate-300 hover:text-white transition-colors group"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.06] text-slate-300 hover:text-white transition-colors group text-left"
           >
             <span className="flex items-center gap-2.5">
               <FolderPlus className="w-4 h-4 text-emerald-400" />
               <span>Create New Project</span>
             </span>
-            <span className="text-[10px] text-slate-500 font-mono">P</span>
+            <span className="text-[10px] text-slate-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">P</span>
           </button>
 
           <button
@@ -109,13 +135,13 @@ export default function CommandPalette({ onOpenAddTask, onOpenCreateProject }) {
                 setActiveFilter('today');
               })
             }
-            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.06] text-slate-300 hover:text-white transition-colors group"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.06] text-slate-300 hover:text-white transition-colors group text-left"
           >
             <span className="flex items-center gap-2.5">
               <Calendar className="w-4 h-4 text-amber-400" />
               <span>View Today's Tasks</span>
             </span>
-            <span className="text-[10px] text-slate-500 font-mono">T</span>
+            <span className="text-[10px] text-slate-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">T</span>
           </button>
 
           <button
@@ -124,20 +150,20 @@ export default function CommandPalette({ onOpenAddTask, onOpenCreateProject }) {
                 setIsDrawerOpen(true);
               })
             }
-            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.06] text-slate-300 hover:text-white transition-colors group"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.06] text-slate-300 hover:text-white transition-colors group text-left"
           >
             <span className="flex items-center gap-2.5">
               <Sparkles className="w-4 h-4 text-cobalt-400" />
               <span>Open AI Copilot Chat & Tool Logs</span>
             </span>
-            <span className="text-[10px] text-slate-500 font-mono">AI</span>
+            <span className="text-[10px] text-slate-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">C</span>
           </button>
         </div>
 
         {/* Footer tip */}
         <div className="px-4 py-2.5 bg-obsidian-950/80 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-slate-500">
-          <span>Tip: Type full sentences like "Reschedule overdue tasks"</span>
-          <span className="font-mono">ESC to close</span>
+          <span>Tip: Type instructions like "Create task Fix Bug due tomorrow"</span>
+          <span className="font-mono bg-white/[0.06] px-1.5 py-0.5 rounded text-slate-400">ESC to close</span>
         </div>
       </div>
     </div>

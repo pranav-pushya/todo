@@ -1011,3 +1011,137 @@ npm run dev
 ```
 - Web Application: `http://localhost:5173`
 - Press `Ctrl + K` anywhere on the page to invoke the AI Command Bar.
+
+---
+
+## 6. 🛠️ Enhancements & Bugfixes: AI Copilot Schema Alignment & Global Keyboard Shortcuts
+
+### A. What was done:
+
+1. **AI Copilot Backend Schema Alignment**:
+   - Resolved key mismatches between FastAPI backend schema (`AgentCommandResponse`) and frontend consumption in [`src/context/AgentContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/AgentContext.jsx):
+     - Backend returns `response.reply` instead of `response.response`.
+     - Backend returns `response.executed_actions` instead of `response.actions_taken`.
+     - Each executed tool object contains `.arguments` instead of `.parameters`.
+   - Updated [`src/components/agent/AICopilotDrawer.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/AICopilotDrawer.jsx) to display `act.arguments || act.parameters`.
+   - Guaranteed automatic reactivity: whether actions were taken or not, `fetchTasks()`, `fetchProjects()`, and `fetchLogs()` are triggered following AI commands to guarantee real-time synchronization with SQLite.
+
+2. **Vite Reverse Proxy Routing (`vite.config.js` & `api.js`)**:
+   - Added development server proxy in [`vite.config.js`](file:///d:/Coding/Projects/todo/web/vite.config.js) redirecting `/api` -> `http://127.0.0.1:8001`.
+   - Configured `API_BASE` in [`src/services/api.js`](file:///d:/Coding/Projects/todo/web/src/services/api.js) to default to `/api/v1`, avoiding cross-origin CORS limitations entirely and routing seamlessly through the Vite dev server.
+
+3. **Complete Keyboard Shortcuts Engine**:
+   - Added a centralized keyboard event listener in [`src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx):
+     - `Ctrl + K` / `Cmd + K`: Toggles the spotlight Command Palette.
+     - `Escape`: Closes open modals (`AddTaskModal`, `CreateProjectModal`, `CommandPalette`, `AICopilotDrawer`) or clears active search query.
+     - `N`: Instantly opens the "Add Task" modal (when not inside an input/textarea).
+     - `P`: Instantly opens the "Create Project" modal (when not inside an input/textarea).
+     - `T`: Navigates to the "Today" tasks view.
+     - `I`: Navigates to the "Inbox" view.
+     - `C`: Toggles the AI Copilot Drawer open/close.
+     - `/`: Focuses the global search input bar.
+   - Added backdrop click-to-dismiss functionality for [`CommandPalette.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/CommandPalette.jsx), [`AddTaskModal.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/AddTaskModal.jsx), and [`CreateProjectModal.jsx`](file:///d:/Coding/Projects/todo/web/src/components/projects/CreateProjectModal.jsx).
+
+---
+
+### B. How it was done (code implementation):
+
+1. **Vite Reverse Proxy (`vite.config.js`)**:
+   ```javascript
+   export default defineConfig({
+     plugins: [react()],
+     server: {
+       port: 5173,
+       proxy: {
+         '/api': {
+           target: 'http://127.0.0.1:8001',
+           changeOrigin: true,
+         },
+       },
+     },
+   });
+   ```
+
+2. **Backend Schema Alignment in `AgentContext.jsx`**:
+   ```javascript
+   const sendCommand = async (prompt) => {
+     setIsExecuting(true);
+     try {
+       const userMsg = { role: 'user', content: prompt, timestamp: new Date().toISOString() };
+       setMessages((prev) => [...prev, userMsg]);
+
+       const response = await AgentAPI.sendCommand(prompt);
+       const replyText = response.reply || response.response || 'Action completed.';
+       const actions = response.executed_actions || response.actions_taken || [];
+
+       const assistantMsg = {
+         role: 'assistant',
+         content: replyText,
+         actions: actions,
+         timestamp: new Date().toISOString(),
+       };
+       setMessages((prev) => [...prev, assistantMsg]);
+
+       // Ensure tasks, projects, and audit logs are refreshed
+       await Promise.all([fetchTasks(), fetchProjects(), fetchLogs()]);
+       return response;
+     } catch (err) {
+       // Handled with error feedback
+     } finally {
+       setIsExecuting(false);
+     }
+   };
+   ```
+
+3. **Global Keystroke Handler in `App.jsx`**:
+   ```javascript
+   useEffect(() => {
+     const handleKeyDown = (e) => {
+       const isInputActive = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+
+       if (e.key === 'Escape') {
+         if (isCommandPaletteOpen) { setIsCommandPaletteOpen(false); return; }
+         if (isDrawerOpen) { setIsDrawerOpen(false); return; }
+         if (isAddTaskOpen) { setIsAddTaskOpen(false); return; }
+         if (isCreateProjectOpen) { setIsCreateProjectOpen(false); return; }
+         if (searchQuery) { setSearchQuery(''); return; }
+       }
+
+       if (isInputActive) return;
+
+       if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey) {
+         e.preventDefault();
+         setIsAddTaskOpen(true);
+       } else if (e.key.toLowerCase() === 'p' && !e.ctrlKey && !e.metaKey) {
+         e.preventDefault();
+         setIsCreateProjectOpen(true);
+       } else if (e.key.toLowerCase() === 't' && !e.ctrlKey && !e.metaKey) {
+         e.preventDefault();
+         setSelectedProjectId(null);
+         setActiveFilter('today');
+       } else if (e.key.toLowerCase() === 'i' && !e.ctrlKey && !e.metaKey) {
+         e.preventDefault();
+         setSelectedProjectId(null);
+         setActiveFilter('inbox');
+       } else if (e.key.toLowerCase() === 'c' && !e.ctrlKey && !e.metaKey) {
+         e.preventDefault();
+         setIsDrawerOpen((prev) => !prev);
+       } else if (e.key === '/') {
+         e.preventDefault();
+         const searchInput = document.querySelector('input[placeholder*="Search tasks"]');
+         searchInput?.focus();
+       }
+     };
+
+     window.addEventListener('keydown', handleKeyDown);
+     return () => window.removeEventListener('keydown', handleKeyDown);
+   }, [...]);
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Eliminate Schema Mismatches**: When the frontend expected `response.response` instead of `response.reply`, the UI failed to display the Groq LLM's conversational text. Similarly, checking `response.actions_taken` caused the frontend to miss tool executions, leaving the UI out-of-sync with SQLite.
+2. **True Keyboard-Driven Ergonomics**: Power users rely on single-key shortcuts (`N`, `P`, `T`, `ESC`, `Ctrl+K`) for rapid task entry without switching between keyboard and mouse.
+3. **Robust Local Networking**: Using a dev proxy eliminates CORS issues and simplifies communication between frontend (port 5173) and backend (port 8001).

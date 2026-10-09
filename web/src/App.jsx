@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { ProjectProvider } from './context/ProjectContext';
-import { TaskProvider } from './context/TaskContext';
-import { AgentProvider } from './context/AgentContext';
+import React, { useState, useEffect } from 'react';
+import { ProjectProvider, useProjects } from './context/ProjectContext';
+import { TaskProvider, useTasks } from './context/TaskContext';
+import { AgentProvider, useAgent } from './context/AgentContext';
 
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
@@ -16,6 +16,10 @@ function AppContent() {
   const [taskToEdit, setTaskToEdit] = useState(null);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
 
+  const { isCommandPaletteOpen, setIsCommandPaletteOpen, isDrawerOpen, setIsDrawerOpen } = useAgent();
+  const { setActiveFilter } = useTasks();
+  const { setSelectedProjectId } = useProjects();
+
   const handleOpenAddTask = () => {
     setTaskToEdit(null);
     setIsAddTaskOpen(true);
@@ -25,6 +29,85 @@ function AppContent() {
     setTaskToEdit(task);
     setIsAddTaskOpen(true);
   };
+
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // 1. ESCAPE: Closes any open modal, palette, or drawer
+      if (e.key === 'Escape') {
+        if (isCommandPaletteOpen) {
+          setIsCommandPaletteOpen(false);
+          return;
+        }
+        if (isAddTaskOpen) {
+          setIsAddTaskOpen(false);
+          setTaskToEdit(null);
+          return;
+        }
+        if (isCreateProjectOpen) {
+          setIsCreateProjectOpen(false);
+          return;
+        }
+        if (isDrawerOpen) {
+          setIsDrawerOpen(false);
+          return;
+        }
+      }
+
+      // 2. Ctrl+K or Cmd+K: Open/close Command Palette
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsCommandPaletteOpen((prev) => !prev);
+        return;
+      }
+
+      // 3. Ignore single-key shortcuts when typing in inputs/textareas
+      const target = e.target;
+      const isInput =
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable;
+
+      if (isInput) return;
+
+      // 4. Global single-key navigation when not typing
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        handleOpenAddTask();
+      } else if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        setIsCreateProjectOpen(true);
+      } else if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        setSelectedProjectId(null);
+        setActiveFilter('today');
+      } else if (e.key === 'i' || e.key === 'I') {
+        e.preventDefault();
+        setSelectedProjectId(null);
+        setActiveFilter('inbox');
+      } else if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        setIsDrawerOpen((prev) => !prev);
+      } else if (e.key === '/') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    isCommandPaletteOpen,
+    isAddTaskOpen,
+    isCreateProjectOpen,
+    isDrawerOpen,
+    setIsCommandPaletteOpen,
+    setIsDrawerOpen,
+    setActiveFilter,
+    setSelectedProjectId,
+  ]);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-obsidian-900 text-white font-sans select-none">
