@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, FolderPlus } from 'lucide-react';
 import { useProjects } from '../../context/ProjectContext';
+import { useUIFeedback } from '../../context/UIFeedbackContext';
 
 const COLOR_PRESETS = [
   { name: 'Cobalt', hex: '#3b82f6' },
@@ -15,6 +16,7 @@ const COLOR_PRESETS = [
 
 export default function CreateProjectModal({ isOpen, onClose }) {
   const { addProject, setSelectedProjectId } = useProjects();
+  const { toast } = useUIFeedback();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedColor, setSelectedColor] = useState(COLOR_PRESETS[0].hex);
@@ -40,11 +42,13 @@ export default function CreateProjectModal({ isOpen, onClose }) {
         color: selectedColor,
       });
       setSelectedProjectId(created.id);
+      toast.success(`Project "${created.title}" created ✨`);
       setTitle('');
       setDescription('');
       onClose();
     } catch (err) {
       setError(err.message || 'Failed to create project');
+      toast.error(err.message || 'Failed to create project');
     } finally {
       setIsSubmitting(false);
     }

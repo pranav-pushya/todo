@@ -1654,5 +1654,81 @@ npm run dev
 2. **Minimalist, Clutter-Free UI**: Removing the manual `← To-Do Tasks` button preserves the minimalist aesthetic of the Notes header.
 3. **Focused AI Experience**: Removing technical audit logs leaves the drawer clean, responsive, and approachable for end-user task execution.
 
+---
+
+## 1️⃣2️⃣ Step 12: Global UI Feedback System (Toasts & Confirmation Popups)
+
+### A. What was done:
+
+1. **Replaced All Browser Native `alert()` and `confirm()` Dialogs**:
+   - Built a centralized [`web/src/context/UIFeedbackContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/UIFeedbackContext.jsx) providing `useUIFeedback()` with `toast` (`success`, `error`, `warning`, `info`) and async promise-based `confirm(...)`.
+   - Replaced `window.confirm` and `alert` in:
+     - [`web/src/components/layout/Sidebar.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Sidebar.jsx): Deleting projects now triggers a sleek confirmation modal with warning/danger icon, project title, and toast feedback.
+     - [`web/src/components/tasks/TaskItem.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/TaskItem.jsx): Deleting tasks now opens the custom UI confirmation modal; toggling tasks triggers celebratory success toasts.
+     - [`web/src/components/notes/NotesApp.jsx`](file:///d:/Coding/Projects/todo/web/src/components/notes/NotesApp.jsx): Deleting notes triggers the custom confirmation popup; converting a note to task shows a rich floating toast notification.
+     - [`web/src/components/tasks/AddTaskModal.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/AddTaskModal.jsx) & [`web/src/components/projects/CreateProjectModal.jsx`](file:///d:/Coding/Projects/todo/web/src/components/projects/CreateProjectModal.jsx): Display feedback toasts upon task or project creation/update.
+   - Wrapped the entire application with `UIFeedbackProvider` in [`web/src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx).
+   - Injected automatic interception of `window.alert(...)` so any legacy or third-party alerts automatically render as themed UI toasts.
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **Custom UI Feedback Context & Dialogs ([`web/src/context/UIFeedbackContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/UIFeedbackContext.jsx))**:
+   ```jsx
+   // Toast Notification Dispatcher
+   const toast = {
+     success: (msg, dur) => addToast('success', msg, dur),
+     error: (msg, dur) => addToast('error', msg, dur),
+     warning: (msg, dur) => addToast('warning', msg, dur),
+     info: (msg, dur) => addToast('info', msg, dur),
+   };
+
+   // Async Promise-Based Confirmation Modal
+   const confirm = ({ title, message, confirmText, cancelText, danger }) => {
+     return new Promise((resolve) => {
+       setConfirmModal({
+         isOpen: true,
+         title,
+         message,
+         confirmText,
+         cancelText,
+         danger,
+         resolve,
+       });
+     });
+   };
+   ```
+
+2. **Automated Production Build Verification**:
+   ```powershell
+   cd d:\Coding\Projects\todo\web
+   npm run build
+   ```
+   **Output**:
+   ```text
+   > todo-web@0.1.0 build
+   > vite build
+
+   vite v6.4.4 building for production...
+   transforming...
+   ✓ 1604 modules transformed.
+   rendering chunks...
+   computing gzip size...
+   dist/index.html                   0.86 kB │ gzip:  0.48 kB
+   dist/assets/index-DCDDjozv.css   36.47 kB │ gzip:  6.71 kB
+   dist/assets/index-WaAro3hk.js   239.43 kB │ gzip: 67.77 kB
+   ✓ built in 7.02s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Professional Design Consistency**: Browser native `window.alert()` and `window.confirm()` pause the JavaScript thread, look jarring, and break the immersive Obsidian & Cobalt visual aesthetic.
+2. **Accessible, Non-Blocking Interactions**: Floating toasts automatically dismiss without interrupting workflow, while modal popups offer clear danger indicators, title explanations, and keyboard shortcuts (`Escape` to cancel).
+3. **Promise-Driven Async Confirmation**: Provides seamless integration with async React handlers (`const ok = await confirm(...)`) without callback fragmentation.
+
+
 
 

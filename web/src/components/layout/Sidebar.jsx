@@ -14,11 +14,13 @@ import {
 import { useTasks } from '../../context/TaskContext';
 import { useProjects } from '../../context/ProjectContext';
 import { useAgent } from '../../context/AgentContext';
+import { useUIFeedback } from '../../context/UIFeedbackContext';
 
 export default function Sidebar({ onOpenCreateProject }) {
   const { activeFilter, setActiveFilter } = useTasks();
   const { projects, selectedProjectId, setSelectedProjectId, removeProject } = useProjects();
   const { setIsDrawerOpen, setIsCommandPaletteOpen } = useAgent();
+  const { toast, confirm } = useUIFeedback();
 
   const handleSelectNav = (filter) => {
     setSelectedProjectId(null);
@@ -29,13 +31,20 @@ export default function Sidebar({ onOpenCreateProject }) {
     setSelectedProjectId(projectId);
   };
 
-  const handleDeleteProject = async (e, projectId) => {
+  const handleDeleteProject = async (e, projectId, projectTitle = 'this project') => {
     e.stopPropagation();
-    if (window.confirm('Delete this project and all its tasks?')) {
+    const ok = await confirm({
+      title: 'Delete Project',
+      message: `Are you sure you want to delete "${projectTitle}" and all its associated tasks? This action cannot be undone.`,
+      confirmText: 'Delete Project',
+      danger: true,
+    });
+    if (ok) {
       try {
         await removeProject(projectId);
+        toast.success(`Project "${projectTitle}" deleted successfully`);
       } catch (err) {
-        alert(err.message || 'Failed to delete project');
+        toast.error(err.message || 'Failed to delete project');
       }
     }
   };
@@ -161,7 +170,7 @@ export default function Sidebar({ onOpenCreateProject }) {
                       </span>
                     )}
                     <button
-                      onClick={(e) => handleDeleteProject(e, proj.id)}
+                      onClick={(e) => handleDeleteProject(e, proj.id, proj.title)}
                       className="opacity-0 group-hover:opacity-100 p-1 hover:text-rose-400 transition-opacity"
                       title="Delete Project"
                     >

@@ -2,6 +2,7 @@ import React from 'react';
 import { Check, Calendar, Trash2, Edit3, Tag } from 'lucide-react';
 import { useTasks } from '../../context/TaskContext';
 import { useProjects } from '../../context/ProjectContext';
+import { useUIFeedback } from '../../context/UIFeedbackContext';
 
 const PRIORITY_CONFIG = {
   P1: { label: 'P1 Urgent', bg: 'bg-rose-500/10 text-rose-300 border-rose-500/30' },
@@ -13,6 +14,7 @@ const PRIORITY_CONFIG = {
 export default function TaskItem({ task, onEdit }) {
   const { toggleTask, removeTask } = useTasks();
   const { projects } = useProjects();
+  const { toast, confirm } = useUIFeedback();
 
   const project = projects.find((p) => p.id === task.project_id);
 
@@ -49,18 +51,26 @@ export default function TaskItem({ task, onEdit }) {
     e.stopPropagation();
     try {
       await toggleTask(task.id);
+      toast.success(task.completed ? 'Task reopened' : 'Task completed! ✨');
     } catch (err) {
-      alert(err.message || 'Failed to toggle task');
+      toast.error(err.message || 'Failed to toggle task');
     }
   };
 
   const handleDelete = async (e) => {
     e.stopPropagation();
-    if (window.confirm(`Delete "${task.title}"?`)) {
+    const ok = await confirm({
+      title: 'Delete Task',
+      message: `Are you sure you want to delete "${task.title}"?`,
+      confirmText: 'Delete Task',
+      danger: true,
+    });
+    if (ok) {
       try {
         await removeTask(task.id);
+        toast.success(`Task "${task.title}" deleted`);
       } catch (err) {
-        alert(err.message || 'Failed to delete task');
+        toast.error(err.message || 'Failed to delete task');
       }
     }
   };

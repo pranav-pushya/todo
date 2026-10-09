@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { X, Calendar, Flag, Folder } from 'lucide-react';
 import { useTasks } from '../../context/TaskContext';
 import { useProjects } from '../../context/ProjectContext';
+import { useUIFeedback } from '../../context/UIFeedbackContext';
 
 export default function AddTaskModal({ isOpen, onClose, taskToEdit = null }) {
   const { addTask, editTask } = useTasks();
   const { projects, selectedProjectId } = useProjects();
+  const { toast } = useUIFeedback();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -64,12 +66,15 @@ export default function AddTaskModal({ isOpen, onClose, taskToEdit = null }) {
     try {
       if (taskToEdit) {
         await editTask(taskToEdit.id, payload);
+        toast.success(`Task "${payload.title}" updated`);
       } else {
         await addTask(payload);
+        toast.success(`Task "${payload.title}" created ✨`);
       }
       onClose();
     } catch (err) {
       setError(err.message || 'Failed to save task');
+      toast.error(err.message || 'Failed to save task');
     } finally {
       setIsSubmitting(false);
     }

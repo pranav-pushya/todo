@@ -9,9 +9,9 @@ import {
   Sparkles,
   Tag,
   Palette,
-  Check,
 } from 'lucide-react';
 import { useNotes } from '../../context/NoteContext';
+import { useUIFeedback } from '../../context/UIFeedbackContext';
 
 const NOTE_COLORS = [
   { label: 'Cobalt', hex: '#1d4ed8', border: 'border-blue-500/40', bg: 'bg-blue-500/10' },
@@ -37,7 +37,7 @@ export default function NotesApp({ onBackToTasks }) {
     convertToTask,
   } = useNotes();
 
-  const [convertedToast, setConvertedToast] = useState(false);
+  const { toast, confirm } = useUIFeedback();
 
   const handleCreateNewNote = async () => {
     await addNote({
@@ -46,16 +46,16 @@ export default function NotesApp({ onBackToTasks }) {
       color: '#1d4ed8',
       pinned: false,
     });
+    toast.success('New note created');
   };
 
   const handleConvertToTask = async () => {
     if (!activeNote) return;
     try {
       await convertToTask(activeNote);
-      setConvertedToast(true);
-      setTimeout(() => setConvertedToast(false), 3000);
+      toast.success('Note converted to To-Do Task in your Inbox! 🚀');
     } catch (err) {
-      alert(err.message || 'Failed to convert note to task');
+      toast.error(err.message || 'Failed to convert note to task');
     }
   };
 
@@ -233,9 +233,16 @@ export default function NotesApp({ onBackToTasks }) {
 
                   {/* Delete Note */}
                   <button
-                    onClick={() => {
-                      if (window.confirm('Delete this note?')) {
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: 'Delete Note',
+                        message: `Are you sure you want to delete "${activeNote.title || 'Untitled Note'}"? This action cannot be undone.`,
+                        confirmText: 'Delete Note',
+                        danger: true,
+                      });
+                      if (ok) {
                         removeNote(activeNote.id);
+                        toast.success('Note deleted');
                       }
                     }}
                     className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
@@ -245,14 +252,6 @@ export default function NotesApp({ onBackToTasks }) {
                   </button>
                 </div>
               </div>
-
-              {/* Converted to Task Alert Banner */}
-              {convertedToast && (
-                <div className="bg-emerald-500/10 border-b border-emerald-500/30 text-emerald-300 px-6 py-2 text-xs flex items-center gap-2 animate-fadeIn">
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Note successfully converted into a To-Do Task in your Inbox!</span>
-                </div>
-              )}
 
               {/* Note Content Editor */}
               <div className="flex-1 overflow-y-auto p-8 max-w-4xl mx-auto w-full flex flex-col space-y-4">

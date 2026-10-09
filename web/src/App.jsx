@@ -3,6 +3,7 @@ import { ProjectProvider, useProjects } from './context/ProjectContext';
 import { TaskProvider, useTasks } from './context/TaskContext';
 import { AgentProvider, useAgent } from './context/AgentContext';
 import { NoteProvider } from './context/NoteContext';
+import { UIFeedbackProvider } from './context/UIFeedbackContext';
 import { Sparkles } from 'lucide-react';
 
 import Sidebar from './components/layout/Sidebar';
@@ -211,14 +212,16 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ProjectProvider>
-      <TaskProvider>
-        <NoteProvider>
-          <AgentProvider>
-            <AppContent />
-          </AgentProvider>
-        </NoteProvider>
-      </TaskProvider>
-    </ProjectProvider>
+    <UIFeedbackProvider>
+      <ProjectProvider>
+        <TaskProvider>
+          <NoteProvider>
+            <AgentProvider>
+              <AppContent />
+            </AgentProvider>
+          </NoteProvider>
+        </TaskProvider>
+      </ProjectProvider>
+    </UIFeedbackProvider>
   );
 }
