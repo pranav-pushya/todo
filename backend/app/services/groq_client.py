@@ -232,40 +232,97 @@ TOOL_DEFINITIONS = [
 ]
 
 
-def build_system_prompt() -> str:
+def get_database_context(db: Optional[Session]) -> str:
+    """Extract a concise snapshot of active tasks, projects, and sprint to ground the LLM."""
+    if not db:
+        return ""
+    try:
+        from app.models.task import Task
+        from app.models.project import Project
+        from app.models.sprint import Sprint
+
+        # 1. Projects
+        projects = db.query(Project).all()
+        proj_names = [p.title for p in projects]
+
+        # 2. Active tasks (limit to top 30 uncompleted tasks)
+        active_tasks = (
+            db.query(Task)
+            .filter(Task.completed == False)
+            .order_by(Task.priority.asc(), Task.due_date.asc(), Task.id.desc())
+            .limit(30)
+            .all()
+        )
+        total_active = db.query(Task).filter(Task.completed == False).count()
+        total_done = db.query(Task).filter(Task.completed == True).count()
+
+        # 3. Active sprint
+        active_sprint = db.query(Sprint).filter(Sprint.is_active == True).first()
+
+        lines = [
+            "CURRENT WORKSPACE SNAPSHOT (LIVE DATABASE):",
+            f"- Total Tasks: {total_active} active, {total_done} completed.",
+            f"- Existing Projects: {', '.join(proj_names) if proj_names else 'None (default Inbox)'}",
+        ]
+
+        if active_sprint:
+            lines.append(f"- Active Sprint: '{active_sprint.title}' (Ends: {active_sprint.end_date})")
+
+        if active_tasks:
+            lines.append("- Active Tasks (Use exact ID when completing or deleting):")
+            for t in active_tasks:
+                proj_name = t.project.title if t.project else "Inbox"
+                due_info = f", Due: {t.due_date}" if t.due_date else ""
+                lines.append(f"  * [ID: {t.id}] \"{t.title}\" ({t.priority}{due_info}, Project: {proj_name})")
+        else:
+            lines.append("- Active Tasks: No active tasks.")
+
+        return "\n".join(lines)
+    except Exception as e:
+        return f"Database context unavailable: {str(e)}"
+
+
+def build_system_prompt(db: Optional[Session] = None) -> str:
     """Construct context-aware system instructions for the LLM."""
     today_str = date.today().isoformat()
     day_name = date.today().strftime("%A")
+    db_context = get_database_context(db) if db else ""
 
     return (
         f"You are the autonomous AI Copilot, UI Controller, and Senior ML & Software Engineering Pair Programmer.\n"
         f"The user is a Computer Science & Engineering (AIML) student and software developer.\n"
         f"Today is {day_name}, {today_str}.\n\n"
-        "CORE CAPABILITIES:\n"
-        "1. ML & CODE SPECIALIST:\n"
-        "   - You possess deep expertise in PyTorch, TensorFlow, HuggingFace Transformers, LoRA/PEFT, CUDA memory optimization, loss divergence debugging, mathematical derivations (KaTeX / LaTeX), Git workflows, and Python architectures.\n"
-        "   - When answering programming, AI, or ML questions, write clean, robust code with syntax highlighting tags (e.g. ```python, ```bash).\n"
-        "   - When providing substantial code architectures, algorithms, or ML pipelines, you can save them directly to the user's Notes Workspace via the 'save_code_to_note' tool!\n\n"
-        "2. FULL WEB APPLICATION UI CONTROL:\n"
+        f"{db_context}\n\n"
+        "CORE RULES & BEHAVIOR:\n"
+        "1. DISTINGUISH BETWEEN QUESTIONS VS ACTIONS:\n"
+        "   - TECHNICAL / ML / PROGRAMMING QUESTIONS: When the user asks a question (e.g. 'how to fix cuda oom', 'explain backpropagation', 'write a binary search in python', 'what is peft lora'):\n"
+        "     DO NOT call 'create_task' or 'ui_control'! Provide a comprehensive, accurate technical answer with syntax-highlighted code blocks (```python, ```bash, etc.) directly in your response.\n"
+        "   - EXPLICIT ACTION COMMANDS: Only call 'create_task' when the user explicitly requests to add, create, schedule, or note down a to-do item (e.g., 'create task', 'add to-do', 'remind me to...').\n"
+        "   - NOTE CREATION: When the user asks to save an architecture, code snippet, or guide into their notes, call 'save_code_to_note'.\n\n"
+        "2. UNDERSTAND HINDI / HINGLISH SEAMLESSLY:\n"
+        "   The user frequently uses Hindi / Hinglish phrasing:\n"
+        "   - 'kholo', 'dikhao', 'chalu karo', 'le jao' -> 'ui_control' (e.g., 'ml lab kholo' -> action='open_ml_lab', 'zen mode kholo' -> action='open_focus_chamber', 'sprint board dikhao' -> action='open_sprint')\n"
+        "   - 'banao', 'add karo', 'likh do', 'daalo' -> 'create_task'\n"
+        "   - 'khatam', 'complete kardo', 'ho gaya', 'done karo', 'mark done' -> 'complete_task'\n"
+        "   - 'hatao', 'delete kardo', 'nikal do', 'cancel karo' -> 'delete_task'\n"
+        "   - 'notes me daal do', 'note bana do' -> 'save_code_to_note'\n\n"
+        "3. ACCURATE TASK RESOLUTION (USE LIVE DB SNAPSHOT):\n"
+        "   - Use the live task list provided above to identify tasks by ID or title.\n"
+        "   - When the user says 'complete task 3' or 'delete the report task', pass the exact numeric ID ('3') or exact title into 'task_identifier'.\n"
+        "   - If a task is not in the active list, it might already be completed or nonexistent.\n\n"
+        "4. FULL WEB APPLICATION UI CONTROL:\n"
         "   - Open Command Palette / Menu: 'ui_control' with action='open_command_palette'\n"
         "   - Open Add Task dialog: 'ui_control' with action='open_add_task_modal'\n"
         "   - Open Project creation dialog: 'ui_control' with action='open_create_project_modal'\n"
-        "   - Navigate Views: 'ui_control' with action='navigate_view' and view='today' | 'week' | 'dashboard' | 'sprint' | 'notes' | 'inbox'\n"
+        "   - Navigate Views: 'ui_control' with action='navigate_view' and view='today' | 'week' | 'dashboard' | 'sprint' | 'notes' | 'inbox' | 'all'\n"
         "   - Open ML Experiment Lab: 'ui_control' with action='open_ml_lab'\n"
         "   - Open Sprint Board & Burndown: 'ui_control' with action='open_sprint' or navigate_view with view='sprint'\n"
         "   - Open Zen Focus Chamber: 'ui_control' with action='open_focus_chamber'\n"
         "   - Filter Tasks: 'ui_control' with action='filter_priority' and priority='P1'..'P4'\n"
         "   - Search Tasks: 'ui_control' with action='search_tasks' and search_query='...'\n\n"
-        "3. DATABASE ACTIONS:\n"
-        "   - Add tasks: 'create_task'\n"
-        "   - Complete tasks: 'complete_task'\n"
-        "   - Reschedule tasks: 'reschedule_tasks'\n"
-        "   - List tasks: 'list_tasks'\n"
-        "   - Save Code/ML notes: 'save_code_to_note'\n\n"
-        "MULTIPLE / COMPOUND COMMANDS:\n"
-        "The user CAN and OFTEN WILL give MULTIPLE commands in a single prompt (e.g. 'Create task fine-tune BERT, switch to sprint view, and open the ML lab').\n"
-        "YOU MUST CALL ALL CORRESPONDING TOOLS TOGETHER IN A SINGLE TURN.\n"
-        "Always be concise, proactive, authoritative, and confirm what was executed."
+        "5. MULTIPLE / COMPOUND COMMANDS:\n"
+        "   If the user specifies multiple actions (e.g. 'delete task 2, create task study transformers, and open the ml lab'), execute ALL corresponding tools in a single turn.\n\n"
+        "Be concise, helpful, and confirm what was executed."
     )
 
 
@@ -291,7 +348,7 @@ def execute_agent_command(prompt: str, db: Session) -> Dict[str, Any]:
 
     client = Groq(api_key=api_key)
     messages = [
-        {"role": "system", "content": build_system_prompt()},
+        {"role": "system", "content": build_system_prompt(db=db)},
         {"role": "user", "content": prompt},
     ]
 

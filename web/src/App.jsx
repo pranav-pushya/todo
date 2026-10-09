@@ -32,6 +32,12 @@ function AppContent() {
     setTaskToEdit,
     isCreateProjectOpen,
     setIsCreateProjectOpen,
+    isZenOpen,
+    setIsZenOpen,
+    zenTaskId,
+    setZenTaskId,
+    isMLOpen,
+    setIsMLOpen,
   } = useAgent();
 
   const {
@@ -47,9 +53,6 @@ function AppContent() {
   const { selectedProjectId, setSelectedProjectId } = useProjects();
   const { toast, confirm } = useUIFeedback();
 
-  const [isZenOpen, setIsZenOpen] = useState(false);
-  const [zenTaskId, setZenTaskId] = useState(null);
-  const [isMLOpen, setIsMLOpen] = useState(false);
   const [isCheatsheetOpen, setIsCheatsheetOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 

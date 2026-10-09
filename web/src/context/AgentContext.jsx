@@ -17,6 +17,9 @@ export function AgentProvider({ children }) {
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState(null);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+  const [isZenOpen, setIsZenOpen] = useState(false);
+  const [zenTaskId, setZenTaskId] = useState(null);
+  const [isMLOpen, setIsMLOpen] = useState(false);
 
   // Execution state & logs
   const [isExecuting, setIsExecuting] = useState(false);
@@ -79,11 +82,21 @@ export function AgentProvider({ children }) {
         case 'open_create_project_modal':
           setIsCreateProjectOpen(true);
           break;
+        case 'open_ml_lab':
+          setIsMLOpen(true);
+          break;
+        case 'open_focus_chamber':
+        case 'open_zen':
+          setZenTaskId(actionObj.task_id || null);
+          setIsZenOpen(true);
+          break;
         case 'close_modals':
           setIsAddTaskOpen(false);
           setTaskToEdit(null);
           setIsCreateProjectOpen(false);
           setIsCommandPaletteOpen(false);
+          setIsZenOpen(false);
+          setIsMLOpen(false);
           break;
         case 'open_notes':
           setSelectedProjectId(null);
@@ -138,47 +151,72 @@ export function AgentProvider({ children }) {
 
     // 1. Open / Close Command Palette / Menu
     if (
-      /\b(open|show)\s+(cmd|command)\s*(menu|palette|bar)?\b/i.test(p) ||
+      /\b(open|show|kholo)\s+(cmd|command)\s*(menu|palette|bar)?\b/i.test(p) ||
       p === 'cmd menu' ||
       p === 'command palette' ||
       p === 'cmd' ||
       p === 'menu'
     ) {
       intents.push({ action: 'open_command_palette' });
-    } else if (/\b(close|hide)\s+(cmd|command)\s*(menu|palette)?\b/i.test(p)) {
+    } else if (/\b(close|hide|band\s*karo)\s+(cmd|command)\s*(menu|palette)?\b/i.test(p)) {
       intents.push({ action: 'close_command_palette' });
     }
 
     // 2. Open Add Task Modal
     if (
-      /\b(open|show)\s+(add\s*task|new\s*task)\s*(modal|dialog|form)?\b/i.test(p) ||
+      /\b(open|show|kholo)\s+(add\s*task|new\s*task)\s*(modal|dialog|form)?\b/i.test(p) ||
       p === 'add task modal' ||
-      p === 'new task modal'
+      p === 'new task modal' ||
+      p === 'task modal'
     ) {
       intents.push({ action: 'open_add_task_modal' });
     }
 
     // 3. Open Create Project Modal
     if (
-      /\b(open|show)\s+(create\s*project|new\s*project)\s*(modal|dialog|form)?\b/i.test(p) ||
+      /\b(open|show|kholo)\s+(create\s*project|new\s*project)\s*(modal|dialog|form)?\b/i.test(p) ||
       p === 'create project modal' ||
       p === 'new project modal'
     ) {
       intents.push({ action: 'open_create_project_modal' });
     }
 
-    // 4. View Navigation
-    const navMatch = p.match(/\b(go\s+to|show|open|navigate\s+to|switch\s+to)\s+(today|week|this\s+week|dashboard|notes|inbox|upcoming|completed)\b/i);
+    // 4. ML Experiment Lab
+    if (
+      /\b(open|show|kholo|chalu\s*karo)\s+(ml\s*lab|ml\s*experiments?|experiment\s*lab|webhooks?)\b/i.test(p) ||
+      p === 'ml lab' ||
+      p === 'ml experiment' ||
+      p === 'ml experiments' ||
+      p === 'experiments'
+    ) {
+      intents.push({ action: 'open_ml_lab' });
+    }
+
+    // 5. Zen Focus Chamber
+    if (
+      /\b(open|show|kholo|chalu\s*karo|start|enter)\s+(zen\s*mode|zen\s*flow|focus\s*chamber|zen\s*chamber|focus\s*mode)\b/i.test(p) ||
+      p === 'zen mode' ||
+      p === 'focus chamber' ||
+      p === 'zen flow' ||
+      p === 'focus mode'
+    ) {
+      intents.push({ action: 'open_focus_chamber' });
+    }
+
+    // 6. View Navigation
+    const navMatch = p.match(/\b(go\s+to|show|open|kholo|dikhao|navigate\s+to|switch\s+to)\s+(today|week|this\s+week|dashboard|notes|sprint|inbox|upcoming|completed)\b/i);
     if (navMatch) {
       const v = navMatch[2].toLowerCase().replace(/\s+/, '').replace('thisweek', 'week').trim();
       intents.push({ action: 'navigate_view', view: v });
-    } else if (/\b(show|open|view)?\s*(my\s+)?(progress|consistency|analytics|streak|dashboard)\b/i.test(p)) {
+    } else if (/\b(show|open|view|dikhao)?\s*(my\s+)?(progress|consistency|analytics|streak|dashboard)\b/i.test(p)) {
       intents.push({ action: 'navigate_view', view: 'dashboard' });
-    } else if (/\b(open|show|go\s+to|switch\s+to)\s+(my\s+)?notes(\s+app|\s+workspace)?\b/i.test(p) || p === 'notes' || p === 'notes app') {
+    } else if (/\b(open|show|kholo|dikhao|go\s+to|switch\s+to)\s+(my\s+)?notes(\s+app|\s+workspace)?\b/i.test(p) || p === 'notes' || p === 'notes app') {
       intents.push({ action: 'open_notes' });
+    } else if (/\b(open|show|kholo|dikhao|go\s+to|switch\s+to)\s+(sprint|sprint\s*board|burndown)\b/i.test(p) || p === 'sprint' || p === 'sprint board') {
+      intents.push({ action: 'open_sprint' });
     }
 
-    // 5. Priority Filter
+    // 7. Priority Filter
     const priMatch = p.match(/\bfilter\s+(by\s+)?(p1|p2|p3|p4)\b/i);
     if (priMatch) {
       intents.push({ action: 'filter_priority', priority: priMatch[2].toUpperCase() });
@@ -284,6 +322,12 @@ export function AgentProvider({ children }) {
         setTaskToEdit,
         isCreateProjectOpen,
         setIsCreateProjectOpen,
+        isZenOpen,
+        setIsZenOpen,
+        zenTaskId,
+        setZenTaskId,
+        isMLOpen,
+        setIsMLOpen,
         executeUiAction,
         isExecuting,
         error,

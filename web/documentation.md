@@ -2660,3 +2660,124 @@ npm run dev
 1. **Tailored for CSE AI/ML Developers**: Generic to-do bots only create basic tasks. This copilot functions as an active pair programmer that understands PyTorch tensors, gradient descent, CUDA memory errors, and machine learning pipelines.
 2. **Actionable Knowledge Persistence**: Instead of code solutions getting lost in a disappearing chat drawer, 1-click actions turn AI-generated code directly into persistent notes or executable backlog tasks.
 3. **Seamless Multi-Modal Synergy**: The AI Copilot can not only advise on ML models, but also simultaneously navigate the UI to the ML Experiment Lab or launch an Agile Sprint for model training.
+
+---
+
+## 🧠 Feature 10: Grounded AI Copilot, Smart Task Resolver & Hinglish Command Engine
+
+> **💡 Hinglish Summary:**  
+> Is upgrade mein AI Copilot ko live database snapshot ka real-time context diya gaya hai taaki wo existing tasks aur sprint ko dekh sake. Saath hi Hindi/Hinglish commands (jaise 'kholo', 'banao', 'hatao', 'khatam') aur smart regex-based fuzzy task matching support kiya gaya hai.
+
+### A. What was done:
+
+1. **Live Workspace Context Injection (`get_database_context`)**:
+   - In [`backend/app/services/groq_client.py`](file:///d:/Coding/Projects/todo/backend/app/services/groq_client.py), dynamically injected the top active uncompleted tasks (with their exact IDs, titles, priorities, due dates, and project affiliations), existing projects, and active Agile Sprint into the LLM system prompt.
+   - The AI Copilot no longer operates blind: it knows precisely which tasks exist, enabling zero-shot resolution for commands like *"complete task 3"* or *"delete the report task"*.
+
+2. **Smart Regex & Fuzzy Task Resolver (`find_task_smartly`)**:
+   - Implemented a 5-tier resolution pipeline in [`backend/app/services/agent_tools.py`](file:///d:/Coding/Projects/todo/backend/app/services/agent_tools.py):
+     1. Exact numeric ID check (`"5"`).
+     2. Regex extraction for formatted identifiers (`"task 5"`, `"task #5"`, `"id 5"`, `"#5"`).
+     3. Case-insensitive exact title matching (`"Finish ML Report"`).
+     4. Substring matching (`"ML Report"`).
+     5. Tokenized keyword search with automated stopword filtering (`"hatao"`, `"kardo"`, `"task"`, `"ko"`).
+   - Applied across both `tool_complete_task` and `tool_delete_task`.
+
+3. **Technical Question vs. Action Command Disambiguation**:
+   - Explicitly trained the LLM system instructions to distinguish between developer programming questions (*"how to fix cuda oom"*, *"write a binary search in python"*) and action commands.
+   - The agent now writes clean Markdown code blocks and technical explanations directly in chat without accidentally polluting the user's backlog with dummy tasks.
+
+4. **Native Hindi & Hinglish Command Parsing**:
+   - Taught the model to understand common developer colloquialisms and Hinglish phrasing seamlessly:
+     - `banao` / `add karo` / `likh do` -> `create_task`
+     - `khatam` / `complete kardo` / `ho gaya` / `done` -> `complete_task`
+     - `hatao` / `delete kardo` / `nikal do` -> `delete_task`
+     - `kholo` / `dikhao` / `chalu karo` -> `ui_control` (e.g. *"ml lab kholo"*, *"zen mode chalu karo"*, *"sprint board dikhao"*)
+     - `notes me daal do` -> `save_code_to_note`
+
+5. **Lifted UI Modal State & Instant Client-Side Intent Dispatch**:
+   - Migrated `isZenOpen`, `zenTaskId`, and `isMLOpen` into [`web/src/context/AgentContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/AgentContext.jsx).
+   - Expanded client-side `parseLocalUiIntents` for instant, latency-free modal opening and view switching on both English and Hinglish inputs.
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **Database Context Injection ([`backend/app/services/groq_client.py`](file:///d:/Coding/Projects/todo/backend/app/services/groq_client.py))**:
+   ```python
+   def get_database_context(db: Optional[Session]) -> str:
+       if not db:
+           return ""
+       # Queries active projects, uncompleted tasks with priorities and deadlines, and active sprint
+       active_tasks = (
+           db.query(Task)
+           .filter(Task.completed == False)
+           .order_by(Task.priority.asc(), Task.due_date.asc(), Task.id.desc())
+           .limit(30)
+           .all()
+       )
+       ...
+       # Formats compact workspace snapshot injected directly into system prompt
+   ```
+
+2. **Smart Regex & Fuzzy Task Resolver ([`backend/app/services/agent_tools.py`](file:///d:/Coding/Projects/todo/backend/app/services/agent_tools.py))**:
+   ```python
+   def find_task_smartly(db: Session, identifier: str, only_uncompleted: bool = False) -> Optional[Task]:
+       cleaned = str(identifier).strip().strip("'\"#").strip()
+       if cleaned.isdigit():
+           return get_task_by_id(db, int(cleaned))
+       m = re.search(r'\b(?:task|id|item)?\s*#?(\d+)\b', cleaned, re.IGNORECASE)
+       if m:
+           return get_task_by_id(db, int(m.group(1)))
+       # Fuzzy exact, substring, and tokenized keyword search
+       ...
+   ```
+
+3. **Automated Verification Script ([`backend/test_agent.py`](file:///d:/Coding/Projects/todo/backend/test_agent.py))**:
+   ```powershell
+   .\.venv\Scripts\python.exe test_agent.py
+   ```
+   **Output**:
+   ```text
+   === 1. Testing Database Context Injection ===
+   Live DB Context length: 551
+   CURRENT WORKSPACE SNAPSHOT (LIVE DATABASE):
+   - Total Tasks: 5 active, 0 completed.
+   - Active Sprint: 'Sprint 1 - Core Architecture & Pipeline' (Ends: 2026-10-23)
+   - Active Tasks (Use exact ID when completing or deleting):
+     * [ID: 5] "Finish ML Report" (P1, Due: 2026-10-11, Project: Inbox)
+     * [ID: 3] "comlete 3 test of java" (P2, Project: Inbox)
+     * [ID: 2] "java test" (P2, Project: Inbox)
+
+   === 2. Testing find_task_smartly Resolver ===
+   Sample task ID=2, title='java test'
+   Direct ID match OK
+   Pattern 'task #ID' match OK
+   Pattern 'id ID' match OK
+   Fuzzy title match on 'java' OK (matched id=2)
+
+   === 3. Testing System Prompt Generation ===
+   System prompt contains live snapshot and Hinglish instructions! OK
+   ALL AUTOMATED TESTS PASSED SUCCESSFULLY!
+   ```
+
+4. **Production Web Client Build**:
+   ```powershell
+   npm run build
+   ```
+   **Output**:
+   ```text
+   ✓ 1612 modules transformed.
+   dist/index.html                   0.86 kB │ gzip:   0.49 kB
+   dist/assets/index-Dv0A1MMP.css   82.65 kB │ gzip:  17.20 kB
+   dist/assets/index-BXiQlN0j.js   614.90 kB │ gzip: 173.00 kB
+   ✓ built in 46.08s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Elimination of Model Hallucination**: Without live database context, LLMs guess task IDs and hallucinate nonexistent items when commanded to complete or delete tasks. Injecting the live active backlog gives the agent grounded ground truth.
+2. **Natural Indian Developer Workflow**: CSE and engineering students frequently mix Hindi verbs (*"banao"*, *"hatao"*, *"kholo"*) with English nouns. Native support removes linguistic friction.
+3. **Robust Intent Disambiguation**: Developers shouldn't have tasks created every time they ask a PyTorch or algorithmic question. The agent now properly separates conversational mentoring from task backlog modifications.

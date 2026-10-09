@@ -4,6 +4,7 @@ Functions executed by the agent engine when the Groq LLM calls function tools.
 Directly interfaces with SQLite through SQLAlchemy to modify tasks and projects.
 """
 
+import re
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
@@ -106,34 +107,60 @@ def tool_create_task(
     }
 
 
+def find_task_smartly(db: Session, identifier: str, only_uncompleted: bool = False) -> Optional[Task]:
+    """Robustly find a task by ID, formatted string, or fuzzy title."""
+    if not identifier:
+        return None
+    cleaned = str(identifier).strip().strip("'\"#").strip()
+
+    # 1. Direct digit check e.g. "5"
+    if cleaned.isdigit():
+        t = get_task_by_id(db, int(cleaned))
+        if t and (not only_uncompleted or not t.completed):
+            return t
+
+    # 2. Extract digits from patterns like "task 5", "task #5", "id 5", "item 5"
+    m = re.search(r'\b(?:task|id|item)?\s*#?(\d+)\b', cleaned, re.IGNORECASE)
+    if m:
+        t = get_task_by_id(db, int(m.group(1)))
+        if t and (not only_uncompleted or not t.completed):
+            return t
+
+    # 3. Exact title match
+    q = db.query(Task)
+    if only_uncompleted:
+        q = q.filter(Task.completed == False)
+    t = q.filter(Task.title.ilike(cleaned)).first()
+    if t:
+        return t
+
+    # 4. Substring match
+    t = q.filter(Task.title.ilike(f"%{cleaned}%")).first()
+    if t:
+        return t
+
+    # 5. Token match without stopwords
+    stopwords = {"task", "the", "a", "an", "karo", "kardo", "delete", "complete", "finish", "done", "hatao", "ko", "se"}
+    words = [w for w in re.split(r'[\s\-_]+', cleaned) if len(w) > 2 and w.lower() not in stopwords]
+    for w in words:
+        candidate = q.filter(Task.title.ilike(f"%{w}%")).first()
+        if candidate:
+            return candidate
+
+    return None
+
+
 def tool_complete_task(db: Session, task_identifier: str) -> Dict[str, Any]:
     """Tool: Complete a task by ID or by title search."""
-    task = None
-    cleaned = task_identifier.strip()
-
-    # Try numeric ID lookup first
-    if cleaned.isdigit():
-        task = get_task_by_id(db, int(cleaned))
-
-    # Fallback to case-insensitive title search
-    if not task:
-        task = (
-            db.query(Task)
-            .filter(Task.title.ilike(f"%{cleaned}%"), Task.completed.is_(False))
-            .first()
-        )
+    task = find_task_smartly(db, task_identifier, only_uncompleted=True)
 
     if not task:
-        # Check if already completed
-        already_done = (
-            db.query(Task)
-            .filter(Task.title.ilike(f"%{cleaned}%"), Task.completed.is_(True))
-            .first()
-        )
-        if already_done:
+        # Check if it was already completed
+        already_done = find_task_smartly(db, task_identifier, only_uncompleted=False)
+        if already_done and already_done.completed:
             return {
                 "status": "info",
-                "message": f"Task '{already_done.title}' was already completed.",
+                "message": f"Task #{already_done.id} '{already_done.title}' was already completed.",
             }
         return {
             "status": "error",
@@ -157,14 +184,7 @@ def tool_complete_task(db: Session, task_identifier: str) -> Dict[str, Any]:
 
 def tool_delete_task(db: Session, task_identifier: str) -> Dict[str, Any]:
     """Tool: Permanently delete a task by ID or title search."""
-    task = None
-    cleaned = task_identifier.strip()
-
-    if cleaned.isdigit():
-        task = get_task_by_id(db, int(cleaned))
-
-    if not task:
-        task = db.query(Task).filter(Task.title.ilike(f"%{cleaned}%")).first()
+    task = find_task_smartly(db, task_identifier, only_uncompleted=False)
 
     if not task:
         return {
@@ -172,12 +192,14 @@ def tool_delete_task(db: Session, task_identifier: str) -> Dict[str, Any]:
             "message": f"Could not find any task matching '{task_identifier}' to delete.",
         }
 
+    task_id = task.id
     title = task.title
     delete_task(db, task)
 
     return {
         "status": "success",
         "action": "delete_task",
+        "deleted_task_id": task_id,
         "deleted_task": title,
     }
 
