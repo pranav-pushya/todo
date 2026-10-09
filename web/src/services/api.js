@@ -3,7 +3,14 @@
  * Uses Vite proxy forwarding /api to http://127.0.0.1:8001
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
+const PROD_BACKEND_URL = 'https://kortex-xnin.onrender.com/api/v1';
+
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' &&
+  (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com'))
+    ? PROD_BACKEND_URL
+    : '/api/v1');
 
 /**
  * Generic fetch wrapper with centralized JSON serialization,
