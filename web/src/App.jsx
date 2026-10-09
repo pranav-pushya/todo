@@ -3,6 +3,7 @@ import { ProjectProvider, useProjects } from './context/ProjectContext';
 import { TaskProvider, useTasks } from './context/TaskContext';
 import { AgentProvider, useAgent } from './context/AgentContext';
 import { NoteProvider } from './context/NoteContext';
+import { Sparkles } from 'lucide-react';
 
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
@@ -140,14 +141,19 @@ function AppContent() {
     setSearchQuery,
   ]);
 
+  const isNotesView = !selectedProjectId && activeFilter === 'notes';
+
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-obsidian-900 text-white font-sans select-none">
-      {/* Left Navigation Sidebar */}
-      <Sidebar onOpenCreateProject={() => setIsCreateProjectOpen(true)} />
+    <div className="flex h-screen w-screen overflow-hidden bg-obsidian-900 text-white font-sans select-none relative">
+      {/* Left Navigation Sidebar - Hidden when in Notes Workspace */}
+      {!isNotesView && (
+        <Sidebar onOpenCreateProject={() => setIsCreateProjectOpen(true)} />
+      )}
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        <Header onOpenAddTask={handleOpenAddTask} />
+        {/* Top Header - Hidden when in Notes Workspace */}
+        {!isNotesView && <Header onOpenAddTask={handleOpenAddTask} />}
 
         <main className="flex-1 overflow-y-auto flex flex-col bg-obsidian-900">
           <TaskList
@@ -156,6 +162,24 @@ function AppContent() {
           />
         </main>
       </div>
+
+      {/* Floating AI Copilot Trigger at Bottom Right Corner */}
+      {!isDrawerOpen && (
+        <button
+          onClick={() => setIsDrawerOpen(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-3 rounded-full bg-cobalt-700 hover:bg-cobalt-600 text-white font-medium text-xs shadow-glow-cobalt border border-cobalt-500/50 hover:scale-105 active:scale-95 transition-all group backdrop-blur-md cursor-pointer"
+          title="Open AI Copilot (Shortcut: C)"
+        >
+          <div className="relative">
+            <Sparkles className="w-4 h-4 text-white group-hover:rotate-12 transition-transform" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-cobalt-700 animate-pulse" />
+          </div>
+          <span className="font-semibold tracking-wide">AI Copilot</span>
+          <span className="text-[10px] text-cobalt-200 bg-cobalt-900/80 px-1.5 py-0.5 rounded border border-cobalt-600/60 font-mono">
+            C
+          </span>
+        </button>
+      )}
 
       {/* Right AI Copilot Drawer */}
       <AICopilotDrawer />

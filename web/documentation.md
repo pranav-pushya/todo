@@ -1465,3 +1465,101 @@ npm run dev
 1. **Integrated Knowledge & Execution**: Productivity requires both brainstorming (notes) and execution (tasks). Giving users a full Notes webapp inside the to-do manager eliminates context switching between apps.
 2. **Easter-Egg Logo Interaction**: Double-clicking the logo is a delightful, modern power-user shortcut that keeps the interface clean while keeping extensive functionality immediately accessible.
 3. **Actionable Notes**: The "Convert to Task" bridge ensures ideas captured in meeting notes or brainstorming sessions don't get forgotten—they directly become actionable items on your dashboard.
+
+---
+
+## 🔟 Step 10: Floating AI Copilot Action Button & Fullscreen Immersive Notes Workspace
+
+### A. What was done:
+
+1. **Floating AI Copilot Button (FAB)**:
+   - Positioned a persistent Floating Action Button at the bottom-right corner (`fixed bottom-6 right-6 z-40`).
+   - Styled with signature Obsidian/Cobalt aesthetic: cobalt-700 background, glowing cobalt drop-shadow (`shadow-glow-cobalt`), pulsating emerald online status indicator, and shortcut badge (`C`).
+   - Clicking this floating button or pressing keyboard shortcut `C` opens the slide-in AI Copilot drawer. When the drawer is open, the floating button automatically hides to avoid visual clutter.
+
+2. **Fullscreen Immersive Notes Workspace**:
+   - In [`web/src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx), detected `isNotesView = !selectedProjectId && activeFilter === 'notes'`.
+   - Conditionally hidden both the To-Do navigation [`<Sidebar />`](file:///d:/Coding/Projects/todo/web/src/components/layout/Sidebar.jsx) and the top [`<Header />`](file:///d:/Coding/Projects/todo/web/src/components/layout/Header.jsx) while inside the Notes view (`{!isNotesView && ...}`).
+   - Granted 100% viewport width and height to [`<NotesApp />`](file:///d:/Coding/Projects/todo/web/src/components/notes/NotesApp.jsx), complete with its own dedicated distraction-free editor toolbar and back navigation button (`← To-Do Tasks`).
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **Layout Isolation & Floating Trigger ([`web/src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx))**:
+   ```jsx
+   const isNotesView = !selectedProjectId && activeFilter === 'notes';
+
+   return (
+     <div className="flex h-screen w-screen overflow-hidden bg-obsidian-900 text-white font-sans select-none relative">
+       {/* Left Navigation Sidebar - Hidden when in Notes Workspace */}
+       {!isNotesView && (
+         <Sidebar onOpenCreateProject={() => setIsCreateProjectOpen(true)} />
+       )}
+
+       {/* Main Content Area */}
+       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+         {/* Top Header - Hidden when in Notes Workspace */}
+         {!isNotesView && <Header onOpenAddTask={handleOpenAddTask} />}
+
+         <main className="flex-1 overflow-y-auto flex flex-col bg-obsidian-900">
+           <TaskList
+             onOpenAddTask={handleOpenAddTask}
+             onEditTask={handleEditTask}
+           />
+         </main>
+       </div>
+
+       {/* Floating AI Copilot Trigger at Bottom Right Corner */}
+       {!isDrawerOpen && (
+         <button
+           onClick={() => setIsDrawerOpen(true)}
+           className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-3 rounded-full bg-cobalt-700 hover:bg-cobalt-600 text-white font-medium text-xs shadow-glow-cobalt border border-cobalt-500/50 hover:scale-105 active:scale-95 transition-all group backdrop-blur-md cursor-pointer"
+           title="Open AI Copilot (Shortcut: C)"
+         >
+           <div className="relative">
+             <Sparkles className="w-4 h-4 text-white group-hover:rotate-12 transition-transform" />
+             <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-cobalt-700 animate-pulse" />
+           </div>
+           <span className="font-semibold tracking-wide">AI Copilot</span>
+           <span className="text-[10px] text-cobalt-200 bg-cobalt-900/80 px-1.5 py-0.5 rounded border border-cobalt-600/60 font-mono">
+             C
+           </span>
+         </button>
+       )}
+
+       {/* Right AI Copilot Drawer */}
+       <AICopilotDrawer />
+     </div>
+   );
+   ```
+
+2. **Automated Production Build Verification**:
+   ```powershell
+   cd d:\Coding\Projects\todo\web
+   npm run build
+   ```
+   **Output**:
+   ```text
+   > todo-web@0.1.0 build
+   > vite build
+
+   vite v6.4.4 building for production...
+   transforming...
+   ✓ 1603 modules transformed.
+   rendering chunks...
+   computing gzip size...
+   dist/index.html                   0.86 kB │ gzip:  0.48 kB
+   dist/assets/index-wNesGwcw.css   34.15 kB │ gzip:  6.44 kB
+   dist/assets/index-dS-DkMnJ.js   236.00 kB │ gzip: 66.83 kB
+   ✓ built in 4.73s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Uninterrupted Writing Environment**: Notes and documentation require maximum horizontal canvas space and zero visual distractions. Hiding the To-Do sidebar and top navigation navbar ensures the Notes workspace feels like a dedicated writing app (e.g., Notion or Obsidian).
+2. **Ubiquitous AI Assistance**: By fixing the AI Copilot trigger as a floating action button in the bottom-right corner across all views, users can invoke the intelligent assistant at any moment—whether managing to-do lists, reviewing project timelines, analyzing metrics, or drafting notes.
+3. **Ergonomic Accessibility**: The bottom-right FAB complies with common modern web patterns, placing the primary assistant within immediate peripheral reach with a clear active pulse indicator.
+
