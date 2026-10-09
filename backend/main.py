@@ -81,6 +81,7 @@ def root_status():
 
 
 @app.get("/health", tags=["Health"], status_code=status.HTTP_200_OK)
+@app.get(f"{settings.API_V1_STR}/health", tags=["Health"], status_code=status.HTTP_200_OK)
 def health_check():
     """Health check endpoint verifying server uptime and database connectivity."""
     db_status = "connected"

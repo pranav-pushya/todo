@@ -1,10 +1,10 @@
 import React from 'react';
-import { Search, Plus, Sparkles, Command } from 'lucide-react';
+import { Search, Plus, Command } from 'lucide-react';
 import { useAgent } from '../../context/AgentContext';
 import { useTasks } from '../../context/TaskContext';
 
 export default function Header({ onOpenAddTask, onOpenZen }) {
-  const { setIsCommandPaletteOpen, setIsDrawerOpen, isDrawerOpen } = useAgent();
+  const { setIsCommandPaletteOpen } = useAgent();
   const { searchQuery, setSearchQuery } = useTasks();
 
   return (
@@ -44,20 +44,6 @@ export default function Header({ onOpenAddTask, onOpenZen }) {
           <span className="text-[10px] text-indigo-200 bg-indigo-900/80 px-1.5 py-0.5 rounded border border-indigo-500/40 font-mono">
             F
           </span>
-        </button>
-
-        {/* AI Copilot Trigger */}
-        <button
-          onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium border transition-all ${
-            isDrawerOpen
-              ? 'bg-cobalt-900 border-cobalt-600 text-white shadow-glow-subtle'
-              : 'bg-obsidian-850 hover:bg-obsidian-800 border-white/[0.08] text-slate-300 hover:text-white'
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5 text-cobalt-400 animate-pulse-subtle" />
-          <span>AI Copilot</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
         </button>
 
         {/* Add Task Primary Button */}
