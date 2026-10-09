@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProjectProvider, useProjects } from './context/ProjectContext';
 import { TaskProvider, useTasks } from './context/TaskContext';
 import { AgentProvider, useAgent } from './context/AgentContext';
@@ -16,6 +16,7 @@ import CommandPalette from './components/agent/CommandPalette';
 import ZenFocusChamber from './components/focus/ZenFocusChamber';
 import MLExperimentsModal from './components/ml/MLExperimentsModal';
 import KeyboardCheatsheetModal from './components/common/KeyboardCheatsheetModal';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 function AppContent() {
 
@@ -396,7 +397,9 @@ export default function App() {
         <TaskProvider>
           <NoteProvider>
             <AgentProvider>
-              <AppContent />
+              <ErrorBoundary>
+                <AppContent />
+              </ErrorBoundary>
             </AgentProvider>
           </NoteProvider>
         </TaskProvider>
