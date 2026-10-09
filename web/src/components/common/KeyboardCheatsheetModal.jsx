@@ -33,6 +33,7 @@ export default function KeyboardCheatsheetModal({ isOpen, onClose }) {
       shortcuts: [
         { key: 'n', desc: 'Create new task (+)' },
         { key: 'p', desc: 'Create new project' },
+        { key: 'u', desc: 'Open Developer Profile & Settings' },
         { key: 'c', desc: 'Toggle AI Copilot drawer' },
         { key: 'f', desc: 'Toggle Fullscreen Zen Focus Chamber' },
         { key: 'Ctrl + K', desc: 'Open Command Palette' },
@@ -42,6 +43,7 @@ export default function KeyboardCheatsheetModal({ isOpen, onClose }) {
       ],
     },
   ];
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-obsidian-950/80 backdrop-blur-md animate-fade-in select-none">

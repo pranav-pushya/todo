@@ -26,6 +26,12 @@ class Settings(BaseSettings):
         "*",                      # Allow all origins in development
     ]
 
+    # JWT Authentication & Security Settings
+    JWT_SECRET_KEY: str = "todo_super_secret_jwt_key_secure_production_ready_sha256_hash_9823147"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 Days token validity
+
+
     # Groq AI Split-Key structure
     # You can paste your key pieces here or in a .env file
     k1: str = "gsk_i9BLxswr5co"

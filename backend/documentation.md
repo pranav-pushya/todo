@@ -608,4 +608,85 @@ The backend build is split into two major phases:
 
 ---
 
-*This concludes all backend phases! The backend is 100% feature-complete, verified, and ready for Web & Mobile frontend integration.*
+### 🟢 Step 1: User Profiles & Authentication (COMPLETED)
+
+> **💡 Hinglish Summary:**  
+> Is step mein humne full-fledged developer authentication aur user profiles system banaya. Bcrypt password hashing, JWT bearer tokens, User ORM model, SQLite auto-migration aur complete REST endpoints implement karke 100% test pass kiye.
+
+#### A. What was done:
+1. **Security & Cryptography Engine (`app/core/security.py`)**:
+   - Implemented `hash_password(password: str) -> str` using salted `bcrypt` algorithms.
+   - Implemented `verify_password(plain_password: str, hashed_password: str) -> bool` preventing timing attacks.
+   - Built JWT token generation `create_access_token` and verification `decode_access_token` using `pyjwt` with customizable expiration (7-day validity).
+2. **User Database Model (`app/models/user.py`)**:
+   - Created the `User` SQLAlchemy model with fields: `id`, `email`, `username`, `full_name`, `hashed_password`, `avatar_url`, `bio`, `role`, `github_username`, `theme_preference`, `is_active`, `created_at`, `updated_at`.
+   - Wired bidirectional SQLAlchemy cascade relationships between `User` and `Task`, `Project`, `Note`, `Sprint`, and `ExperimentRun`.
+3. **Database Schema Auto-Migration & Seeding (`backend/main.py`)**:
+   - Enhanced `auto_migrate_sqlite()` to verify and inject `user_id` foreign keys into `tasks`, `projects`, `notes`, `sprints`, and `experiment_runs` tables automatically on boot without breaking existing data.
+   - Automatically seeded default demo developer account (`demo@example.com` / `demo123`, username: `demo_user`, role: `Fullstack AI Developer`) and linked any legacy records to it.
+4. **Pydantic Validation Layer (`app/schemas/user.py`)**:
+   - Created schemas: `UserRegister`, `UserLogin`, `UserUpdate`, `UserPasswordChange`, `UserProfileResponse`, and `TokenResponse`.
+5. **Database CRUD Operations (`app/crud/user.py`)**:
+   - Implemented helper functions for user lookup by ID, email, or username, user creation with hashed passwords, credential verification, profile updating, password changing, and aggregated entity count computation (`tasks_count`, `projects_count`, `notes_count`, `sprints_count`).
+6. **FastAPI Auth Dependencies (`app/core/auth.py`)**:
+   - Created `get_current_user` extracting and validating Bearer tokens from incoming HTTP `Authorization` headers, returning the authenticated `User` or raising HTTP 401.
+   - Created `get_optional_current_user` for graceful hybrid requests.
+7. **REST Endpoints (`app/api/v1/auth.py` & `app/api/v1/users.py`)**:
+   - `POST /api/v1/auth/register`: Create a new user account with duplicate email/username rejection.
+   - `POST /api/v1/auth/login`: Authenticate with email or username and password (JSON).
+   - `POST /api/v1/auth/token`: OAuth2 compatible form login for Swagger docs.
+   - `GET /api/v1/auth/me`: Fetch authenticated user profile with live backlog counts.
+   - `PATCH /api/v1/auth/me`: Update profile fields (name, bio, role, github, avatar).
+   - `POST /api/v1/auth/change-password`: Secure password change with verification of old password.
+   - `GET /api/v1/users`: List team developer profiles.
+   - `GET /api/v1/users/{id}/profile`: Public developer card.
+8. **Automated Verification Test Suite (`test_auth.py` & `test_all_endpoints.py`)**:
+   - Wrote 10 comprehensive tests verifying demo login, credential rejection, registration, duplicate protection, bearer token validation, profile updates, password modification, and profile cards.
+
+#### B. Verification Output:
+```text
+============================================================
+RUNNING AUTOMATED VERIFICATION: USER PROFILES & AUTHENTICATION
+============================================================
+--- 1. Testing Demo User Login ---
+[PASS] Demo login successful. Token received: eyJhbGciOiJIUzI1NiIs...
+[PASS] Demo login with username succeeded.
+
+--- 2. Testing Invalid Credentials Rejection ---
+[PASS] Invalid password correctly rejected with HTTP 401.
+
+--- 3. Testing New User Registration ---
+[PASS] User registration/login succeeded. User ID: 2, Role: QA & Systems Engineer
+
+--- 4. Testing Duplicate Registration Rejection ---
+[PASS] Duplicate registration rejected: An account with this email address already exists.
+
+--- 5. Testing /api/v1/auth/me Profile Route ---
+[PASS] /api/v1/auth/me verified for tester_auth_test_1 (Tasks: 0).
+
+--- 6. Testing Unauthorized Access ---
+[PASS] Unauthorized access correctly returned HTTP 401.
+
+--- 7. Testing Profile Update (PATCH /api/v1/auth/me) ---
+[PASS] Profile updated successfully. New role: Principal AI Architect.
+
+--- 8. Testing Password Change ---
+[PASS] Wrong current password correctly rejected.
+[PASS] Password successfully changed.
+[PASS] Login with new password succeeded.
+
+--- 9. Testing Public Profile Card ---
+[PASS] Public profile card retrieved for User 2.
+
+--- 10. Testing List Developer Profiles ---
+[PASS] List users returned 2 developer profiles.
+============================================================
+ALL 10 USER PROFILES & AUTHENTICATION TESTS PASSED (100%)!
+============================================================
+```
+
+#### C. Why it was done:
+1. **Multi-Tenant User Isolation**: Moving from a single-user prototype to a real engineering tool requires individual developer accounts with scoped workspaces.
+2. **Standard-Compliant Security**: Bcrypt hashing with random salts ensures password digests cannot be cracked via rainbow tables. Cryptographically signed JWT tokens enable stateless, scalable authentication without server-side session memory overhead.
+3. **Seamless Migration & Developer Experience**: Auto-migration guarantees existing databases upgrade automatically without manual SQL scripts or schema corruption, and demo seeding provides instant 1-click access during development.
+

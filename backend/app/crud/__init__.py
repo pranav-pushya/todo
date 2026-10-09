@@ -19,6 +19,18 @@ from app.crud.task import (
     update_task,
 )
 
+from app.crud.user import (
+    get_user_by_id,
+    get_user_by_email,
+    get_user_by_username,
+    get_user_by_email_or_username,
+    create_user,
+    authenticate_user,
+    update_user_profile,
+    change_user_password,
+    get_user_profile_dict,
+)
+
 __all__ = [
     "get_projects",
     "get_project_by_id",
@@ -34,4 +46,14 @@ __all__ = [
     "toggle_task_completion",
     "delete_task",
     "to_task_response",
+    "get_user_by_id",
+    "get_user_by_email",
+    "get_user_by_username",
+    "get_user_by_email_or_username",
+    "create_user",
+    "authenticate_user",
+    "update_user_profile",
+    "change_user_password",
+    "get_user_profile_dict",
 ]
+

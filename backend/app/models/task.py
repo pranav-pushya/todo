@@ -27,6 +27,12 @@ class Task(Base):
         nullable=True,
         index=True,
     )
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     sprint_id = Column(
         Integer,
         ForeignKey("sprints.id", ondelete="SET NULL"),
@@ -44,7 +50,9 @@ class Task(Base):
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
 
     # Relationships
+    user = relationship("User", back_populates="tasks")
     project = relationship("Project", back_populates="tasks")
+
     sprint = relationship("Sprint", back_populates="tasks")
     subtasks = relationship(
         "Subtask",

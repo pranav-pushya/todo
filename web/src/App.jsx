@@ -4,6 +4,7 @@ import { TaskProvider, useTasks } from './context/TaskContext';
 import { AgentProvider, useAgent } from './context/AgentContext';
 import { NoteProvider } from './context/NoteContext';
 import { UIFeedbackProvider, useUIFeedback } from './context/UIFeedbackContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sparkles } from 'lucide-react';
 
 import Sidebar from './components/layout/Sidebar';
@@ -16,9 +17,12 @@ import CommandPalette from './components/agent/CommandPalette';
 import ZenFocusChamber from './components/focus/ZenFocusChamber';
 import MLExperimentsModal from './components/ml/MLExperimentsModal';
 import KeyboardCheatsheetModal from './components/common/KeyboardCheatsheetModal';
+import AuthModal from './components/auth/AuthModal';
+import UserProfileModal from './components/auth/UserProfileModal';
 import ErrorBoundary from './components/common/ErrorBoundary';
 
 function AppContent() {
+
 
 
   const {
@@ -52,6 +56,13 @@ function AppContent() {
   } = useTasks();
   const { selectedProjectId, setSelectedProjectId } = useProjects();
   const { toast, confirm } = useUIFeedback();
+  const {
+    isAuthModalOpen,
+    setIsAuthModalOpen,
+    isProfileModalOpen,
+    setIsProfileModalOpen,
+    isAuthenticated,
+  } = useAuth();
 
   const [isCheatsheetOpen, setIsCheatsheetOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -90,6 +101,14 @@ function AppContent() {
     const handleKeyDown = (e) => {
       // 1. ESCAPE: Closes any open modal, palette, drawer, cheatsheet, or zen mode
       if (e.key === 'Escape') {
+        if (isProfileModalOpen) {
+          setIsProfileModalOpen(false);
+          return;
+        }
+        if (isAuthModalOpen) {
+          setIsAuthModalOpen(false);
+          return;
+        }
         if (isCheatsheetOpen) {
           setIsCheatsheetOpen(false);
           return;
@@ -124,6 +143,7 @@ function AppContent() {
           return;
         }
       }
+
 
       // 2. Ctrl+K or Cmd+K: Open/close Command Palette
       if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
@@ -247,6 +267,13 @@ function AppContent() {
         e.preventDefault();
         setSelectedProjectId(null);
         setActiveFilter('sprint');
+      } else if (e.key === 'u' || e.key === 'U') {
+        e.preventDefault();
+        if (isAuthenticated) {
+          setIsProfileModalOpen((prev) => !prev);
+        } else {
+          setIsAuthModalOpen((prev) => !prev);
+        }
       } else if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
         setIsDrawerOpen((prev) => !prev);
@@ -279,6 +306,11 @@ function AppContent() {
     isDrawerOpen,
     isZenOpen,
     isMLOpen,
+    isAuthModalOpen,
+    isProfileModalOpen,
+    isAuthenticated,
+    setIsAuthModalOpen,
+    setIsProfileModalOpen,
     setIsCommandPaletteOpen,
     setIsDrawerOpen,
     setIsAddTaskOpen,
@@ -294,6 +326,7 @@ function AppContent() {
     toast,
     confirm,
   ]);
+
 
 
   const isNotesView = !selectedProjectId && activeFilter === 'notes';
@@ -389,6 +422,20 @@ function AppContent() {
         isOpen={isCheatsheetOpen}
         onClose={() => setIsCheatsheetOpen(false)}
       />
+
+      {/* Developer Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+
+
+      {/* Developer User Profile & Settings Modal */}
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+      />
     </div>
   );
 }
@@ -396,17 +443,20 @@ function AppContent() {
 export default function App() {
   return (
     <UIFeedbackProvider>
-      <ProjectProvider>
-        <TaskProvider>
-          <NoteProvider>
-            <AgentProvider>
-              <ErrorBoundary>
-                <AppContent />
-              </ErrorBoundary>
-            </AgentProvider>
-          </NoteProvider>
-        </TaskProvider>
-      </ProjectProvider>
+      <AuthProvider>
+        <ProjectProvider>
+          <TaskProvider>
+            <NoteProvider>
+              <AgentProvider>
+                <ErrorBoundary>
+                  <AppContent />
+                </ErrorBoundary>
+              </AgentProvider>
+            </NoteProvider>
+          </TaskProvider>
+        </ProjectProvider>
+      </AuthProvider>
     </UIFeedbackProvider>
   );
 }
+

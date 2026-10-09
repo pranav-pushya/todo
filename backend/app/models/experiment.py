@@ -17,6 +17,12 @@ class ExperimentRun(Base):
     __tablename__ = "experiment_runs"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     task_id = Column(
         Integer,
         ForeignKey("tasks.id", ondelete="SET NULL"),
@@ -34,7 +40,9 @@ class ExperimentRun(Base):
     created_at = Column(DateTime, default=utcnow, nullable=False)
 
     # Relationships
+    user = relationship("User", back_populates="experiments")
     task = relationship("Task", back_populates="experiments")
+
 
     def __repr__(self) -> str:
         return f"<ExperimentRun(id={self.id}, model='{self.model_name}', status='{self.status}')>"

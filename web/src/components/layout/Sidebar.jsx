@@ -12,17 +12,21 @@ import {
   Command,
   FlaskConical,
   Flame,
+  User,
 } from 'lucide-react';
 import { useTasks } from '../../context/TaskContext';
 import { useProjects } from '../../context/ProjectContext';
 import { useAgent } from '../../context/AgentContext';
 import { useUIFeedback } from '../../context/UIFeedbackContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Sidebar({ onOpenCreateProject, onOpenML }) {
 
   const { activeFilter, setActiveFilter } = useTasks();
   const { projects, selectedProjectId, setSelectedProjectId, removeProject } = useProjects();
   const { setIsDrawerOpen, setIsCommandPaletteOpen } = useAgent();
+  const { user, isAuthenticated, setIsProfileModalOpen, setIsAuthModalOpen } = useAuth();
+
   const { toast, confirm } = useUIFeedback();
 
   const handleSelectNav = (filter) => {
@@ -202,8 +206,48 @@ export default function Sidebar({ onOpenCreateProject, onOpenML }) {
         </div>
       </div>
 
-      {/* Footer / Copilot Status Card */}
+      {/* Footer / Developer Profile & Copilot Cards */}
       <div className="p-3 border-t border-white/[0.08] space-y-2">
+        {/* User Developer Card */}
+        {isAuthenticated && user ? (
+          <div
+            onClick={() => setIsProfileModalOpen(true)}
+            className="p-2.5 rounded-xl bg-obsidian-900/90 border border-white/[0.08] hover:border-cobalt-600/60 cursor-pointer transition-all flex items-center gap-2.5 group"
+            title="Open Developer Profile (Shortcut: U)"
+          >
+            {user.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt={user.username}
+                className="w-8 h-8 rounded-lg object-cover ring-1 ring-cobalt-500/50"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cobalt-600 to-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-glow-cobalt">
+                {(user.full_name || user.username).slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-white truncate group-hover:text-cobalt-300 transition-colors">
+                  {user.full_name || user.username}
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              </div>
+              <p className="text-[10px] text-slate-400 truncate">
+                {user.role || 'Developer'}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-cobalt-950/60 border border-cobalt-800/60 hover:bg-cobalt-900/60 text-xs font-medium text-cobalt-300 hover:text-white transition-all cursor-pointer"
+          >
+            <User className="w-3.5 h-3.5" />
+            <span>Sign In to Sync</span>
+          </button>
+        )}
+
         <div
           onClick={() => setIsDrawerOpen(true)}
           className="p-3 rounded-xl bg-cobalt-950/60 border border-cobalt-900/70 hover:border-cobalt-700/60 cursor-pointer transition-all group"
@@ -228,6 +272,7 @@ export default function Sidebar({ onOpenCreateProject, onOpenML }) {
           <span className="text-[10px] text-slate-500">Ctrl+K</span>
         </button>
       </div>
+
     </aside>
   );
 }

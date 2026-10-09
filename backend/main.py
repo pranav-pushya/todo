@@ -15,19 +15,60 @@ from app.core.database import Base, engine, SessionLocal
 
 
 def auto_migrate_sqlite():
-    """Ensure newly added columns exist in SQLite tables on startup."""
+    """Ensure newly added columns exist in SQLite tables on startup and seed default developer profile."""
     with engine.connect() as conn:
-        # Migrate tasks.sprint_id if missing
+        # 1. Migrate tasks.sprint_id if missing
         task_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(tasks)")).fetchall()]
         if "sprint_id" not in task_cols:
             conn.execute(text("ALTER TABLE tasks ADD COLUMN sprint_id INTEGER REFERENCES sprints(id) ON DELETE SET NULL"))
             conn.commit()
 
-        # Migrate notes.task_id if missing
+        # 2. Migrate notes.task_id if missing
         note_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(notes)")).fetchall()]
         if "task_id" not in note_cols:
             conn.execute(text("ALTER TABLE notes ADD COLUMN task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL"))
             conn.commit()
+
+        # 3. Migrate user_id across tasks, projects, notes, sprints, experiment_runs
+        for tbl in ["tasks", "projects", "notes", "sprints", "experiment_runs"]:
+            cols = [r[1] for r in conn.execute(text(f"PRAGMA table_info({tbl})")).fetchall()]
+            if "user_id" not in cols:
+                conn.execute(text(f"ALTER TABLE {tbl} ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE"))
+                conn.commit()
+
+        # 4. Seed default developer demo user if users table is empty
+        user_count = conn.execute(text("SELECT count(*) FROM users")).scalar()
+        if user_count == 0:
+            from app.core.security import hash_password
+            default_pwd = hash_password("demo123")
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO users (email, username, full_name, hashed_password, bio, role, github_username, avatar_url, theme_preference, is_active, created_at, updated_at)
+                    VALUES (:email, :username, :full_name, :pwd, :bio, :role, :gh, :avatar, :theme, 1, datetime('now'), datetime('now'))
+                    """
+                ),
+                {
+                    "email": "demo@example.com",
+                    "username": "demo_user",
+                    "full_name": "Demo Engineer",
+                    "pwd": default_pwd,
+                    "bio": "Building autonomous AI to-do workflows, sprint planning, and ML experiments.",
+                    "role": "Fullstack AI Developer",
+                    "gh": "demo-engineer",
+                    "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+                    "theme": "dark",
+                }
+            )
+            conn.commit()
+
+            demo_user_id = conn.execute(text("SELECT id FROM users WHERE username = 'demo_user'")).scalar()
+            if demo_user_id:
+                # Link existing orphaned records to demo user
+                for tbl in ["tasks", "projects", "notes", "sprints", "experiment_runs"]:
+                    conn.execute(text(f"UPDATE {tbl} SET user_id = :uid WHERE user_id IS NULL"), {"uid": demo_user_id})
+                conn.commit()
+
 
 
 @asynccontextmanager

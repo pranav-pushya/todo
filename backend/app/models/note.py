@@ -18,6 +18,7 @@ class Note(Base):
     __tablename__ = "notes"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
     task_id = Column(Integer, ForeignKey("tasks.id", ondelete="SET NULL"), nullable=True, index=True)
     title = Column(String(255), nullable=False, index=True, default="Untitled Note")
     content = Column(Text, nullable=True, default="")
@@ -27,7 +28,9 @@ class Note(Base):
     created_at = Column(DateTime, default=utcnow, nullable=False)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
 
+    user = relationship("User", back_populates="notes")
     task = relationship("Task", back_populates="notes")
+
 
     def __repr__(self) -> str:
         return f"<Note(id={self.id}, title='{self.title}', task_id={self.task_id}, pinned={self.pinned})>"

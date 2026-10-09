@@ -9,14 +9,19 @@ import {
   FileText,
   X,
   ArrowRight,
+  User,
+
 } from 'lucide-react';
 import { useAgent } from '../../context/AgentContext';
 import { useTasks } from '../../context/TaskContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function CommandPalette({ onOpenAddTask, onOpenCreateProject }) {
   const { isCommandPaletteOpen, setIsCommandPaletteOpen, sendCommand, setIsDrawerOpen } =
     useAgent();
   const { setActiveFilter } = useTasks();
+  const { user, isAuthenticated, setIsProfileModalOpen, setIsAuthModalOpen } = useAuth();
+
 
   const [query, setQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -221,7 +226,27 @@ export default function CommandPalette({ onOpenAddTask, onOpenCreateProject }) {
             </span>
             <span className="text-[10px] text-slate-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">C</span>
           </button>
+
+          <button
+            onClick={() =>
+              handleAction(() => {
+                if (isAuthenticated && user) {
+                  setIsProfileModalOpen(true);
+                } else {
+                  setIsAuthModalOpen(true);
+                }
+              })
+            }
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.06] text-slate-300 hover:text-white transition-colors group text-left"
+          >
+            <span className="flex items-center gap-2.5">
+              <User className="w-4 h-4 text-emerald-400" />
+              <span>{isAuthenticated && user ? `Developer Profile (@${user.username})` : 'Sign In / Register'}</span>
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">U</span>
+          </button>
         </div>
+
 
         {/* Footer tip */}
         <div className="px-4 py-2.5 bg-obsidian-950/80 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-slate-500">

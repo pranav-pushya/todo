@@ -2870,3 +2870,67 @@ npm run dev
    ✓ 1612 modules transformed.
    ✓ built in 6.66s with 0 errors.
    ```
+
+---
+
+## 👤 Step 1: User Profiles & Authentication (COMPLETED)
+
+> **💡 Hinglish Summary:**  
+> Is step mein humne web frontend par complete Developer Authentication aur User Profiles UI banaya. JWT token auto-injection, AuthContext state, AuthModal (Sign In / Register), UserProfileModal (Stats, Edit Profile, Password Change), Navbar user pill, aur 'U' keyboard shortcut implement karke production build verify kiya.
+
+### A. What was done:
+
+1. **Authentication API Layer (`web/src/services/api.js`)**:
+   - Upgraded central `request` fetch wrapper to automatically attach `Authorization: Bearer <token>` from `localStorage.getItem('todo_auth_token')`.
+   - Exported `AuthAPI` (`login`, `register`, `getMe`, `updateProfile`, `changePassword`) and `UserAPI` (`listUsers`, `getUserProfile`).
+
+2. **Global Auth & Profile State Context (`web/src/context/AuthContext.jsx`)**:
+   - Created `AuthProvider` managing `user`, `token`, `isAuthenticated`, `isLoading`, `isAuthModalOpen`, and `isProfileModalOpen`.
+   - Automatic silent demo session restoration on first boot for instant developer convenience.
+   - Profile refresh mechanism updating real-time entity counts.
+
+3. **Authentication Modal (`web/src/components/auth/AuthModal.jsx`)**:
+   - Tabbed dialog for "Sign In" and "Create Account".
+   - 1-Click "Fill Demo Account (demo123)" accelerator button.
+   - Comprehensive registration fields: Full Name, Email, Username, Password, Role, GitHub Handle, and Bio with input validation.
+
+4. **Developer Profile & Settings Modal (`web/src/components/auth/UserProfileModal.jsx`)**:
+   - Hero header with custom avatar URL support and initials badge fallback, online status dot, username `@handle`, role badge, and joined date.
+   - 4 live productivity counters: Tasks Backlog, Active Projects, Scratchpad Notes, Active Sprints.
+   - 3 tabs:
+     - **Overview**: Developer Bio, GitHub link, Account role.
+     - **Edit Profile**: Inline editing for Name, Role, Bio, GitHub handle, and Avatar URL.
+     - **Security**: Current Password verification and New Password confirmation.
+   - Footer actions for "Sign Out" and "Switch Account".
+
+5. **Navigation Shell Integration**:
+   - **Header Navbar (`Header.jsx`)**: Added interactive Developer Profile pill showing avatar, first name, and `@username`. Unauthenticated state shows a clean "Sign In" button.
+   - **Sidebar Footer (`Sidebar.jsx`)**: Added Developer Profile card widget right above AI Copilot with real-time status.
+   - **Command Palette (`CommandPalette.jsx`)**: Added "Developer Profile (@username)" action.
+   - **Keyboard Navigation & Cheatsheet (`App.jsx` & `KeyboardCheatsheetModal.jsx`)**: Registered `u` / `U` hotkey for instant profile access and `Esc` modal dismiss.
+
+### B. Verification & Production Build:
+
+1. **Vite Production Bundler Execution**:
+   ```powershell
+   npm run build
+   ```
+   **Output**:
+   ```text
+   ✓ 1615 modules transformed.
+   dist/index.html                   0.86 kB │ gzip:   0.48 kB
+   dist/assets/index-CDepI9Vw.css   84.77 kB │ gzip:  17.53 kB
+   dist/assets/index-Dw7Vc47Z.js   647.14 kB │ gzip: 178.75 kB
+   ✓ built in 8.77s
+   ```
+
+2. **End-to-End System Tests**:
+   - `python test_auth.py`: 10/10 passed (100% success).
+   - `python test_all_endpoints.py`: All 11 endpoint suites passed.
+
+### C. Why it was done:
+
+1. **Instant Developer Identity**: Modern engineering platforms require a clear sense of ownership. A developer profile highlights project velocity and personal technical contributions.
+2. **Frictionless Onboarding**: The demo auto-login ensures new developers aren't stopped by aggressive login walls while still providing real authentication and profile customizability.
+3. **Ergonomic Vim Hotkey**: Adding `u` to the hacker keyboard suite ensures developers can inspect or update their profile at the speed of thought without lifting their hands from the keyboard.
+

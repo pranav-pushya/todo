@@ -1,11 +1,13 @@
 import React from 'react';
-import { Search, Plus, Command } from 'lucide-react';
+import { Search, Plus, Command, User } from 'lucide-react';
 import { useAgent } from '../../context/AgentContext';
 import { useTasks } from '../../context/TaskContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Header({ onOpenAddTask, onOpenZen }) {
   const { setIsCommandPaletteOpen } = useAgent();
   const { searchQuery, setSearchQuery } = useTasks();
+  const { user, isAuthenticated, setIsProfileModalOpen, setIsAuthModalOpen } = useAuth();
 
   return (
     <header className="h-16 border-b border-white/[0.08] bg-obsidian-950/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
@@ -33,6 +35,44 @@ export default function Header({ onOpenAddTask, onOpenZen }) {
 
       {/* Action Buttons */}
       <div className="flex items-center gap-3">
+        {/* User Profile / Auth Button */}
+        {isAuthenticated && user ? (
+          <button
+            onClick={() => setIsProfileModalOpen(true)}
+            className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg border border-white/[0.08] bg-obsidian-850 hover:bg-obsidian-800 text-xs font-medium text-slate-200 hover:text-white transition-all cursor-pointer group shadow-sm"
+            title={`Logged in as ${user.full_name || user.username} (@${user.username}) - Click to view profile (Shortcut: U)`}
+          >
+            {user.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt={user.username}
+                className="w-6 h-6 rounded-full object-cover ring-1 ring-cobalt-500/50"
+              />
+            ) : (
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cobalt-600 to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shadow-glow-cobalt">
+                {(user.full_name || user.username).slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="flex flex-col text-left">
+              <span className="max-w-[110px] truncate text-[11px] font-semibold text-slate-200 group-hover:text-white leading-tight">
+                {user.full_name?.split(' ')[0] || user.username}
+              </span>
+              <span className="text-[9px] text-cobalt-400 font-mono leading-tight">
+                @{user.username}
+              </span>
+            </div>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 ml-0.5 animate-pulse" />
+          </button>
+        ) : (
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-cobalt-500/40 bg-cobalt-950/40 hover:bg-cobalt-900/60 text-xs font-medium text-cobalt-300 hover:text-white transition-all cursor-pointer shadow-glow-subtle"
+          >
+            <User className="w-3.5 h-3.5" />
+            <span>Sign In</span>
+          </button>
+        )}
+
         {/* Zen Focus Chamber Trigger */}
         <button
           onClick={onOpenZen}
@@ -58,3 +98,4 @@ export default function Header({ onOpenAddTask, onOpenZen }) {
     </header>
   );
 }
+

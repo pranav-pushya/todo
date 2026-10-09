@@ -11,6 +11,15 @@ from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
 from app.schemas.note import NoteCreate, NoteResponse, NoteUpdate
 
+from app.schemas.user import (
+    UserRegister,
+    UserLogin,
+    UserUpdate,
+    UserPasswordChange,
+    UserProfileResponse,
+    TokenResponse,
+)
+
 __all__ = [
     "PriorityEnum",
     "TaskViewFilter",
@@ -27,4 +36,11 @@ __all__ = [
     "AgentCommandResponse",
     "AgentExecutedAction",
     "AgentLogResponse",
+    "UserRegister",
+    "UserLogin",
+    "UserUpdate",
+    "UserPasswordChange",
+    "UserProfileResponse",
+    "TokenResponse",
 ]
+

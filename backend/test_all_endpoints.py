@@ -19,7 +19,16 @@ def run_tests():
     check("GET /", client.get("/"))
     check("GET /health", client.get("/health"))
 
+    print("\n=== Testing Authentication & Profiles Endpoints ===")
+    auth_resp = client.post("/api/v1/auth/login", json={"email_or_username": "demo@example.com", "password": "demo123"})
+    check("POST /api/v1/auth/login", auth_resp)
+    token = auth_resp.json().get("access_token") if auth_resp.status_code == 200 else ""
+    auth_headers = {"Authorization": f"Bearer {token}"} if token else {}
+    check("GET /api/v1/auth/me", client.get("/api/v1/auth/me", headers=auth_headers))
+    check("GET /api/v1/users", client.get("/api/v1/users"))
+
     print("\n=== Testing Projects Endpoints ===")
+
     check("GET /api/v1/projects", client.get("/api/v1/projects"))
     p_resp = client.post("/api/v1/projects", json={"title": "Test Suite Project", "color": "#3b82f6"})
     check("POST /api/v1/projects", p_resp, 201)

@@ -11,13 +11,18 @@ const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
  */
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
+  const token = localStorage.getItem('todo_auth_token');
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+
   const config = {
     headers: {
       'Content-Type': 'application/json',
+      ...authHeader,
       ...options.headers,
     },
     ...options,
   };
+
 
   try {
     const response = await fetch(url, config);
@@ -382,6 +387,73 @@ export const SprintAPI = {
     return request(`/sprints/${sprintId}/complete`, {
       method: 'PATCH',
     });
+  },
+};
+
+// ==================== AUTH & USER PROFILES API ====================
+
+export const AuthAPI = {
+  /**
+   * Log in using email or username and password.
+   */
+  async login({ email_or_username, password }) {
+    return request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email_or_username, password }),
+    });
+  },
+
+  /**
+   * Register a new developer account.
+   */
+  async register(registrationData) {
+    return request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(registrationData),
+    });
+  },
+
+  /**
+   * Fetch authenticated user's profile and live workspace counts.
+   */
+  async getMe() {
+    return request('/auth/me');
+  },
+
+  /**
+   * Update authenticated user's profile information.
+   */
+  async updateProfile(updates) {
+    return request('/auth/me', {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+  },
+
+  /**
+   * Change user account password.
+   */
+  async changePassword({ current_password, new_password }) {
+    return request('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ current_password, new_password }),
+    });
+  },
+};
+
+export const UserAPI = {
+  /**
+   * List developer profiles for team / community view.
+   */
+  async listUsers({ skip = 0, limit = 50 } = {}) {
+    return request(`/users?skip=${skip}&limit=${limit}`);
+  },
+
+  /**
+   * Retrieve public developer profile card by user ID.
+   */
+  async getUserProfile(userId) {
+    return request(`/users/${userId}/profile`);
   },
 };
 

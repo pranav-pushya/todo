@@ -1,7 +1,7 @@
 """SQLAlchemy ORM model for Agile Sprints and Burndown tracking."""
 
 from datetime import date, datetime, timezone
-from sqlalchemy import Boolean, Column, Date, DateTime, Integer, String, Text
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -17,6 +17,7 @@ class Sprint(Base):
     __tablename__ = "sprints"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
     title = Column(String(255), nullable=False)
     goal = Column(Text, nullable=True)
     start_date = Column(Date, nullable=False, default=date.today)
@@ -24,8 +25,10 @@ class Sprint(Base):
     is_active = Column(Boolean, default=True, nullable=False, index=True)
     created_at = Column(DateTime, default=utcnow, nullable=False)
 
-    # Relationship to tasks in this sprint
+    # Relationships
+    user = relationship("User", back_populates="sprints")
     tasks = relationship("Task", back_populates="sprint")
+
 
     def __repr__(self) -> str:
         return f"<Sprint(id={self.id}, title='{self.title}', active={self.is_active})>"
