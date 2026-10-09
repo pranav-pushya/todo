@@ -42,7 +42,7 @@ def run_tests():
     res = client.get("/openapi.json")
     assert res.status_code == 200, f"Expected 200, got {res.status_code}"
     openapi = res.json()
-    assert openapi["info"]["title"] == "AI To-Do API"
+    assert openapi["info"]["title"] == "Kortex API"
     assert "/api/v1/tasks/" in openapi["paths"]
     assert "/api/v1/projects/" in openapi["paths"]
     print("[PASS] 3. Swagger OpenAPI schema (/openapi.json) verified.")

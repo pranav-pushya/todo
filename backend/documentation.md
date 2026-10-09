@@ -184,7 +184,7 @@ The backend build is split into two major phases:
    ```text
    Config & Database modules loaded successfully!
    Database URL: sqlite:///./todo.db
-   Project Name: AI To-Do API
+   Project Name: Kortex API
    ```
 
 ---
@@ -449,7 +449,7 @@ The backend build is split into two major phases:
    ```
    Output:
    ```text
-   Root: 200 {'message': 'Welcome to the AI To-Do API!', 'version': '1.0.0', 'docs': '/docs', 'api_v1': '/api/v1'}
+   Root: 200 {'message': 'Welcome to the Kortex API!', 'version': '1.0.0', 'docs': '/docs', 'api_v1': '/api/v1'}
    Health: 200 {'status': 'healthy', 'database': 'connected', 'version': '1.0.0'}
    CORS Allow Origin: http://localhost:5173
    FastAPI main server & CORS configured perfectly!

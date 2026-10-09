@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     """Central configuration for backend services, database, and AI agent."""
 
     # Project metadata
-    PROJECT_NAME: str = "AI To-Do API"
+    PROJECT_NAME: str = "Kortex API"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
 

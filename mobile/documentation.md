@@ -1,6 +1,6 @@
 # Native Mobile App Documentation & Step-by-Step Learning Guide
 
-Welcome to the native mobile app documentation for the **AI-Controlled To-Do Platform**. This document is written in beginner-friendly language to guide you through the mobile architecture, Expo workflow, and native features.
+Welcome to the native mobile app documentation for the **Kortex Platform**. This document is written in beginner-friendly language to guide you through the mobile architecture, Expo workflow, and native features.
 
 ---
 

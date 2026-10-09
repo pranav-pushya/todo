@@ -62,7 +62,7 @@ def auto_migrate_sqlite():
                     "username": "demo_user",
                     "full_name": "Demo Engineer",
                     "pwd": default_pwd,
-                    "bio": "Building autonomous AI to-do workflows, sprint planning, and ML experiments.",
+                    "bio": "Building autonomous Kortex workflows, sprint planning, and ML experiments.",
                     "role": "Fullstack AI Developer",
                     "gh": "demo-engineer",
                     "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
@@ -98,7 +98,7 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description=(
-        "Production-ready backend API for the AI-Controlled To-Do Platform. "
+        "Production-ready backend API for the Kortex Platform. "
         "Supports projects, tasks, smart views (Inbox, Today, Upcoming), "
         "and autonomous AI Agent tool execution."
     ),

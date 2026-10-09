@@ -1,1 +1,1 @@
-"""AI To-Do Backend Application Package."""
+"""Kortex Backend Application Package."""

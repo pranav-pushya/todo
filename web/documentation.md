@@ -1023,7 +1023,7 @@ Setting up Vite and Tailwind first establishes a modern, fast development enviro
 cd d:\Coding\Projects\todo\backend
 .\.venv\Scripts\uvicorn main:app --reload --port 8001
 ```
-- API Docs: `http://localhost:8001/docs` (shows **AI To-Do API**)
+- API Docs: `http://localhost:8001/docs` (shows **Kortex API**)
 
 ### 2. Running the Web Frontend
 ```powershell
@@ -1426,7 +1426,7 @@ npm run dev
 
 1. **Double-Click Logo Launcher Mechanism**:
    - Attached an `onDoubleClick` event listener to the application logo in [`web/src/components/layout/Sidebar.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Sidebar.jsx).
-   - Double-clicking the brand logo ("AI To-Do" / checkmark icon) instantly switches the workspace into the **Notes Webapp**.
+   - Double-clicking the brand logo ("Kortex" / checkmark icon) instantly switches the workspace into the **Notes Webapp**.
    - Added hover micro-interactions: a tooltip *"Double-click logo to open Notes Workspace!"* and a subtle `2x click: Notes` indicator badge.
 
 2. **Full-Featured Notes Workspace (`NotesApp.jsx`)**:
@@ -1466,7 +1466,7 @@ npm run dev
        </div>
        <div className="flex flex-col">
          <span className="font-semibold text-sm tracking-tight text-white group-hover:text-cobalt-300 transition-colors">
-           AI To-Do
+           Kortex
          </span>
          <span className="text-[9px] text-slate-500 font-mono hidden group-hover:block transition-all">
            2x click: Notes
@@ -1688,7 +1688,7 @@ npm run dev
 ### C. Why it was done:
 
 1. **Consistent Gestural Interaction**: Enabling double-click on both logos creates an intuitive mental model:
-   - Double-click `AI To-Do` logo ➔ Enters Notes Workspace
+   - Double-click `Kortex` logo ➔ Enters Notes Workspace
    - Double-click `Notes Workspace` logo ➔ Returns to To-Do Tasks
 2. **Minimalist, Clutter-Free UI**: Removing the manual `← To-Do Tasks` button preserves the minimalist aesthetic of the Notes header.
 3. **Focused AI Experience**: Removing technical audit logs leaves the drawer clean, responsive, and approachable for end-user task execution.

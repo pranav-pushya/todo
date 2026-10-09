@@ -80,7 +80,7 @@ export default function Sidebar({ onOpenCreateProject, onOpenML }) {
           </div>
           <div className="flex flex-col">
             <span className="font-semibold text-sm tracking-tight text-white group-hover:text-cobalt-300 transition-colors">
-              AI To-Do
+              Kortex
             </span>
             <span className="text-[9px] text-slate-500 font-mono hidden group-hover:block transition-all">
               2x click: Notes
