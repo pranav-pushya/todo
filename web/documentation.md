@@ -1563,3 +1563,15 @@ npm run dev
 2. **Ubiquitous AI Assistance**: By fixing the AI Copilot trigger as a floating action button in the bottom-right corner across all views, users can invoke the intelligent assistant at any moment—whether managing to-do lists, reviewing project timelines, analyzing metrics, or drafting notes.
 3. **Ergonomic Accessibility**: The bottom-right FAB complies with common modern web patterns, placing the primary assistant within immediate peripheral reach with a clear active pulse indicator.
 
+---
+
+### 🛠️ Hotfix: Context Destructuring in `AppContent`
+- **Issue**: A runtime `ReferenceError` occurred because `activeFilter` and `selectedProjectId` were evaluated in `const isNotesView = !selectedProjectId && activeFilter === 'notes'` without being destructured from `useTasks()` and `useProjects()`, causing a blank/black render state.
+- **Resolution**: Updated `AppContent` in [`web/src/App.jsx`](file:///d:/Coding/Projects/todo/web/src/App.jsx):
+  ```javascript
+  const { activeFilter, setActiveFilter, searchQuery, setSearchQuery } = useTasks();
+  const { selectedProjectId, setSelectedProjectId } = useProjects();
+  ```
+- **Verification**: Vite HMR updated immediately and production build verified cleanly (`vite build` completed with zero errors).
+
+

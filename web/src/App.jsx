@@ -27,8 +27,8 @@ function AppContent() {
     setIsCreateProjectOpen,
   } = useAgent();
 
-  const { setActiveFilter, searchQuery, setSearchQuery } = useTasks();
-  const { setSelectedProjectId } = useProjects();
+  const { activeFilter, setActiveFilter, searchQuery, setSearchQuery } = useTasks();
+  const { selectedProjectId, setSelectedProjectId } = useProjects();
 
   const handleOpenAddTask = () => {
     setTaskToEdit(null);
