@@ -2781,3 +2781,110 @@ npm run dev
 1. **Elimination of Model Hallucination**: Without live database context, LLMs guess task IDs and hallucinate nonexistent items when commanded to complete or delete tasks. Injecting the live active backlog gives the agent grounded ground truth.
 2. **Natural Indian Developer Workflow**: CSE and engineering students frequently mix Hindi verbs (*"banao"*, *"hatao"*, *"kholo"*) with English nouns. Native support removes linguistic friction.
 3. **Robust Intent Disambiguation**: Developers shouldn't have tasks created every time they ask a PyTorch or algorithmic question. The agent now properly separates conversational mentoring from task backlog modifications.
+
+---
+
+## 🎨 Feature 11: Multi-Theme Engine (Light, High Contrast Dark, High Contrast Light, Dracula, Cappuccino Light & Dark)
+
+> **💡 Hinglish Summary:**  
+> Is feature mein humne app mein 6 premium themes add kiye hain: Light, High Contrast Dark (OLED), High Contrast Light (Paper), Dracula, Cappuccino Light (Warm Latte), aur default Dark Obsidian. Inhe Header ke dropdown, Command Palette (Ctrl+K), ya AI Copilot command se 1-click mein switch kiya ja sakta hai.
+
+### A. What was done:
+
+1. **6 Hand-Crafted Visual Themes**:
+   - 🌑 **Dark (Obsidian Cobalt - Default)**: Deep space obsidian (`#060810`), glowing cobalt accents (`#2563eb`), dark slate typography.
+   - ☀️ **Light (Studio Snow)**: Minimalist clean white canvas (`#ffffff`), soft slate (`#f8fafc`), vibrant electric blue highlights, high-contrast dark slate text (`#0f172a`).
+   - 🔲 **High Contrast Dark (OLED & Vivid Cyan)**: Pure pitch black (`#000000`), stark white text (`#ffffff`), electric cyan accents (`#38bdf8`), WCAG AAA accessible high-contrast borders.
+   - 🔳 **High Contrast Light (Stark Paper & Absolute Black)**: Pure stark paper white (`#ffffff`), pitch black text (`#000000`), high-contrast ink-black borders and accents for ultimate daytime legibility.
+   - 🧛 **Dracula (Gothic Vampire)**: Official Dracula color palette (`#282a36` background, `#44475a` current line, `#f8f8f2` foreground, `#bd93f9` Dracula purple, `#ff79c6` Dracula pink, `#8be9fd` cyan, `#50fa7b` green).
+   - ☕ **Cappuccino Light (Warm Latte & Espresso)**: Cozy coffee shop aesthetic with creamy warm latte canvas (`#f7f2ea`), whipped milk cards (`#ffffff`), rich espresso brown typography (`#382314`), warm cinnamon caramel accents (`#b07252`).
+
+2. **Dynamic CSS Variables & Tailwind Integration**:
+   - Re-architected [`web/tailwind.config.js`](file:///d:/Coding/Projects/todo/web/tailwind.config.js) and [`web/src/index.css`](file:///d:/Coding/Projects/todo/web/src/index.css) to drive `obsidian`, `cobalt`, `slate`, and adaptive `white` through cascading CSS custom properties.
+   - In light themes, cards, modals, dropdowns, and borders automatically flip to crisp light mode styling while solid accent buttons (e.g. `+ Add Task`) preserve pure white text.
+
+3. **Persistent Theme Context Provider ([`web/src/context/ThemeContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/ThemeContext.jsx))**:
+   - Saves theme preference in `localStorage.setItem('todo_theme_preference', theme)`.
+   - Reactively syncs `data-theme` attribute and color-scheme on `document.documentElement`.
+
+4. **Interactive Theme Switcher Dropdown ([`web/src/components/common/ThemeSwitcher.jsx`](file:///d:/Coding/Projects/todo/web/src/components/common/ThemeSwitcher.jsx))**:
+   - Built into the application [`Header.jsx`](file:///d:/Coding/Projects/todo/web/src/components/layout/Header.jsx).
+   - Displays current theme icon and label with an animated popover showing all 6 themes, descriptions, color indicators, and active checkmarks.
+
+5. **Command Palette (`Ctrl + K`) & AI Copilot Integration**:
+   - Added theme switching items directly to the [`CommandPalette.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/CommandPalette.jsx) grid.
+   - Registered `change_theme` tool in [`backend/app/services/groq_client.py`](file:///d:/Coding/Projects/todo/backend/app/services/groq_client.py) and instant client-side intent parsing in [`web/src/context/AgentContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/AgentContext.jsx).
+   - Users can trigger theme changes in natural language or Hinglish (e.g., *"switch to dracula"*, *"cappuccino theme lagao"*, *"light mode karo"*).
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **CSS Custom Properties Definition ([`web/src/index.css`](file:///d:/Coding/Projects/todo/web/src/index.css))**:
+   ```css
+   /* Dracula Theme Palette */
+   [data-theme="dracula"] {
+     --color-white-adaptive: 248 248 242;
+     --color-text-heading: #f8f8f2;
+     --color-obsidian-900: 40 42 54;   /* #282a36 */
+     --color-obsidian-850: 52 55 70;   /* #343746 */
+     --color-cobalt-600: 189 147 249;  /* #bd93f9 Dracula purple */
+     --color-cobalt-500: 255 121 198;  /* #ff79c6 Dracula pink */
+     ...
+   }
+
+   /* Cappuccino Light Palette */
+   [data-theme="cappuccino-light"] {
+     --color-white-adaptive: 56 35 20;
+     --color-text-heading: #382314;
+     --color-obsidian-900: 247 242 234; /* #f7f2ea warm latte */
+     --color-cobalt-700: 176 114 82;   /* #b07252 warm cinnamon */
+     --color-slate-100: 56 35 20;      /* #382314 dark espresso */
+     ...
+   }
+   ```
+
+2. **Tailwind Config Theme Mapping ([`web/tailwind.config.js`](file:///d:/Coding/Projects/todo/web/tailwind.config.js))**:
+   ```javascript
+   export default {
+     darkMode: ['class', '[data-theme="dark"]'],
+     theme: {
+       extend: {
+         colors: {
+           white: 'rgb(var(--color-white-adaptive) / <alpha-value>)',
+           obsidian: {
+             900: 'rgb(var(--color-obsidian-900) / <alpha-value>)',
+             850: 'rgb(var(--color-obsidian-850) / <alpha-value>)',
+             ...
+           },
+           cobalt: {
+             700: 'rgb(var(--color-cobalt-700) / <alpha-value>)',
+             ...
+           },
+         }
+       }
+     }
+   }
+   ```
+
+3. **Production Build Verification**:
+   ```powershell
+   cd d:\Coding\Projects\todo\web
+   npm run build
+   ```
+   **Output**:
+   ```text
+   ✓ 1614 modules transformed.
+   dist/index.html                   0.86 kB │ gzip:   0.49 kB
+   dist/assets/index-ZAPL-3EE.css   94.60 kB │ gzip:  18.98 kB
+   dist/assets/index-C_S6rErk.js   621.29 kB │ gzip: 174.78 kB
+   ✓ built in 46.31s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Accessibility (WCAG AAA)**: Developers working in bright outdoor sunlight need high-contrast light mode, while developers sensitive to glare or eye strain need OLED pure black or warm coffee palettes.
+2. **Developer Personalization & Delight**: Dracula is one of the most beloved coding themes in IDE history. Bringing Dracula and warm Cappuccino latte themes elevates the web application from a standard utility into a personalized developer studio.
+3. **Multi-Modal Ergonomics**: Allowing themes to be switched via dropdown, keyboard shortcuts, or voice/text AI commands makes customization effortless.

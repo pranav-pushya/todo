@@ -176,8 +176,21 @@ TOOL_DEFINITIONS = [
                             "search_tasks",
                             "clear_search",
                             "close_modals",
+                            "change_theme",
                         ],
                         "description": "The UI action to execute in the webapp.",
+                    },
+                    "theme": {
+                        "type": ["string", "null"],
+                        "enum": [
+                            "dark",
+                            "light",
+                            "high-contrast-dark",
+                            "high-contrast-light",
+                            "dracula",
+                            "cappuccino-light",
+                        ],
+                        "description": "Theme to switch to: 'dark', 'light', 'high-contrast-dark', 'high-contrast-light', 'dracula', or 'cappuccino-light'.",
                     },
                     "view": {
                         "type": ["string", "null"],
@@ -305,7 +318,8 @@ def build_system_prompt(db: Optional[Session] = None) -> str:
         "   - 'banao', 'add karo', 'likh do', 'daalo' -> 'create_task'\n"
         "   - 'khatam', 'complete kardo', 'ho gaya', 'done karo', 'mark done' -> 'complete_task'\n"
         "   - 'hatao', 'delete kardo', 'nikal do', 'cancel karo' -> 'delete_task'\n"
-        "   - 'notes me daal do', 'note bana do' -> 'save_code_to_note'\n\n"
+        "   - 'notes me daal do', 'note bana do' -> 'save_code_to_note'\n"
+        "   - 'theme badlo', 'light theme lagao', 'dracula karo', 'cappuccino theme kholo', 'dark mode karo' -> 'ui_control' with action='change_theme' and theme='...'\n\n"
         "3. ACCURATE TASK RESOLUTION (USE LIVE DB SNAPSHOT):\n"
         "   - Use the live task list provided above to identify tasks by ID or title.\n"
         "   - When the user says 'complete task 3' or 'delete the report task', pass the exact numeric ID ('3') or exact title into 'task_identifier'.\n"
@@ -319,7 +333,8 @@ def build_system_prompt(db: Optional[Session] = None) -> str:
         "   - Open Sprint Board & Burndown: 'ui_control' with action='open_sprint' or navigate_view with view='sprint'\n"
         "   - Open Zen Focus Chamber: 'ui_control' with action='open_focus_chamber'\n"
         "   - Filter Tasks: 'ui_control' with action='filter_priority' and priority='P1'..'P4'\n"
-        "   - Search Tasks: 'ui_control' with action='search_tasks' and search_query='...'\n\n"
+        "   - Search Tasks: 'ui_control' with action='search_tasks' and search_query='...'\n"
+        "   - Change UI Theme: 'ui_control' with action='change_theme' and theme='dark' | 'light' | 'high-contrast-dark' | 'high-contrast-light' | 'dracula' | 'cappuccino-light'\n\n"
         "5. MULTIPLE / COMPOUND COMMANDS:\n"
         "   If the user specifies multiple actions (e.g. 'delete task 2, create task study transformers, and open the ml lab'), execute ALL corresponding tools in a single turn.\n\n"
         "Be concise, helpful, and confirm what was executed."

@@ -3,6 +3,7 @@ import { AgentAPI } from '../services/api';
 import { useTasks } from './TaskContext';
 import { useProjects } from './ProjectContext';
 import { useNotes } from './NoteContext';
+import { useTheme } from './ThemeContext';
 
 const AgentContext = createContext(null);
 
@@ -10,6 +11,7 @@ export function AgentProvider({ children }) {
   const { fetchTasks, setActiveFilter, setPriorityFilter, setSearchQuery } = useTasks();
   const { fetchProjects, projects, setSelectedProjectId } = useProjects();
   const { fetchNotes } = useNotes();
+  const { setTheme } = useTheme();
 
   // Drawers and Modals
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -135,11 +137,17 @@ export function AgentProvider({ children }) {
         case 'clear_search':
           setSearchQuery('');
           break;
+        case 'set_theme':
+        case 'change_theme':
+          if (actionObj.theme) {
+            setTheme(actionObj.theme.toLowerCase().trim());
+          }
+          break;
         default:
           break;
       }
     },
-    [projects, setActiveFilter, setPriorityFilter, setSearchQuery, setSelectedProjectId]
+    [projects, setActiveFilter, setPriorityFilter, setSearchQuery, setSelectedProjectId, setTheme]
   );
 
   /**
@@ -220,6 +228,23 @@ export function AgentProvider({ children }) {
     const priMatch = p.match(/\bfilter\s+(by\s+)?(p1|p2|p3|p4)\b/i);
     if (priMatch) {
       intents.push({ action: 'filter_priority', priority: priMatch[2].toUpperCase() });
+    }
+
+    // 8. Theme Switching
+    if (/\b(theme|mode|color)\b/i.test(p) || /\b(switch\s+to|change\s+to|set\s+theme|lagao|karo)\b/i.test(p)) {
+      if (/dracula/i.test(p)) {
+        intents.push({ action: 'set_theme', theme: 'dracula' });
+      } else if (/cappuccino|capacino|latte|coffee/i.test(p)) {
+        intents.push({ action: 'set_theme', theme: 'cappuccino-light' });
+      } else if (/high\s*contrast\s*light/i.test(p)) {
+        intents.push({ action: 'set_theme', theme: 'high-contrast-light' });
+      } else if (/high\s*contrast\s*dark|oled/i.test(p)) {
+        intents.push({ action: 'set_theme', theme: 'high-contrast-dark' });
+      } else if (/\blight\s*(theme|mode)?\b/i.test(p) && !/contrast|cappuccino/i.test(p)) {
+        intents.push({ action: 'set_theme', theme: 'light' });
+      } else if (/\bdark\s*(theme|mode)?\b/i.test(p) && !/contrast/i.test(p)) {
+        intents.push({ action: 'set_theme', theme: 'dark' });
+      }
     }
 
     return intents;

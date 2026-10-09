@@ -9,14 +9,17 @@ import {
   FileText,
   X,
   ArrowRight,
+  Palette,
 } from 'lucide-react';
 import { useAgent } from '../../context/AgentContext';
 import { useTasks } from '../../context/TaskContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function CommandPalette({ onOpenAddTask, onOpenCreateProject }) {
   const { isCommandPaletteOpen, setIsCommandPaletteOpen, sendCommand, setIsDrawerOpen } =
     useAgent();
   const { setActiveFilter } = useTasks();
+  const { theme, setTheme, themes } = useTheme();
 
   const [query, setQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -221,6 +224,35 @@ export default function CommandPalette({ onOpenAddTask, onOpenCreateProject }) {
             </span>
             <span className="text-[10px] text-slate-400 font-mono bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">C</span>
           </button>
+
+          {/* Color Schemes / Themes */}
+          <div className="pt-2 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-t border-white/[0.06]">
+            Switch UI Theme
+          </div>
+
+          <div className="grid grid-cols-2 gap-1 px-1">
+            {themes.map((t) => (
+              <button
+                key={t.id}
+                onClick={() =>
+                  handleAction(() => {
+                    setTheme(t.id);
+                  })
+                }
+                className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors ${
+                  t.id === theme
+                    ? 'bg-cobalt-600/20 border border-cobalt-500/30 text-white font-medium'
+                    : 'hover:bg-white/[0.06] text-slate-400 hover:text-white border border-transparent'
+                }`}
+              >
+                <span className="flex items-center gap-2 truncate text-[11px]">
+                  <span>{t.icon}</span>
+                  <span className="truncate">{t.name}</span>
+                </span>
+                {t.id === theme && <span className="w-1.5 h-1.5 rounded-full bg-cobalt-400" />}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Footer tip */}

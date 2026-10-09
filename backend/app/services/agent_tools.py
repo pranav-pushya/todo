@@ -328,10 +328,11 @@ def tool_ui_control(
     project_name: Optional[str] = None,
     priority: Optional[str] = None,
     search_query: Optional[str] = None,
+    theme: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Tool: Instruct frontend web application to perform UI interactions.
 
-    Supports opening/closing modals, command palette, navigation views, priority filters, and search.
+    Supports opening/closing modals, command palette, navigation views, priority filters, search, and theme switching.
     """
     clean_action = action.strip().lower()
     project_id = None
@@ -349,6 +350,7 @@ def tool_ui_control(
         "project_id": project_id,
         "priority": priority.upper() if priority else None,
         "search_query": search_query,
+        "theme": theme.lower().strip() if theme else None,
         "message": f"UI command executed: {clean_action}",
     }
 
