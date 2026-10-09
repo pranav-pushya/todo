@@ -14,6 +14,22 @@ from app.core.config import settings
 from app.core.database import Base, engine, SessionLocal
 
 
+def auto_migrate_sqlite():
+    """Ensure newly added columns exist in SQLite tables on startup."""
+    with engine.connect() as conn:
+        # Migrate tasks.sprint_id if missing
+        task_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(tasks)")).fetchall()]
+        if "sprint_id" not in task_cols:
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN sprint_id INTEGER REFERENCES sprints(id) ON DELETE SET NULL"))
+            conn.commit()
+
+        # Migrate notes.task_id if missing
+        note_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(notes)")).fetchall()]
+        if "task_id" not in note_cols:
+            conn.execute(text("ALTER TABLE notes ADD COLUMN task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL"))
+            conn.commit()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan event handler for application startup and shutdown.
@@ -22,6 +38,7 @@ async def lifespan(app: FastAPI):
     """
     # Startup: Ensure all ORM models are registered as tables in SQLite
     Base.metadata.create_all(bind=engine)
+    auto_migrate_sqlite()
     yield
     # Shutdown logic (if any) can be placed here
 

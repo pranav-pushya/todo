@@ -68,13 +68,17 @@ export default function NotesApp({ onBackToTasks }) {
 
 
   const handleCreateNewNote = async () => {
-    await addNote({
-      title: 'Untitled Note',
-      content: '',
-      color: '#1d4ed8',
-      pinned: false,
-    });
-    toast.success('New note created');
+    try {
+      await addNote({
+        title: 'Untitled Note',
+        content: '',
+        color: '#1d4ed8',
+        pinned: false,
+      });
+      toast.success('New note created');
+    } catch (err) {
+      toast.error(err.message || 'Failed to create note');
+    }
   };
 
   const handleConvertToTask = async () => {
