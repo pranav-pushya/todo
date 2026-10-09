@@ -1574,4 +1574,85 @@ npm run dev
   ```
 - **Verification**: Vite HMR updated immediately and production build verified cleanly (`vite build` completed with zero errors).
 
+---
+
+## 1️⃣1️⃣ Step 11: Double-Click Navigation in Notes & Streamlined AI Copilot Drawer
+
+### A. What was done:
+
+1. **Double-Click Feature in Notes Workspace Header**:
+   - Removed the `← To-Do Tasks` button and divider line from the Notes Workspace header in [`web/src/components/notes/NotesApp.jsx`](file:///d:/Coding/Projects/todo/web/src/components/notes/NotesApp.jsx).
+   - Applied the double-click gesture directly to the Notes Workspace brand logo/title (`onDoubleClick={onBackToTasks}`).
+   - Added hover indicator tooltip (`2x click: To-Do`) and helper badge tip (`⚡ Tip: Double-click logo to return to To-Do Tasks`), providing symmetrical two-way double-click navigation between To-Do and Notes.
+
+2. **Removed Audit Logs from AI Copilot**:
+   - Removed the `Audit Logs` tab, log entries list, and tab navigation bar from [`web/src/components/agent/AICopilotDrawer.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/AICopilotDrawer.jsx).
+   - Transformed the AI Copilot into a dedicated, clean conversational assistant focused entirely on tool execution, action cards, and smart prompt recommendations.
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **Notes Header Symmetrical Double-Click ([`web/src/components/notes/NotesApp.jsx`](file:///d:/Coding/Projects/todo/web/src/components/notes/NotesApp.jsx))**:
+   ```jsx
+   <div className="flex items-center gap-3">
+     <div
+       onDoubleClick={onBackToTasks}
+       title="Double-click logo to return to To-Do Tasks"
+       className="flex items-center gap-2.5 cursor-pointer group py-1.5 px-3 -ml-3 rounded-xl hover:bg-white/[0.04] transition-colors select-none"
+     >
+       <div className="w-8 h-8 rounded-lg bg-cobalt-700 flex items-center justify-center shadow-glow-cobalt group-hover:scale-105 transition-transform">
+         <FileText className="w-4 h-4 text-white stroke-[2.2]" />
+       </div>
+       <div className="flex flex-col">
+         <h1 className="text-sm font-bold tracking-tight text-white group-hover:text-cobalt-300 transition-colors">
+           Notes Workspace
+         </h1>
+         <span className="text-[9px] text-slate-500 font-mono hidden group-hover:block transition-all">
+           2x click: To-Do
+         </span>
+       </div>
+     </div>
+
+     <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-400 bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/[0.06]">
+       <span>⚡ Tip: Double-click logo to return to To-Do Tasks</span>
+     </span>
+   </div>
+   ```
+
+2. **Streamlined AI Copilot Drawer ([`web/src/components/agent/AICopilotDrawer.jsx`](file:///d:/Coding/Projects/todo/web/src/components/agent/AICopilotDrawer.jsx))**:
+   - Eliminated tab switching overhead; chat messages, executed action boxes, quick prompt suggestions, and the prompt input render directly.
+
+3. **Automated Production Build Verification**:
+   ```powershell
+   cd d:\Coding\Projects\todo\web
+   npm run build
+   ```
+   **Output**:
+   ```text
+   > todo-web@0.1.0 build
+   > vite build
+
+   vite v6.4.4 building for production...
+   transforming...
+   ✓ 1603 modules transformed.
+   rendering chunks...
+   computing gzip size...
+   dist/index.html                   0.86 kB │ gzip:  0.48 kB
+   dist/assets/index-D3sPkadb.css   33.92 kB │ gzip:  6.46 kB
+   dist/assets/index-DF6fFs_2.js   233.41 kB │ gzip: 66.34 kB
+   ✓ built in 4.80s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Consistent Gestural Interaction**: Enabling double-click on both logos creates an intuitive mental model:
+   - Double-click `AI To-Do` logo ➔ Enters Notes Workspace
+   - Double-click `Notes Workspace` logo ➔ Returns to To-Do Tasks
+2. **Minimalist, Clutter-Free UI**: Removing the manual `← To-Do Tasks` button preserves the minimalist aesthetic of the Notes header.
+3. **Focused AI Experience**: Removing technical audit logs leaves the drawer clean, responsive, and approachable for end-user task execution.
+
+
 

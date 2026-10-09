@@ -5,7 +5,6 @@ import {
   Pin,
   Trash2,
   Search,
-  ArrowLeft,
   CheckSquare,
   Sparkles,
   Tag,
@@ -69,26 +68,26 @@ export default function NotesApp({ onBackToTasks }) {
       {/* Top Header Bar */}
       <header className="h-16 border-b border-white/[0.08] bg-obsidian-950/80 backdrop-blur-md px-6 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <button
-            onClick={onBackToTasks}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-obsidian-850 hover:bg-obsidian-800 border border-white/[0.08] text-xs font-medium text-slate-300 hover:text-white transition-all group"
-            title="Return to To-Do Tasks"
+          <div
+            onDoubleClick={onBackToTasks}
+            title="Double-click logo to return to To-Do Tasks"
+            className="flex items-center gap-2.5 cursor-pointer group py-1.5 px-3 -ml-3 rounded-xl hover:bg-white/[0.04] transition-colors select-none"
           >
-            <ArrowLeft className="w-3.5 h-3.5 text-cobalt-400 group-hover:-translate-x-0.5 transition-transform" />
-            <span>To-Do Tasks</span>
-          </button>
-
-          <div className="h-4 w-px bg-white/[0.1] mx-1" />
-
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-cobalt-800/40 border border-cobalt-600/40 flex items-center justify-center text-cobalt-300 shadow-glow-subtle">
-              <FileText className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-lg bg-cobalt-700 flex items-center justify-center shadow-glow-cobalt group-hover:scale-105 transition-transform">
+              <FileText className="w-4 h-4 text-white stroke-[2.2]" />
             </div>
-            <h1 className="text-base font-bold tracking-tight text-white">Notes Workspace</h1>
+            <div className="flex flex-col">
+              <h1 className="text-sm font-bold tracking-tight text-white group-hover:text-cobalt-300 transition-colors">
+                Notes Workspace
+              </h1>
+              <span className="text-[9px] text-slate-500 font-mono hidden group-hover:block transition-all">
+                2x click: To-Do
+              </span>
+            </div>
           </div>
 
-          <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-400 bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
-            <span>⚡ Tip: Double-click logo anytime to jump here</span>
+          <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-400 bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/[0.06]">
+            <span>⚡ Tip: Double-click logo to return to To-Do Tasks</span>
           </span>
         </div>
 
