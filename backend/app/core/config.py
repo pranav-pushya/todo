@@ -23,7 +23,8 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
         "http://localhost:8081",  # Expo default port
         "http://localhost:19006", # Expo web default
-        "*",                      # Allow all origins in development
+        "https://kortex-246.web.app",
+        "https://kortex-246.firebaseapp.com",
     ]
 
     # JWT Authentication & Security Settings
