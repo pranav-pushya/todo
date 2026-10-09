@@ -65,7 +65,7 @@ To make the app look clean, futuristic, and distraction-free:
 | :--------------- | :------------------------------ | :------------------------------------------------- | :----------- |
 | **Step 1** | Scaffolding & Design System     | Vite + React 18 + Tailwind + Obsidian/Cobalt Theme | 🟢 Completed |
 | **Step 2** | API Client Service Layer        | Connect frontend to FastAPI backend endpoints      | 🟢 Completed |
-| **Step 3** | Global State Contexts           | TaskContext, ProjectContext, AgentContext          | ⏳ Pending   |
+| **Step 3** | Global State Contexts           | TaskContext, ProjectContext, AgentContext          | 🟢 Completed |
 | **Step 4** | Navigation & Layout Shell       | Minimalist Sidebar, Header & Search                | ⏳ Pending   |
 | **Step 5** | Task & Project Management Views | TaskList, TaskItem, AddTask & Project Modals       | ⏳ Pending   |
 | **Step 6** | AI Copilot & Command Palette    | Ctrl+K Command Bar & Groq Chat Drawer              | ⏳ Pending   |
@@ -413,6 +413,160 @@ Setting up Vite and Tailwind first establishes a modern, fast development enviro
 
 - **Commit**: [`005d562`](https://github.com/pranav-pushya/todo/commit/005d562)
 - **Commit Message**: `feat(web): implement Step 2 backend API client service layer for tasks, projects, and agent`
+- **Branch**: `main` (Pushed to `origin/main`)
+
+---
+
+### 🟢 Step 3: Global Reactive State Contexts (COMPLETED)
+
+#### A. What was done:
+1. Created [`src/context/ProjectContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/ProjectContext.jsx):
+   - Stores `projects`, `selectedProjectId`, `setSelectedProjectId`, `loading`, and `error`.
+   - Exposes asynchronous actions: `fetchProjects()`, `addProject(projectData)`, `editProject(projectId, updates)`, and `removeProject(projectId)`.
+   - Automatically loads projects on initial mount.
+2. Created [`src/context/TaskContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/TaskContext.jsx):
+   - Stores `tasks`, `activeFilter` (`inbox`, `today`, `upcoming`, `completed`, `all`), `priorityFilter` (`P1`, `P2`, `P3`, `P4`), `searchQuery`, `loading`, and `error`.
+   - Exposes asynchronous actions: `fetchTasks()`, `addTask(taskData)`, `editTask(taskId, updates)`, `toggleTask(taskId)`, and `removeTask(taskId)`.
+   - Automatically refetches whenever active filters, project selections, or search queries change.
+   - Automatically re-triggers `fetchProjects()` whenever tasks are added, toggled, or deleted so that project open task counters stay synchronized.
+3. Created [`src/context/AgentContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/AgentContext.jsx):
+   - Manages AI Copilot slide-in drawer state (`isDrawerOpen`) and spotlight command bar state (`isCommandPaletteOpen`).
+   - Attached a global window keydown listener for `Ctrl + K` / `Cmd + K` allowing users to summon the AI Command Palette from anywhere in the application.
+   - Stores the chat history (`messages`) containing user prompts, AI explanations, and tool actions taken.
+   - Automatically triggers both `fetchTasks()` and `fetchProjects()` whenever the AI agent mutates data in SQLite via tool calls.
+4. Verified that the production build bundles cleanly with zero warnings or errors.
+
+---
+
+#### B. How it was done (commands & code explanation):
+
+1. **Project Context Provider & Custom Hook (`src/context/ProjectContext.jsx`)**:
+   ```javascript
+   export function ProjectProvider({ children }) {
+     const [projects, setProjects] = useState([]);
+     const [selectedProjectId, setSelectedProjectId] = useState(null);
+     const [loading, setLoading] = useState(false);
+     const [error, setError] = useState(null);
+
+     const fetchProjects = useCallback(async () => {
+       setLoading(true);
+       try {
+         const data = await ProjectAPI.getProjects({ includeArchived: false });
+         setProjects(data);
+       } catch (err) {
+         setError(err.message || 'Failed to load projects');
+       } finally {
+         setLoading(false);
+       }
+     }, []);
+
+     return (
+       <ProjectContext.Provider value={{ projects, selectedProjectId, setSelectedProjectId, fetchProjects, addProject, editProject, removeProject }}>
+         {children}
+       </ProjectContext.Provider>
+     );
+   }
+
+   export function useProjects() {
+     const context = useContext(ProjectContext);
+     if (!context) throw new Error('useProjects must be used within a ProjectProvider');
+     return context;
+   }
+   ```
+
+2. **Task Context with Automatic Project Sync (`src/context/TaskContext.jsx`)**:
+   ```javascript
+   export function TaskProvider({ children }) {
+     const { selectedProjectId, fetchProjects } = useProjects();
+     const [tasks, setTasks] = useState([]);
+     const [activeFilter, setActiveFilter] = useState('inbox');
+     const [priorityFilter, setPriorityFilter] = useState(null);
+     const [searchQuery, setSearchQuery] = useState('');
+
+     const addTask = async (taskData) => {
+       const created = await TaskAPI.createTask(taskData);
+       setTasks((prev) => [created, ...prev]);
+       fetchProjects(); // Auto-refresh open task counts
+       return created;
+     };
+
+     const toggleTask = async (taskId) => {
+       const updated = await TaskAPI.toggleTask(taskId);
+       setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
+       fetchProjects();
+       return updated;
+     };
+
+     return (
+       <TaskContext.Provider value={{ tasks, activeFilter, setActiveFilter, priorityFilter, setPriorityFilter, searchQuery, setSearchQuery, addTask, editTask, toggleTask, removeTask }}>
+         {children}
+       </TaskContext.Provider>
+     );
+   }
+   ```
+
+3. **Agent Context with Global Hotkey & Tool Sync (`src/context/AgentContext.jsx`)**:
+   ```javascript
+   // Listen for Ctrl+K anywhere on the screen
+   useEffect(() => {
+     const handleKeyDown = (e) => {
+       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+         e.preventDefault();
+         setIsCommandPaletteOpen((prev) => !prev);
+       }
+     };
+     window.addEventListener('keydown', handleKeyDown);
+     return () => window.removeEventListener('keydown', handleKeyDown);
+   }, []);
+
+   const sendCommand = async (prompt) => {
+     setIsExecuting(true);
+     try {
+       const response = await AgentAPI.sendCommand(prompt);
+       // If the agent took any actions in the database, refresh tasks and projects automatically!
+       if (response.actions_taken && response.actions_taken.length > 0) {
+         await Promise.all([fetchTasks(), fetchProjects(), fetchLogs()]);
+       }
+       return response;
+     } finally {
+       setIsExecuting(false);
+     }
+   };
+   ```
+
+4. **Production Build Verification**:
+   ```powershell
+   npm run build
+   ```
+   **Output**:
+   ```text
+   > todo-web@0.1.0 build
+   > vite build
+
+   vite v6.4.4 building for production...
+   transforming...
+   ✓ 1588 modules transformed.
+   rendering chunks...
+   computing gzip size...
+   dist/index.html                   0.86 kB │ gzip:  0.48 kB
+   dist/assets/index-BWXVeYGr.css    8.36 kB │ gzip:  2.31 kB
+   dist/assets/index-BMDxtxUt.js   147.16 kB │ gzip: 47.50 kB
+   ✓ built in 53.20s
+   ```
+
+---
+
+#### C. Why it was done:
+1. **Single Source of Truth**: Multiple components across the screen (Sidebar, Header, Main Task View, AI Copilot) need to observe and mutate tasks simultaneously. React Context provides a unified reactive layer without the complexity of external libraries.
+2. **Autonomous Tool Reflection**: When the AI Copilot executes actions (like `create_task` or `reschedule_tasks`), `AgentContext` automatically calls `fetchTasks()` and `fetchProjects()` so the user immediately sees the changes reflected on their screen without refreshing.
+3. **Ergonomic Keyboard Accessibility**: Binding the `Ctrl + K` global shortcut in `AgentContext` enables quick spotlight navigation regardless of which component is currently focused.
+
+---
+
+### 📦 Git Commit & Push Information
+
+- **Commit**: `[Pending push]`
+- **Commit Message**: `feat(web): implement Step 3 global reactive state contexts for tasks, projects, and AI agent`
 - **Branch**: `main` (Pushed to `origin/main`)
 
 ---
