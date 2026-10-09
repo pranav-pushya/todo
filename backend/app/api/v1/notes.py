@@ -1,6 +1,4 @@
-"""Note REST API endpoints for the Notes workspace."""
-
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -10,6 +8,9 @@ from app.crud.note import (
     delete_note,
     get_note_by_id,
     get_notes,
+    get_or_create_task_scratchpad,
+    sync_note_checklists_to_tasks,
+    to_note_response,
     toggle_note_pin,
     update_note,
 )
@@ -27,7 +28,8 @@ def read_notes(
     db: Session = Depends(get_db),
 ):
     """Retrieve all notes sorted with pinned notes first."""
-    return get_notes(db=db, search=search, pinned_only=pinned_only, skip=skip, limit=limit)
+    notes = get_notes(db=db, search=search, pinned_only=pinned_only, skip=skip, limit=limit)
+    return [to_note_response(n) for n in notes]
 
 
 @router.post("/", response_model=NoteResponse, status_code=status.HTTP_201_CREATED)
@@ -36,7 +38,8 @@ def add_note(
     db: Session = Depends(get_db),
 ):
     """Create a new note in the notes workspace."""
-    return create_note(db=db, note_in=note_in)
+    created = create_note(db=db, note_in=note_in)
+    return to_note_response(created)
 
 
 @router.get("/{note_id}", response_model=NoteResponse)
@@ -51,7 +54,7 @@ def read_note(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Note with ID {note_id} not found.",
         )
-    return note
+    return to_note_response(note)
 
 
 @router.patch("/{note_id}", response_model=NoteResponse)
@@ -67,7 +70,8 @@ def modify_note(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Note with ID {note_id} not found.",
         )
-    return update_note(db=db, db_note=note, note_in=note_in)
+    updated = update_note(db=db, db_note=note, note_in=note_in)
+    return to_note_response(updated)
 
 
 @router.patch("/{note_id}/pin", response_model=NoteResponse)
@@ -82,7 +86,8 @@ def toggle_pin(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Note with ID {note_id} not found.",
         )
-    return toggle_note_pin(db=db, db_note=note)
+    toggled = toggle_note_pin(db=db, db_note=note)
+    return to_note_response(toggled)
 
 
 @router.delete("/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -99,3 +104,23 @@ def remove_note(
         )
     delete_note(db=db, db_note=note)
     return None
+
+
+@router.post("/scratchpad/{task_id}", response_model=NoteResponse)
+def open_or_create_scratchpad(
+    task_id: int,
+    db: Session = Depends(get_db),
+):
+    """Get existing scratchpad note or generate a linked scratchpad note for a task."""
+    note = get_or_create_task_scratchpad(db=db, task_id=task_id)
+    return to_note_response(note)
+
+
+@router.post("/{note_id}/sync-checklists")
+def sync_checklists(
+    note_id: int,
+    db: Session = Depends(get_db),
+):
+    """Scan markdown checklist items (- [ ] ...) in a note and auto-create them as To-Do tasks."""
+    return sync_note_checklists_to_tasks(db=db, note_id=note_id)
+

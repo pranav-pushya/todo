@@ -289,5 +289,23 @@ export const NoteAPI = {
       method: 'DELETE',
     });
   },
+
+  /**
+   * Two-Way Synced Bridge: Open or generate a dedicated scratchpad note for a task.
+   */
+  async getTaskScratchpad(taskId) {
+    return request(`/notes/scratchpad/${taskId}`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Two-Way Synced Bridge: Extract `- [ ] ...` markdown checklist items into real To-Do tasks.
+   */
+  async syncChecklists(noteId) {
+    return request(`/notes/${noteId}/sync-checklists`, {
+      method: 'POST',
+    });
+  },
 };
 

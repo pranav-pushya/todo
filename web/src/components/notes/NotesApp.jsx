@@ -9,6 +9,9 @@ import {
   Sparkles,
   Tag,
   Palette,
+  ListChecks,
+  Link2,
+  ExternalLink,
 } from 'lucide-react';
 import { useNotes } from '../../context/NoteContext';
 import { useUIFeedback } from '../../context/UIFeedbackContext';
@@ -35,9 +38,11 @@ export default function NotesApp({ onBackToTasks }) {
     togglePin,
     removeNote,
     convertToTask,
+    syncChecklists,
   } = useNotes();
 
   const { toast, confirm } = useUIFeedback();
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const handleCreateNewNote = async () => {
     await addNote({
@@ -56,6 +61,23 @@ export default function NotesApp({ onBackToTasks }) {
       toast.success('Note converted to To-Do Task in your Inbox! 🚀');
     } catch (err) {
       toast.error(err.message || 'Failed to convert note to task');
+    }
+  };
+
+  const handleSyncChecklists = async () => {
+    if (!activeNote) return;
+    setIsSyncing(true);
+    try {
+      const res = await syncChecklists(activeNote.id);
+      if (res.created_tasks_count > 0) {
+        toast.success(`⚡ Synced ${res.created_tasks_count} checklist task(s) to your Inbox!`);
+      } else {
+        toast.info("No un-synced '- [ ] ...' checklist items found in this note. Write '- [ ] Task name' to sync.");
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to sync checklists');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -221,6 +243,17 @@ export default function NotesApp({ onBackToTasks }) {
                     <span>{activeNote.pinned ? 'Pinned' : 'Pin'}</span>
                   </button>
 
+                  {/* Two-Way Synced Bridge: Sync Checklists to Tasks */}
+                  <button
+                    onClick={handleSyncChecklists}
+                    disabled={isSyncing}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-obsidian-850 hover:bg-cobalt-950/80 text-cobalt-300 hover:text-white border border-white/[0.08] hover:border-cobalt-600/50 text-xs font-medium transition-all shadow-sm disabled:opacity-50"
+                    title="Scan and sync all '- [ ] ...' checklist items into real To-Do tasks"
+                  >
+                    <ListChecks className="w-3.5 h-3.5 text-cobalt-400" />
+                    <span>{isSyncing ? 'Syncing...' : 'Sync Checklists'}</span>
+                  </button>
+
                   {/* Convert to Task */}
                   <button
                     onClick={handleConvertToTask}
@@ -255,6 +288,28 @@ export default function NotesApp({ onBackToTasks }) {
 
               {/* Note Content Editor */}
               <div className="flex-1 overflow-y-auto p-8 max-w-4xl mx-auto w-full flex flex-col space-y-4">
+                {/* Linked Task Scratchpad Banner */}
+                {activeNote.task_id && (
+                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-cobalt-950/60 border border-cobalt-700/40 text-xs text-cobalt-200 shadow-glow-subtle animate-fadeIn">
+                    <div className="flex items-center gap-2.5">
+                      <Link2 className="w-4 h-4 text-cobalt-400 flex-shrink-0" />
+                      <div>
+                        <span className="text-slate-400">Linked Task: </span>
+                        <strong className="text-white font-medium">
+                          {activeNote.task_title || `#${activeNote.task_id}`}
+                        </strong>
+                      </div>
+                    </div>
+                    <button
+                      onClick={onBackToTasks}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cobalt-700 hover:bg-cobalt-600 text-white font-medium text-[11px] transition-colors"
+                      title="Return to To-Do Tasks list"
+                    >
+                      <span>View in Tasks</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
                 {/* Title */}
                 <input
                   type="text"

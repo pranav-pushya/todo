@@ -12,10 +12,12 @@ import {
   Clock,
   CheckCircle2,
   X,
+  FileText,
 } from 'lucide-react';
 import { useTasks } from '../../context/TaskContext';
 import { useProjects } from '../../context/ProjectContext';
 import { useUIFeedback } from '../../context/UIFeedbackContext';
+import { useNotes } from '../../context/NoteContext';
 
 const PRIORITY_CONFIG = {
   P1: { label: 'P1 Urgent', bg: 'bg-rose-500/10 text-rose-300 border-rose-500/30' },
@@ -32,14 +34,28 @@ export default function TaskItem({ task, onEdit }) {
     addSubtask,
     toggleSubtask,
     deleteSubtask,
+    setActiveFilter,
   } = useTasks();
-  const { projects } = useProjects();
+  const { projects, setSelectedProjectId } = useProjects();
   const { toast, confirm } = useUIFeedback();
+  const { openTaskScratchpad } = useNotes();
 
   const [isDeconstructing, setIsDeconstructing] = useState(false);
   const [isSubtasksExpanded, setIsSubtasksExpanded] = useState(true);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isAddingSubtask, setIsAddingSubtask] = useState(false);
+
+  const handleOpenScratchpad = async (e) => {
+    e.stopPropagation();
+    try {
+      await openTaskScratchpad(task.id);
+      setSelectedProjectId(null);
+      setActiveFilter('notes');
+      toast.success(`Opened Scratchpad for "${task.title}" 📝`);
+    } catch (err) {
+      toast.error(err.message || 'Failed to open scratchpad');
+    }
+  };
 
   const project = projects.find((p) => p.id === task.project_id);
 
@@ -260,6 +276,17 @@ export default function TaskItem({ task, onEdit }) {
                 <span>{tag}</span>
               </span>
             ))}
+
+          {/* Linked Scratchpad Pill */}
+          <button
+            type="button"
+            onClick={handleOpenScratchpad}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-cobalt-950/80 border border-white/[0.08] hover:border-cobalt-700/60 text-[10px] text-slate-400 hover:text-cobalt-300 transition-all cursor-pointer"
+            title="Open dedicated Notes scratchpad for this task"
+          >
+            <FileText className="w-2.5 h-2.5 text-cobalt-400" />
+            <span>Scratchpad</span>
+          </button>
         </div>
 
         {/* Subtasks Expanded Container */}
@@ -380,6 +407,15 @@ export default function TaskItem({ task, onEdit }) {
         >
           <Sparkles className={`w-3 h-3 text-cobalt-400 ${isDeconstructing ? 'animate-spin' : ''}`} />
           <span>{isDeconstructing ? 'Deconstructing...' : 'Deconstruct'}</span>
+        </button>
+
+        {/* Scratchpad Button */}
+        <button
+          onClick={handleOpenScratchpad}
+          className="p-1.5 rounded-lg hover:bg-cobalt-950/80 text-slate-400 hover:text-cobalt-300 transition-colors"
+          title="Open Linked Notes Scratchpad"
+        >
+          <FileText className="w-3.5 h-3.5" />
         </button>
 
         <button

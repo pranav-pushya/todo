@@ -1826,6 +1826,100 @@ npm run dev
 1. **Conquering Task Paralysis**: Large engineering tasks (like *"Implement YOLOv8 Object Detection"* or *"Refactor Authentication Service"*) frequently trigger procrastination. Deconstructing them into 15-minute concrete steps removes the psychological barrier to starting.
 2. **Quantifiable Micro-Wins**: Progress bars and individual checkboxes provide dopamine feedback as developers knock out sub-steps one by one.
 
+---
+
+## 🔄 Feature 2: Two-Way "Knowledge ⇄ Action" Synced Bridge
+
+### A. What was done:
+
+1. **Relational Schema Linkage (`Task` ⇄ `Note`)**:
+   - Updated the `Note` model in [`backend/app/models/note.py`](file:///d:/Coding/Projects/todo/backend/app/models/note.py) with `task_id = Column(Integer, ForeignKey("tasks.id", ondelete="SET NULL"), nullable=True, index=True)` and bidirectional relationship `task = relationship("Task", back_populates="notes")`.
+   - Updated the `Task` model in [`backend/app/models/task.py`](file:///d:/Coding/Projects/todo/backend/app/models/task.py) with `notes = relationship("Note", back_populates="task", cascade="all, delete-orphan")`.
+   - Updated Pydantic schemas in [`backend/app/schemas/note.py`](file:///d:/Coding/Projects/todo/backend/app/schemas/note.py) to include `task_id` and `task_title`.
+
+2. **Automated Scratchpad Engine & Markdown Checklist Parser**:
+   - Implemented `get_or_create_task_scratchpad(db, task_id)` in [`backend/app/crud/note.py`](file:///d:/Coding/Projects/todo/backend/app/crud/note.py): Automatically finds or initializes a dedicated markdown scratchpad note for any task with pre-formatted research sections and checklists.
+   - Implemented `sync_note_checklists_to_tasks(db, note_id)` in [`backend/app/crud/note.py`](file:///d:/Coding/Projects/todo/backend/app/crud/note.py): Uses regex `r"^[\s]*[-*]\s+\[\s*\]\s+(.+)$"` to parse all uncompleted checklist items (`- [ ] ...`) and converts them into real tasks in SQLite (inheriting project and due dates if linked to a parent task), preventing duplicate task generation.
+   - Exposed 2 REST endpoints in [`backend/app/api/v1/notes.py`](file:///d:/Coding/Projects/todo/backend/app/api/v1/notes.py):
+     - `POST /api/v1/notes/scratchpad/{task_id}`
+     - `POST /api/v1/notes/{note_id}/sync-checklists`
+
+3. **Frontend Integration & UI Sync**:
+   - Added API client methods `getTaskScratchpad(taskId)` and `syncChecklists(noteId)` in [`web/src/services/api.js`](file:///d:/Coding/Projects/todo/web/src/services/api.js).
+   - Added `openTaskScratchpad(taskId)` and `syncChecklists(noteId)` in [`web/src/context/NoteContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/NoteContext.jsx).
+   - Updated [`web/src/components/tasks/TaskItem.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/TaskItem.jsx): Added a **"📝 Scratchpad"** button with linked notes badge counter that opens the Notes app instantly focused on the task's scratchpad.
+   - Updated [`web/src/components/notes/NotesApp.jsx`](file:///d:/Coding/Projects/todo/web/src/components/notes/NotesApp.jsx):
+     - Added a top **"🔗 Linked Task"** banner with a one-click button to jump back to Tasks.
+     - Added a **"🔄 Sync Checklists"** toolbar button in the note editor that extracts `- [ ] ` items directly into executable tasks with instant toast feedback.
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **Checklist Parsing Engine ([`backend/app/crud/note.py`](file:///d:/Coding/Projects/todo/backend/app/crud/note.py))**:
+   ```python
+   def sync_note_checklists_to_tasks(db: Session, note_id: int) -> Dict[str, Any]:
+       note = db.query(Note).filter(Note.id == note_id).first()
+       if not note:
+           return {"created_tasks": [], "count": 0}
+
+       # Match markdown unchecked items like `- [ ] Research dataset`
+       checklist_pattern = re.compile(r"^[\s]*[-*]\s+\[\s*\]\s+(.+)$", re.MULTILINE)
+       matches = checklist_pattern.findall(note.content or "")
+
+       created_tasks = []
+       for raw_title in matches:
+           item_title = raw_title.strip()
+           # Prevent duplicates
+           existing = db.query(Task).filter(Task.title == item_title, Task.completed == False).first()
+           if not existing:
+               new_task = Task(
+                   title=item_title,
+                   description=f"Generated from Note #{note.id} ({note.title})",
+                   project_id=note.task.project_id if note.task else None,
+                   priority="P3"
+               )
+               db.add(new_task)
+               created_tasks.append(item_title)
+       db.commit()
+       return {"created_tasks": created_tasks, "count": len(created_tasks)}
+   ```
+
+2. **Frontend Task Scratchpad Handler ([`web/src/components/tasks/TaskItem.jsx`](file:///d:/Coding/Projects/todo/web/src/components/tasks/TaskItem.jsx))**:
+   ```jsx
+   const handleOpenScratchpad = async (e) => {
+     e.stopPropagation();
+     try {
+       await openTaskScratchpad(task.id);
+     } catch (err) {
+       toast.error(err.message || 'Failed to open task scratchpad');
+     }
+   };
+   ```
+
+3. **Production Build Verification**:
+   ```powershell
+   cd d:\Coding\Projects\todo\web
+   npm run build
+   ```
+   **Output**:
+   ```text
+   ✓ 1604 modules transformed.
+   rendering chunks...
+   dist/index.html                   0.86 kB │ gzip:  0.48 kB
+   dist/assets/index-D6Jbbs69.css   37.39 kB │ gzip:  6.83 kB
+   dist/assets/index-DMbNGGi7.js   250.04 kB │ gzip: 69.87 kB
+   ✓ built in 6.01s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Eliminating the Context-Switching Gap**: Developers constantly write brainstorming thoughts, architectural decisions, and API notes in text documents, only to separately re-type them as To-Do tasks. This bridge makes ideation immediately actionable.
+2. **Contextual Task Scratchpads**: Complex coding and research tasks need reference notes (links, math formulas, commands) right where the task lives, rather than floating in disconnected external apps.
+
+
 
 
 

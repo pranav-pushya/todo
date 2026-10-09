@@ -114,6 +114,37 @@ export function NoteProvider({ children }) {
     }
   };
 
+  const openTaskScratchpad = async (taskId) => {
+    try {
+      const scratchpad = await NoteAPI.getTaskScratchpad(taskId);
+      setNotes((prev) => {
+        const exists = prev.find((n) => n.id === scratchpad.id);
+        if (exists) {
+          return prev.map((n) => (n.id === scratchpad.id ? scratchpad : n));
+        }
+        return [scratchpad, ...prev];
+      });
+      setActiveNoteId(scratchpad.id);
+      return scratchpad;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const syncChecklists = async (noteId) => {
+    try {
+      const res = await NoteAPI.syncChecklists(noteId);
+      if (res.created_tasks_count > 0) {
+        fetchTasks();
+      }
+      return res;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
   const activeNote = notes.find((n) => n.id === activeNoteId) || null;
 
   return (
@@ -133,6 +164,8 @@ export function NoteProvider({ children }) {
         togglePin,
         removeNote,
         convertToTask,
+        openTaskScratchpad,
+        syncChecklists,
       }}
     >
       {children}
