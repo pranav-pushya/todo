@@ -250,6 +250,33 @@ def get_task_analytics(db: Session) -> dict:
             streak += 1
             check_day -= timedelta(days=1)
 
+    # 365-day GitHub-Style Consistency Matrix
+    heatmap_matrix = {}
+    total_active_days = 0
+    longest_streak = 0
+    temp_streak = 0
+
+    for offset in range(364, -1, -1):
+        day_date = today - timedelta(days=offset)
+        iso = day_date.isoformat()
+        count = completed_date_counts.get(day_date, 0)
+        if count > 0:
+            heatmap_matrix[iso] = count
+            total_active_days += 1
+            temp_streak += 1
+            if temp_streak > longest_streak:
+                longest_streak = temp_streak
+        else:
+            temp_streak = 0
+
+    # Developer Momentum Score (0-100)
+    # Velocity (40 pts) + Streak consistency (30 pts) + Completion ratio (30 pts)
+    recent_7_done = sum(d["completed"] for d in daily_consistency)
+    velocity_pts = min(40.0, (recent_7_done / 10.0) * 40.0)
+    streak_pts = min(30.0, (streak / 7.0) * 30.0)
+    rate_pts = (completion_rate / 100.0) * 30.0
+    momentum_score = round(min(100.0, velocity_pts + streak_pts + rate_pts), 1)
+
     return {
         "total_tasks": total_tasks,
         "completed_tasks": completed_tasks,
@@ -257,10 +284,15 @@ def get_task_analytics(db: Session) -> dict:
         "overdue_tasks": overdue_tasks,
         "completion_rate": completion_rate,
         "current_streak": streak,
+        "longest_streak": max(longest_streak, streak),
+        "total_active_days": total_active_days,
+        "momentum_score": momentum_score,
+        "heatmap_matrix": heatmap_matrix,
         "priority_distribution": priority_distribution,
         "daily_consistency": daily_consistency,
         "weekly_consistency": weekly_consistency,
     }
+
 
 
 def add_subtask(

@@ -2011,3 +2011,103 @@ npm run dev
 1. **Protecting Deep Flow State**: Multitasking is the enemy of software engineering and machine learning. Fullscreen Zen Mode strips away sidebars, unread counters, and navigation, creating a hyper-focused coding tunnel.
 2. **Preventing Sidetracking with Brain Dumps**: When in deep work, developers often get distracted by random intrusive ideas. The distraction jot-pad lets them deposit thoughts into the Inbox in 2 seconds without derailing the current task.
 3. **Cognitive Sound Science**: Brown noise masks high-frequency auditory distractions in busy labs or dorms, enabling longer unbroken coding sessions.
+
+---
+
+## 🔥 Feature 4: The Glowing Cobalt "GitHub-Style Consistency Matrix" & Momentum Heatmap
+
+### A. What was done:
+
+1. **Full 365-Day Historical Analytics Engine ([`backend/app/crud/task.py`](file:///d:/Coding/Projects/todo/backend/app/crud/task.py))**:
+   - Enhanced `get_task_analytics(db)`:
+     - `heatmap_matrix`: Generates a dictionary mapping every date (`YYYY-MM-DD`) over the past 365 days to the count of tasks completed on that day.
+     - `longest_streak`: Traverses the historical record to compute the user's all-time record consecutive day completion streak.
+     - `total_active_days`: Quantifies total productive days with activity in the past year.
+     - `momentum_score`: Calculates a 0-100 Developer Momentum Score based on 7-day velocity (40 pts), current streak consistency (30 pts), and completion ratio (30 pts).
+
+2. **Interactive Cobalt Heatmap Grid Component ([`web/src/components/analytics/ConsistencyHeatmap.jsx`](file:///d:/Coding/Projects/todo/web/src/components/analytics/ConsistencyHeatmap.jsx))**:
+   - Implemented a 52-week x 7-day grid modeling the classic GitHub commit matrix:
+     - Level 0 (0 tasks): Deep obsidian tile (`#060810`).
+     - Level 1 (1-2 tasks): Subtle cobalt blue (`#1d4ed833`) with 8px glow.
+     - Level 2 (3-4 tasks): Rich cobalt blue (`#2563eb80`) with 12px glow.
+     - Level 3 (5-6 tasks): Electric blue (`#3b82f6`) with 16px glow.
+     - Level 4 (7+ tasks): Supercharged gradient cyan/emerald (`#60a5fa` + `#34d399`) with radiant 20px glow!
+   - Month labels dynamically positioned above the corresponding columns (Jan, Feb, Mar, etc.) and day-of-week labels (`Mon`, `Wed`, `Fri`) on the side.
+   - Interactive hover cards: Hovering over any cell reveals exact completion stats and formatted dates.
+   - Dual time-range controls: Toggle between **6 Months** and **1 Full Year (52 Weeks)**.
+   - Momentum Tier badge (*"Supercharged Hyper-Flow"*, *"High Velocity Momentum"*, *"Consistent Rhythm"*).
+
+3. **Centerpiece Dashboard Integration ([`web/src/components/dashboard/DashboardView.jsx`](file:///d:/Coding/Projects/todo/web/src/components/dashboard/DashboardView.jsx))**:
+   - Integrated `ConsistencyHeatmap` into the main Dashboard view directly underneath key metric cards.
+
+---
+
+### B. How it was done (commands & code explanation):
+
+1. **365-Day Matrix & Momentum Algorithm ([`backend/app/crud/task.py`](file:///d:/Coding/Projects/todo/backend/app/crud/task.py))**:
+   ```python
+   # 365-day GitHub-Style Consistency Matrix
+   heatmap_matrix = {}
+   total_active_days = 0
+   longest_streak = 0
+   temp_streak = 0
+
+   for offset in range(364, -1, -1):
+       day_date = today - timedelta(days=offset)
+       iso = day_date.isoformat()
+       count = completed_date_counts.get(day_date, 0)
+       if count > 0:
+           heatmap_matrix[iso] = count
+           total_active_days += 1
+           temp_streak += 1
+           if temp_streak > longest_streak:
+               longest_streak = temp_streak
+       else:
+           temp_streak = 0
+
+   # Developer Momentum Score (0-100)
+   recent_7_done = sum(d["completed"] for d in daily_consistency)
+   velocity_pts = min(40.0, (recent_7_done / 10.0) * 40.0)
+   streak_pts = min(30.0, (streak / 7.0) * 30.0)
+   rate_pts = (completion_rate / 100.0) * 30.0
+   momentum_score = round(min(100.0, velocity_pts + streak_pts + rate_pts), 1)
+   ```
+
+2. **Heatmap Grid Construction ([`web/src/components/analytics/ConsistencyHeatmap.jsx`](file:///d:/Coding/Projects/todo/web/src/components/analytics/ConsistencyHeatmap.jsx))**:
+   ```jsx
+   {weeks.map((week, wIdx) => (
+     <div key={wIdx} className="flex flex-col gap-[3.5px]">
+       {week.map((day, dIdx) => (
+         <div
+           key={dIdx}
+           onMouseEnter={() => !day.isFuture && setHoveredDay(day)}
+           onMouseLeave={() => setHoveredDay(null)}
+           className={`w-[12px] h-[12px] rounded-[2.5px] ${getCellIntensity(day.count, day.isFuture)}`}
+         />
+       ))}
+     </div>
+   ))}
+   ```
+
+3. **Production Build Verification**:
+   ```powershell
+   cd d:\Coding\Projects\todo\web
+   npm run build
+   ```
+   **Output**:
+   ```text
+   ✓ 1606 modules transformed.
+   rendering chunks...
+   dist/index.html                   0.86 kB │ gzip:  0.48 kB
+   dist/assets/index-B1-rByud.css   46.27 kB │ gzip:  7.94 kB
+   dist/assets/index-rsZMANiV.js   281.50 kB │ gzip: 77.69 kB
+   ✓ built in 6.05s
+   ```
+
+---
+
+### C. Why it was done:
+
+1. **Leveraging the Developer Mental Model**: Developers already check GitHub daily. Bringing the visual satisfaction of a green/cobalt contribution grid into everyday task management creates a strong habit loop.
+2. **Preventing "Zero Days"**: Seeing a blank square on today's column triggers an instinctual urge to knock out at least one task to keep the glowing chain unbroken.
+3. **Holistic Long-Term Momentum**: Daily to-do lists only show short-term horizons; the consistency matrix visualizes months of sustained hard work at a single glance.

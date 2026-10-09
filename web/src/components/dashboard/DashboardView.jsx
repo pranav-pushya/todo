@@ -15,6 +15,7 @@ import {
 import { useTasks } from '../../context/TaskContext';
 import { useProjects } from '../../context/ProjectContext';
 import { useAgent } from '../../context/AgentContext';
+import ConsistencyHeatmap from '../analytics/ConsistencyHeatmap';
 
 export default function DashboardView({ onOpenAddTask }) {
   const { analytics, analyticsLoading, setActiveFilter } = useTasks();
@@ -169,6 +170,15 @@ export default function DashboardView({ onOpenAddTask }) {
           </p>
         </div>
       </div>
+
+      {/* GitHub-Style Consistency Matrix & Momentum Heatmap */}
+      <ConsistencyHeatmap
+        heatmapMatrix={data.heatmap_matrix || {}}
+        currentStreak={data.current_streak || 0}
+        longestStreak={data.longest_streak || 0}
+        momentumScore={data.momentum_score || 0}
+        totalActiveDays={data.total_active_days || 0}
+      />
 
       {/* Main Charts Section: Daily Consistency & Weekly Consistency */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
