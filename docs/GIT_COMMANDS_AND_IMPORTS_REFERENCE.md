@@ -637,8 +637,38 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 - **Location**: [`mobile/index.js`](file:///d:/Coding/Projects/todo/mobile/index.js), [`mobile/App.js`](file:///d:/Coding/Projects/todo/mobile/App.js)
 - **Detailed Breakdown**:
   - **Why used**: Provides 60fps touch gesture processing natively on the UI thread for swipe actions, modal dismissing, and scroll containers.
-  - **What happened**: Placing `import 'react-native-gesture-handler'` at the very top of `index.js` and wrapping the entire root application in `<GestureHandlerRootView style={{ flex: 1 }}>` prevents the dreaded blue screen `Something went wrong` in Expo Go on Android.
+  - **What happened**: Placing `import 'react-native-gesture-handler'` at the very top of `index.js` and wrapping the entire root application in `<GestureHandlerRootView style={{ flex: 1 }}>` prevents root layout collapses in Expo Go on Android.
   - **What would fail without it**: On physical Android devices, any gesture detector or nested scroll view immediately crashes the React Native bridge on load.
+
+---
+
+### 8. Root Error Boundary (`ErrorBoundary.js`)
+```javascript
+import ErrorBoundary from './src/components/common/ErrorBoundary.js';
+```
+- **Location**: [`mobile/App.js`](file:///d:/Coding/Projects/todo/mobile/App.js), [`mobile/src/components/common/ErrorBoundary.js`](file:///d:/Coding/Projects/todo/mobile/src/components/common/ErrorBoundary.js)
+- **Detailed Breakdown**:
+  - **Why used**: Catches any unhandled JavaScript error or component render exception occurring anywhere in the child component tree.
+  - **What happened**: Rather than allowing an unhandled exception to bubble up and trigger Expo Go's opaque blue screen (*"Something went wrong. Sorry about that."*), the ErrorBoundary catches the crash and displays a styled Obsidian Dark UI detailing the exact error message, component stack trace, and 1-tap recovery buttons (*"Reload Interface"* and *"Reset Storage & Cache"*).
+  - **What would fail without it**: In development or physical testing, any subtle platform incompatibility unmounts the entire React root with zero diagnostic feedback on the phone.
+
+---
+
+### 9. Safe Timestamp Formatting (Hermes/JSC Intl Safety)
+```javascript
+const formatTime = (d = new Date()) => {
+  const date = new Date(d);
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+```
+- **Location**: [`mobile/src/context/AgentContext.js`](file:///d:/Coding/Projects/todo/mobile/src/context/AgentContext.js)
+- **Detailed Breakdown**:
+  - **Why used**: Pure arithmetic timestamp generator that avoids relying on `Date.prototype.toLocaleTimeString` or `Intl.DateTimeFormat`.
+  - **What happened**: Fixed a fatal startup crash on physical Android phones where `toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })` threw a `RangeError: Unsupported locale or options` during module evaluation on Android Hermes/JSC engines.
+  - **What would fail without it**: The app fails to boot on Android devices with compact or truncated ICU locale data.
+
 
 
 
