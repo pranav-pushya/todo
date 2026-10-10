@@ -74,7 +74,7 @@ d:\Coding\Projects\todo\mobile/
 | :--- | :--- | :--- | :--- |
 | **Step 1** | Expo React Native Project Scaffold | ✅ Completed | Initialized Expo SDK 52, `app.json`, `package.json`, `index.js`, `App.js` |
 | **Step 2** | Design System & Theme Tokens | ✅ Completed | `colors.js`, `typography.js`, `ScreenContainer`, `CustomButton`, `PriorityBadge`, `Header`, `useHaptics` |
-| **Step 3** | Network Service & Host Resolver | ⏳ Pending | `api.js` with Render Cloud & local fallback |
+| **Step 3** | Network Service & Host Resolver | ✅ Completed | `api.js` with Render Cloud & local fallback, `storage.js` |
 | **Step 4** | Global State Contexts & Storage | ⏳ Pending | Auth, Task, Project & Agent contexts |
 | **Step 5** | Navigation Infrastructure | ⏳ Pending | Bottom Tabs & Stack navigation |
 | **Step 6** | Native Task Lists & Swipe Gestures | ⏳ Pending | Swipeable rows + Haptics |
@@ -168,7 +168,41 @@ d:\Coding\Projects\todo\mobile/
   ```
 - **Verification**: Verified token loading via Node runtime (`node -e "require('./src/theme/colors'); ..."`) and rendered interactive preview in `App.js`.
 
-#### 3. Why It Was Done
-- **Brand Cohesion**: Guarantees the mobile user experiences the exact same visual identity and hierarchy established in the web app.
-- **Battery Optimization**: Deep OLED blacks (`#060810`) turn off pixels on modern OLED/AMOLED smartphone displays, conserving battery life.
 - **Device Independence**: Encapsulating safe area logic in `ScreenContainer` prevents content from clipping under camera punch holes, dynamic islands, or navigation bars.
+
+---
+
+### Step 3: Network Service & Dynamic Host Resolver (`src/services/api.js`)
+
+#### 1. What Was Done
+- Built an intelligent mobile network layer in `src/services/api.js` equipped with a dynamic base URL resolver.
+- Implemented `storage.js` for lightweight, secure token caching across mobile runtimes.
+- Configured 4 server presets out of the box:
+  1. **Render Cloud (Production)**: `https://kortex-xnin.onrender.com/api/v1` (Default)
+  2. **Android Emulator**: `http://10.0.2.2:8001/api/v1`
+  3. **iOS Simulator**: `http://localhost:8001/api/v1`
+  4. **Local Wi-Fi LAN**: `http://192.168.1.100:8001/api/v1`
+- Built full CRUD client modules matching the FastAPI endpoints: `TaskAPI`, `ProjectAPI`, `NoteAPI`, `AgentAPI`, `AuthAPI`, and `HealthAPI`.
+- Built 15-second request timeouts using `AbortController` and unified error parsing.
+
+#### 2. How It Was Done
+- **`src/services/storage.js`**: Provided asynchronous getters/setters (`getItem`, `setItem`, `removeItem`) for JWT auth tokens (`kortex_auth_token`) and server host settings (`kortex_api_host`).
+- **`src/services/api.js`**:
+  ```javascript
+  export const SERVER_PRESETS = [
+    { id: 'render', label: 'Render Cloud (Production)', url: 'https://kortex-xnin.onrender.com/api/v1' },
+    { id: 'emulator', label: 'Android Emulator (10.0.2.2:8001)', url: 'http://10.0.2.2:8001/api/v1' },
+    { id: 'simulator', label: 'iOS Simulator (localhost:8001)', url: 'http://localhost:8001/api/v1' },
+    { id: 'local_lan', label: 'Local LAN (192.168.1.100:8001)', url: 'http://192.168.1.100:8001/api/v1' },
+  ];
+  ```
+- **JWT Authorization**: Requests automatically inject the Bearer header if a token exists:
+  ```javascript
+  const token = await storage.getItem('kortex_auth_token');
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+  ```
+- **Verification**: Verified module loading and presets count using Node ESM runner (`API Service initialized successfully with presets: 4`).
+
+#### 3. Why It Was Done
+- **Mobile Network Isolation**: Unlike desktop web browsers where `localhost` points to the developer machine, a physical phone or Android emulator treats `localhost` as the phone itself. Having dynamic switching eliminates connection errors when developing on an emulator, physical device, or production.
+- **Production-First**: Defaults to the deployed Render backend so the app immediately displays live tasks and AI copilot capabilities upon installation.
