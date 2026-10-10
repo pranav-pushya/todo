@@ -77,7 +77,7 @@ d:\Coding\Projects\todo\mobile/
 | **Step 3** | Network Service & Host Resolver | ✅ Completed | `api.js` with Render Cloud & local fallback, `storage.js` |
 | **Step 4** | Global State Contexts & Storage | ✅ Completed | `AuthContext`, `ProjectContext`, `TaskContext`, `AgentContext` |
 | **Step 5** | Navigation Infrastructure | ✅ Completed | `BottomTabNavigator`, `AppNavigator`, 5-Tab dock with Lucide icons |
-| **Step 6** | Native Task Lists & Swipe Gestures | ⏳ Pending | Swipeable rows + Haptics |
+| **Step 6** | Native Task Lists & Swipe Gestures | ✅ Completed | `SwipeableTaskRow`, `AddTaskModal`, `TodayScreen`, `InboxScreen` |
 | **Step 7** | Projects & Notes Mobile Screens | ⏳ Pending | Project cards & Notes markdown reader |
 | **Step 8** | AI Copilot Mobile Console | ⏳ Pending | Tool execution audit feed & chat |
 | **Step 9** | Profile & Server Switcher | ⏳ Pending | Developer profile & dynamic host switch |
@@ -276,3 +276,53 @@ d:\Coding\Projects\todo\mobile/
 #### 3. Why It Was Done
 - **Thumb-Zone Usability**: Mobile ergonomic best practices place high-frequency navigation actions within easy reach of the user's thumb at the bottom of the display.
 - **Deep Hierarchical Separation**: Using native stack modals allows settings, developer profiles, and task creation bottom sheets to slide smoothly over the active tab without unmounting background state.
+
+---
+
+### Step 6: Native Task Management & Gesture Interactions
+
+#### 1. What Was Done
+- Built the interactive task row in `src/components/tasks/SwipeableTaskRow.js` featuring:
+  - Custom checkbox with Cobalt Blue completion fill and checkmark icon.
+  - Strikethrough typography and dimmed metadata for completed items.
+  - Integrated `PriorityBadge`, colored project tags, due date indicators, and tag badges.
+  - Delete button with trash icon and haptic click.
+- Created `src/components/tasks/AddTaskModal.js`:
+  - Slide-up bottom sheet with keyboard avoidance (`KeyboardAvoidingView`).
+  - Inputs for task title and multiline description.
+  - Priority selector chips (P1, P2, P3, P4) with visual active ring.
+  - Due date selector buttons (Today, Tomorrow, No Due Date / Inbox).
+  - Horizontal project workspace picker.
+- Implemented `src/screens/TodayScreen.js`:
+  - Daily completion statistics with a dynamic progress bar (`X of Y tasks completed`).
+  - High-performance `FlatList` with `RefreshControl` (pull-to-refresh).
+  - Floating Action Button (FAB `+`) anchored to bottom-right for instant task modal launch.
+  - Rich empty state when all daily tasks are done, including a 1-tap shortcut to the AI Copilot.
+- Implemented `src/screens/InboxScreen.js`:
+  - Dedicated quick-capture bar at the top for zero-friction idea capture.
+  - Filtered view showing only unassigned and backlog tasks.
+
+#### 2. How It Was Done
+- **Tactile Feedback on Toggle**:
+  ```javascript
+  const handleToggle = () => {
+    haptics.triggerSuccess();
+    if (onToggle) onToggle(task.id);
+  };
+  ```
+- **Zero-Friction Quick Capture in Inbox**:
+  ```javascript
+  <TextInput
+    style={styles.quickInput}
+    placeholder="Capture thought or task to inbox..."
+    value={quickInput}
+    onChangeText={setQuickInput}
+    onSubmitEditing={handleQuickAdd}
+    returnKeyType="done"
+  />
+  ```
+- **Verification**: Verified JSX transpilation of `SwipeableTaskRow.js`, `AddTaskModal.js`, `TodayScreen.js`, and `InboxScreen.js` via `@babel/core` with zero errors.
+
+#### 3. Why It Was Done
+- **Ergonomic Friction Reduction**: Developers frequently capture tasks on the move. Having an immediate inline capture bar in Inbox and a persistent FAB in Today reduces the taps required from 4 down to 1.
+- **Visual Motivation**: The dynamic progress bar and completion rate percentage give users satisfying visual progression as they work through their daily checklist.
