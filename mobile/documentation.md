@@ -80,7 +80,7 @@ d:\Coding\Projects\todo\mobile/
 | **Step 6** | Native Task Lists & Swipe Gestures | ✅ Completed | `SwipeableTaskRow`, `AddTaskModal`, `TodayScreen`, `InboxScreen` |
 | **Step 7** | Projects & Notes Mobile Screens | ✅ Completed | `ProjectsScreen`, `NotesScreen`, Checklist Sync to Tasks |
 | **Step 8** | AI Copilot Mobile Console | ✅ Completed | `AgentScreen` with chat timeline & tool execution feed |
-| **Step 9** | Profile & Server Switcher | ⏳ Pending | Developer profile & dynamic host switch |
+| **Step 9** | Profile & Server Switcher | ✅ Completed | `ProfileScreen`, `AuthScreen`, dynamic gateway selector |
 | **Step 10** | Polish & EAS Build Configuration | ⏳ Pending | Cross-platform verification & `eas.json` |
 
 ---
@@ -413,3 +413,56 @@ d:\Coding\Projects\todo\mobile/
 #### 3. Why It Was Done
 - **Hands-Free Task Management**: Developers on mobile need to dump thoughts quickly. Asking the AI *"Add P1 bug fix for auth and schedule it today"* executes via tool-calling and creates structured database records instantly.
 - **Transparent Execution**: Showing the tool badges gives developers complete confidence in what actions the AI took under the hood.
+
+---
+
+### Step 9: Developer Profile, Settings & Cloud Switcher (`src/screens/`)
+
+#### 1. What Was Done
+- Built `src/screens/ProfileScreen.js`:
+  - Developer identity card displaying avatar, full name, role, and GitHub handle.
+  - Productivity metrics overview (Completed tasks, overall velocity percentage, active workspaces).
+  - **Dynamic Backend API Host Switcher**:
+    - Interactive selector for all 4 server presets (Render Cloud, Android Emulator `10.0.2.2:8001`, iOS Simulator `localhost:8001`, Local LAN `192.168.1.100:8001`).
+    - Custom URL input field allowing developers to dynamically specify any IP or cloud URL on the fly.
+    - **"Ping & Health Check"** button: calls `/api/v1/health` and provides instant visual Online/Offline status feedback and auto-refreshes workspace data upon server switch.
+  - Sign Out button with native confirmation dialog.
+- Built `src/screens/AuthScreen.js`:
+  - Clean authentication screen with Kortex branding.
+  - Tab switcher between "Sign In" and "Register".
+  - Username, email, and password form fields with inline validation.
+  - ⚡ **"Continue as Guest Developer"** 1-tap bypass button for rapid sandbox evaluation without backend credentials.
+
+#### 2. How It Was Done
+- **Dynamic Gateway Switcher & Verification**:
+  ```javascript
+  const handleSelectPreset = async (presetUrl) => {
+    await setActiveHost(presetUrl);
+    setActiveHostUrl(presetUrl);
+    setServerHealthStatus(null);
+  };
+
+  const handleTestConnection = async () => {
+    try {
+      await HealthAPI.checkHealth();
+      setServerHealthStatus('online');
+      fetchTasks();
+      fetchProjects();
+    } catch {
+      setServerHealthStatus('offline');
+    }
+  };
+  ```
+- **1-Tap Guest Access**:
+  ```javascript
+  const handleGuestAccess = async () => {
+    haptics.triggerSuccess();
+    await loginAsGuest();
+    navigation.navigate('Main');
+  };
+  ```
+- **Verification**: Verified JSX syntax across `ProfileScreen.js` and `AuthScreen.js` via `@babel/core`—both compiled with 0 errors.
+
+#### 3. Why It Was Done
+- **Network Agility**: Mobile developers often toggle between working against a local laptop server, an emulator loopback, or the deployed Render cloud. Making this configurable inside the UI eliminates the need to edit config files or recompile native bundles.
+- **Reviewer-Friendly**: The "Continue as Guest Developer" mode ensures anyone inspecting the app can immediately test task triage and AI copilot interactions without creating a dummy account.
