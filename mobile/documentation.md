@@ -53,35 +53,35 @@ d:\Coding\Projects\todo\mobile/
 
 ## 3. 🗺️ Full Native Mobile App Implementation Plan (10-Step Roadmap)
 
-| Step | Focus Area | Deliverables & Scope |
-| :---: | :--- | :--- |
-| **Step 1** | **Expo Project Scaffold & Dependencies** | Expo SDK 52 environment, app.json metadata, Babel config, root entrypoints |
-| **Step 2** | **Design System & Theme Tokens** | Obsidian Dark OLED palette, Cobalt Blue accents, P1–P4 priority badges, native UI primitives |
-| **Step 3** | **Network Service & Dynamic Host Resolver** | API client connecting to Localhost, Android loopback, and Render Cloud with JWT interceptors |
-| **Step 4** | **Global State Contexts & Secure Storage** | AuthContext, TaskContext, ProjectContext, AgentContext with optimistic local updates |
-| **Step 5** | **Navigation Infrastructure** | React Navigation AuthStack, 5-Tab Bottom Dock (Today, Inbox, Projects, Notes, Copilot), custom header |
-| **Step 6** | **Native Task Management & Swipe Gestures** | 60fps FlatList, SwipeableTaskRow with haptic feedback, AddTask modal |
-| **Step 7** | **Projects & Notes Mobile Screens** | Project folder cards with progress meters, dual-format Notes (.md / .txt) reader & checklist sync |
-| **Step 8** | **AI Copilot Mobile Console** | Interactive AI chat, tool execution audit feed, quick prompts, and live state invalidation |
-| **Step 9** | **Profile, Settings & Server Switching** | Developer profile, velocity analytics, dynamic backend server switcher (Local ↔ Render Cloud) |
-| **Step 10** | **Polish, Multi-Platform Testing & Build Config** | Safe area handling, offline banner, EAS Build configuration (`eas.json`), verification report |
+|       Step       | Focus Area                                              | Deliverables & Scope                                                                                  |
+| :---------------: | :------------------------------------------------------ | :---------------------------------------------------------------------------------------------------- |
+| **Step 1** | **Expo Project Scaffold & Dependencies**          | Expo SDK 52 environment, app.json metadata, Babel config, root entrypoints                            |
+| **Step 2** | **Design System & Theme Tokens**                  | Obsidian Dark OLED palette, Cobalt Blue accents, P1–P4 priority badges, native UI primitives         |
+| **Step 3** | **Network Service & Dynamic Host Resolver**       | API client connecting to Localhost, Android loopback, and Render Cloud with JWT interceptors          |
+| **Step 4** | **Global State Contexts & Secure Storage**        | AuthContext, TaskContext, ProjectContext, AgentContext with optimistic local updates                  |
+| **Step 5** | **Navigation Infrastructure**                     | React Navigation AuthStack, 5-Tab Bottom Dock (Today, Inbox, Projects, Notes, Copilot), custom header |
+| **Step 6** | **Native Task Management & Swipe Gestures**       | 60fps FlatList, SwipeableTaskRow with haptic feedback, AddTask modal                                  |
+| **Step 7** | **Projects & Notes Mobile Screens**               | Project folder cards with progress meters, dual-format Notes (.md / .txt) reader & checklist sync     |
+| **Step 8** | **AI Copilot Mobile Console**                     | Interactive AI chat, tool execution audit feed, quick prompts, and live state invalidation            |
+| **Step 9** | **Profile, Settings & Server Switching**          | Developer profile, velocity analytics, dynamic backend server switcher (Local ↔ Render Cloud)        |
+| **Step 10** | **Polish, Multi-Platform Testing & Build Config** | Safe area handling, offline banner, EAS Build configuration (`eas.json`), verification report       |
 
 ---
 
 ## 4. 📝 Progress Log: Step-by-Step Breakdown
 
-| Step | Description | Status | Commit / Notes |
-| :--- | :--- | :--- | :--- |
-| **Step 1** | Expo React Native Project Scaffold | ✅ Completed | Initialized Expo SDK 52, `app.json`, `package.json`, `index.js`, `App.js` |
-| **Step 2** | Design System & Theme Tokens | ✅ Completed | `colors.js`, `typography.js`, `ScreenContainer`, `CustomButton`, `PriorityBadge`, `Header`, `useHaptics` |
-| **Step 3** | Network Service & Host Resolver | ✅ Completed | `api.js` with Render Cloud & local fallback, `storage.js` |
-| **Step 4** | Global State Contexts & Storage | ✅ Completed | `AuthContext`, `ProjectContext`, `TaskContext`, `AgentContext` |
-| **Step 5** | Navigation Infrastructure | ✅ Completed | `BottomTabNavigator`, `AppNavigator`, 5-Tab dock with Lucide icons |
-| **Step 6** | Native Task Lists & Swipe Gestures | ✅ Completed | `SwipeableTaskRow`, `AddTaskModal`, `TodayScreen`, `InboxScreen` |
-| **Step 7** | Projects & Notes Mobile Screens | ✅ Completed | `ProjectsScreen`, `NotesScreen`, Checklist Sync to Tasks |
-| **Step 8** | AI Copilot Mobile Console | ✅ Completed | `AgentScreen` with chat timeline & tool execution feed |
-| **Step 9** | Profile & Server Switcher | ✅ Completed | `ProfileScreen`, `AuthScreen`, dynamic gateway selector |
-| **Step 10** | Polish & EAS Build Configuration | ✅ Completed | 26-module test suite pass (100%), `eas.json` |
+| Step              | Description                        | Status       | Commit / Notes                                                                                                         |
+| :---------------- | :--------------------------------- | :----------- | :--------------------------------------------------------------------------------------------------------------------- |
+| **Step 1**  | Expo React Native Project Scaffold | ✅ Completed | Initialized Expo SDK 52,`app.json`, `package.json`, `index.js`, `App.js`                                       |
+| **Step 2**  | Design System & Theme Tokens       | ✅ Completed | `colors.js`, `typography.js`, `ScreenContainer`, `CustomButton`, `PriorityBadge`, `Header`, `useHaptics` |
+| **Step 3**  | Network Service & Host Resolver    | ✅ Completed | `api.js` with Render Cloud & local fallback, `storage.js`                                                          |
+| **Step 4**  | Global State Contexts & Storage    | ✅ Completed | `AuthContext`, `ProjectContext`, `TaskContext`, `AgentContext`                                                 |
+| **Step 5**  | Navigation Infrastructure          | ✅ Completed | `BottomTabNavigator`, `AppNavigator`, 5-Tab dock with Lucide icons                                                 |
+| **Step 6**  | Native Task Lists & Swipe Gestures | ✅ Completed | `SwipeableTaskRow`, `AddTaskModal`, `TodayScreen`, `InboxScreen`                                               |
+| **Step 7**  | Projects & Notes Mobile Screens    | ✅ Completed | `ProjectsScreen`, `NotesScreen`, Checklist Sync to Tasks                                                           |
+| **Step 8**  | AI Copilot Mobile Console          | ✅ Completed | `AgentScreen` with chat timeline & tool execution feed                                                               |
+| **Step 9**  | Profile & Server Switcher          | ✅ Completed | `ProfileScreen`, `AuthScreen`, dynamic gateway selector                                                            |
+| **Step 10** | Polish & EAS Build Configuration   | ✅ Completed | 26-module test suite pass (100%),`eas.json`                                                                          |
 
 ---
 
@@ -90,6 +90,7 @@ d:\Coding\Projects\todo\mobile/
 ### Step 1: Expo Project Scaffold & Core Dependencies
 
 #### 1. What Was Done
+
 - Scaffolded the official Expo React Native environment inside `mobile/`.
 - Configured application metadata in `app.json` for Android and iOS targeting bundle identifier `com.kortex.todo`.
 - Configured Babel transformation in `babel.config.js` with `babel-preset-expo`.
@@ -98,6 +99,7 @@ d:\Coding\Projects\todo\mobile/
 - Installed 920 required native packages across navigation, haptics, vector icons, SVG rendering, safe area contexts, and gesture handling.
 
 #### 2. How It Was Done
+
 - **`package.json`**: Configured compatible package versions:
   - `expo`: `~52.0.0`
   - `react`: `18.3.1` (aligned identically with the Kortex web frontend)
@@ -131,6 +133,7 @@ d:\Coding\Projects\todo\mobile/
 - **Verification**: Executed `npm install --no-audit` with zero resolution conflicts.
 
 #### 3. Why It Was Done
+
 - **Cross-Platform Consistency**: Using React 18.3.1 allows maximum code/concept reuse between the React web app and React Native mobile app.
 - **Expo Managed Workflow**: Avoids brittle manual Xcode/Android Studio native linking while supporting modern New Architecture (`newArchEnabled: true`) and OTA updates.
 - **OLED First**: Initialized default black background (`#060810`) and light status bar right from the root configuration to prevent white-flash flicker on boot.
@@ -140,6 +143,7 @@ d:\Coding\Projects\todo\mobile/
 ### Step 2: Design System, Theme Tokens & Native Primitives
 
 #### 1. What Was Done
+
 - Created central design system tokens in `src/theme/colors.js` matching Kortex's signature Obsidian Black, Pure White, and Cobalt Blue palette.
 - Created typography tokens in `src/theme/typography.js` for consistent font sizes, weights, and line heights.
 - Created reusable native UI primitives:
@@ -150,9 +154,11 @@ d:\Coding\Projects\todo\mobile/
   - `src/hooks/useHaptics.js`: Custom hook providing safe tactile feedback with try/catch fallbacks for physical devices and simulators.
 
 #### 2. How It Was Done
+
 - **`colors.js`**: Defined tokens including `background: '#060810'`, `surfaceCard: '#0e1320'`, `cobaltPrimary: '#1d4ed8'`, `cobaltLight: '#3b82f6'`, and priority status colors.
 - **`ScreenContainer.js`**: Utilized `SafeAreaView` from `react-native-safe-area-context` and configured `<StatusBar barStyle="light-content" />`.
 - **`useHaptics.js`**:
+
   ```javascript
   import * as Haptics from 'expo-haptics';
 
@@ -167,7 +173,6 @@ d:\Coding\Projects\todo\mobile/
   }
   ```
 - **Verification**: Verified token loading via Node runtime (`node -e "require('./src/theme/colors'); ..."`) and rendered interactive preview in `App.js`.
-
 - **Device Independence**: Encapsulating safe area logic in `ScreenContainer` prevents content from clipping under camera punch holes, dynamic islands, or navigation bars.
 
 ---
@@ -175,6 +180,7 @@ d:\Coding\Projects\todo\mobile/
 ### Step 3: Network Service & Dynamic Host Resolver (`src/services/api.js`)
 
 #### 1. What Was Done
+
 - Built an intelligent mobile network layer in `src/services/api.js` equipped with a dynamic base URL resolver.
 - Implemented `storage.js` for lightweight, secure token caching across mobile runtimes.
 - Configured 4 server presets out of the box:
@@ -186,8 +192,10 @@ d:\Coding\Projects\todo\mobile/
 - Built 15-second request timeouts using `AbortController` and unified error parsing.
 
 #### 2. How It Was Done
+
 - **`src/services/storage.js`**: Provided asynchronous getters/setters (`getItem`, `setItem`, `removeItem`) for JWT auth tokens (`kortex_auth_token`) and server host settings (`kortex_api_host`).
 - **`src/services/api.js`**:
+
   ```javascript
   export const SERVER_PRESETS = [
     { id: 'render', label: 'Render Cloud (Production)', url: 'https://kortex-xnin.onrender.com/api/v1' },
@@ -197,12 +205,12 @@ d:\Coding\Projects\todo\mobile/
   ];
   ```
 - **JWT Authorization**: Requests automatically inject the Bearer header if a token exists:
+
   ```javascript
   const token = await storage.getItem('kortex_auth_token');
   const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
   ```
 - **Verification**: Verified module loading and presets count using Node ESM runner (`API Service initialized successfully with presets: 4`).
-
 - **Production-First**: Defaults to the deployed Render backend so the app immediately displays live tasks and AI copilot capabilities upon installation.
 
 ---
@@ -210,6 +218,7 @@ d:\Coding\Projects\todo\mobile/
 ### Step 4: Global State Contexts & Storage (`src/context/`)
 
 #### 1. What Was Done
+
 - Implemented four reactive state contexts architected specifically for mobile lifecycles:
   - `src/context/AuthContext.js`: Handles session restoration from storage, login, register, developer profile, and an instant **Guest / Demo Mode** for testing without server credentials.
   - `src/context/ProjectContext.js`: Manages project workspace folders, color chips, and creation with automatic offline fallback.
@@ -218,6 +227,7 @@ d:\Coding\Projects\todo\mobile/
 - Wired all 4 providers together into `mobile/App.js` with `SafeAreaProvider`.
 
 #### 2. How It Was Done
+
 - **Optimistic Task Mutations**: When a user marks a task complete, `TaskContext` instantly flips the boolean flag in state and triggers a background sync to `TaskAPI.toggleTask()`, ensuring zero perceived UI latency.
   ```javascript
   const toggleTask = async (taskId) => {
@@ -235,6 +245,7 @@ d:\Coding\Projects\todo\mobile/
   - `AgentContext compiled successfully`
 
 #### 3. Why It Was Done
+
 - **High-Response Ergonomics**: Mobile users expect immediate tactile and visual responses when interacting with checklists. Optimistic UI updates prevent jarring network lag.
 - **AI-Data Coupling**: Connecting the AI Copilot to the Task and Project contexts ensures that when the AI creates a task via tool calling, it immediately reflects across all screens without manual pull-to-refresh.
 
@@ -243,6 +254,7 @@ d:\Coding\Projects\todo\mobile/
 ### Step 5: Navigation Infrastructure (`src/navigation/`)
 
 #### 1. What Was Done
+
 - Built the React Navigation routing architecture combining `@react-navigation/native-stack` and `@react-navigation/bottom-tabs`.
 - Configured a persistent 5-tab bottom dock in `src/navigation/BottomTabNavigator.js`:
   1. 📅 **Today**: Daily agenda and urgent checklist (`TodayScreen.js`).
@@ -255,6 +267,7 @@ d:\Coding\Projects\todo\mobile/
 - Integrated `useHaptics` on bottom tab presses for tactile feedback.
 
 #### 2. How It Was Done
+
 - **`BottomTabNavigator.js`**: Styled tab dock using Lucide vector icons (`Calendar`, `Inbox`, `FolderKanban`, `FileText`, `Sparkles`) and configured `screenListeners`:
   ```javascript
   screenListeners={{
@@ -274,6 +287,7 @@ d:\Coding\Projects\todo\mobile/
 - **Verification**: Verified JSX syntax across all 10 navigation and screen files with `@babel/core`—all 10 compiled with 0 errors.
 
 #### 3. Why It Was Done
+
 - **Thumb-Zone Usability**: Mobile ergonomic best practices place high-frequency navigation actions within easy reach of the user's thumb at the bottom of the display.
 - **Deep Hierarchical Separation**: Using native stack modals allows settings, developer profiles, and task creation bottom sheets to slide smoothly over the active tab without unmounting background state.
 
@@ -282,6 +296,7 @@ d:\Coding\Projects\todo\mobile/
 ### Step 6: Native Task Management & Gesture Interactions
 
 #### 1. What Was Done
+
 - Built the interactive task row in `src/components/tasks/SwipeableTaskRow.js` featuring:
   - Custom checkbox with Cobalt Blue completion fill and checkmark icon.
   - Strikethrough typography and dimmed metadata for completed items.
@@ -303,6 +318,7 @@ d:\Coding\Projects\todo\mobile/
   - Filtered view showing only unassigned and backlog tasks.
 
 #### 2. How It Was Done
+
 - **Tactile Feedback on Toggle**:
   ```javascript
   const handleToggle = () => {
@@ -324,6 +340,7 @@ d:\Coding\Projects\todo\mobile/
 - **Verification**: Verified JSX transpilation of `SwipeableTaskRow.js`, `AddTaskModal.js`, `TodayScreen.js`, and `InboxScreen.js` via `@babel/core` with zero errors.
 
 #### 3. Why It Was Done
+
 - **Ergonomic Friction Reduction**: Developers frequently capture tasks on the move. Having an immediate inline capture bar in Inbox and a persistent FAB in Today reduces the taps required from 4 down to 1.
 - **Visual Motivation**: The dynamic progress bar and completion rate percentage give users satisfying visual progression as they work through their daily checklist.
 
@@ -332,6 +349,7 @@ d:\Coding\Projects\todo\mobile/
 ### Step 7: Projects & Notes Mobile Screens (`src/screens/`)
 
 #### 1. What Was Done
+
 - Built `src/screens/ProjectsScreen.js`:
   - Workspace cards with color badges, descriptions, and dynamic progress bars displaying `X / Y tasks completed` and completion rate percentages.
   - Drill-down navigation: tapping a project filters tasks in the `Today` screen.
@@ -343,6 +361,7 @@ d:\Coding\Projects\todo\mobile/
   - Full-screen modal note reader with monospaced code display.
 
 #### 2. How It Was Done
+
 - **Two-Way Bridge (Checklist Sync to Tasks)**:
   ```javascript
   const handleSyncChecklist = async (noteId) => {
@@ -372,6 +391,7 @@ d:\Coding\Projects\todo\mobile/
 - **Verification**: Verified JSX transpilation of `ProjectsScreen.js` and `NotesScreen.js` via `@babel/core`—both compiled with 0 errors.
 
 #### 3. Why It Was Done
+
 - **Cross-Platform Parity**: Brings the web platform's standout Markdown vs Plain Text note system and automated checklist conversion directly to native mobile screens.
 - **Project Visibility**: Visual progress tracks on project cards allow developers to quickly assess which work streams are blocked or nearing completion directly from their phone.
 
@@ -380,6 +400,7 @@ d:\Coding\Projects\todo\mobile/
 ### Step 8: AI Copilot Mobile Console (`src/screens/AgentScreen.js`)
 
 #### 1. What Was Done
+
 - Built the dedicated AI Copilot conversation console in `src/screens/AgentScreen.js`:
   - Natural conversation timeline featuring user chat bubbles (Cobalt Blue, right-aligned) and agent response cards (Dark Surface with border, left-aligned).
   - **Tool Execution Audit Feed**: Renders live action badges showing which backend function the Groq AI called (e.g. `Action: create_task`, `Action: filter_tasks`, `Action: sprint_manager`) with a green status indicator dot.
@@ -389,6 +410,7 @@ d:\Coding\Projects\todo\mobile/
   - Header actions: Clear chat history button with trash icon and tactile feedback.
 
 #### 2. How It Was Done
+
 - **Tool Execution Audit Badge Rendering**:
   ```javascript
   const renderToolCallBadge = (tool) => {
@@ -411,6 +433,7 @@ d:\Coding\Projects\todo\mobile/
 - **Verification**: Verified JSX syntax and compilation of `AgentScreen.js` via `@babel/core`—compiled with 0 errors.
 
 #### 3. Why It Was Done
+
 - **Hands-Free Task Management**: Developers on mobile need to dump thoughts quickly. Asking the AI *"Add P1 bug fix for auth and schedule it today"* executes via tool-calling and creates structured database records instantly.
 - **Transparent Execution**: Showing the tool badges gives developers complete confidence in what actions the AI took under the hood.
 
@@ -419,6 +442,7 @@ d:\Coding\Projects\todo\mobile/
 ### Step 9: Developer Profile, Settings & Cloud Switcher (`src/screens/`)
 
 #### 1. What Was Done
+
 - Built `src/screens/ProfileScreen.js`:
   - Developer identity card displaying avatar, full name, role, and GitHub handle.
   - Productivity metrics overview (Completed tasks, overall velocity percentage, active workspaces).
@@ -434,6 +458,7 @@ d:\Coding\Projects\todo\mobile/
   - ⚡ **"Continue as Guest Developer"** 1-tap bypass button for rapid sandbox evaluation without backend credentials.
 
 #### 2. How It Was Done
+
 - **Dynamic Gateway Switcher & Verification**:
   ```javascript
   const handleSelectPreset = async (presetUrl) => {
@@ -464,6 +489,7 @@ d:\Coding\Projects\todo\mobile/
 - **Verification**: Verified JSX syntax across `ProfileScreen.js` and `AuthScreen.js` via `@babel/core`—both compiled with 0 errors.
 
 #### 3. Why It Was Done
+
 - **Network Agility**: Mobile developers often toggle between working against a local laptop server, an emulator loopback, or the deployed Render cloud. Making this configurable inside the UI eliminates the need to edit config files or recompile native bundles.
 - **Reviewer-Friendly**: The "Continue as Guest Developer" mode ensures anyone inspecting the app can immediately test task triage and AI copilot interactions without creating a dummy account.
 
@@ -472,6 +498,7 @@ d:\Coding\Projects\todo\mobile/
 ### Step 10: Polish, Multi-Platform Testing & EAS Build Configuration
 
 #### 1. What Was Done
+
 - Configured Expo Application Services (EAS) in `eas.json` for Android and iOS builds:
   - `development`: Internal client builds for native debugging.
   - `preview`: Standalone Android APK for direct side-loading onto physical test devices without app store overhead.
@@ -481,6 +508,7 @@ d:\Coding\Projects\todo\mobile/
 - Verified 100% test pass rate across all 26 mobile files and components.
 
 #### 2. How It Was Done
+
 - **`eas.json` Configuration**:
   ```json
   {
@@ -532,6 +560,7 @@ d:\Coding\Projects\todo\mobile/
   ```
 
 #### 3. Why It Was Done
+
 - **Release Readiness**: Standalone APK build profiling via EAS enables anyone on the team to install and QA the native Android app directly on physical hardware.
 - **Zero-Regression Assurance**: Running automated Babel compilation checks across all 26 components catches missing imports, JSX parse errors, or unclosed tags before any build or commit is promoted.
 
@@ -540,6 +569,7 @@ d:\Coding\Projects\todo\mobile/
 ## 6. 🚀 How to Run and Test the Mobile App
 
 ### 1. Run Locally with Expo Go (Physical Phone or Emulator)
+
 ```bash
 cd mobile
 
@@ -550,15 +580,18 @@ npm start
 npm run android
 npm run ios
 ```
+
 * Scan the QR code in the terminal using the **Expo Go** app on Android or the Camera app on iOS.
 
 ### 2. Run Automated Verification Tests
+
 ```bash
 cd mobile
 npm test
 ```
 
 ### 3. Build a Standalone Android APK (EAS Build)
+
 ```bash
 cd mobile
 npx eas-cli build -p android --profile preview

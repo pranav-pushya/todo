@@ -613,3 +613,17 @@ import { useAgent } from '../context/AgentContext.js';
   3. `AuthContext` (Guest Mode Bypass):
      - **Why used**: Offers 1-click instant sandbox evaluation so developers and testers can experience the mobile app without setting up server accounts.
 
+---
+
+### 6. Asset Management & Bundler Plugins (`expo-asset`)
+```javascript
+import * as Asset from 'expo-asset';
+```
+- **Package**: `expo-asset`
+- **Location**: Bundler plugin integration in `@expo/metro-config` and `app.json`.
+- **Detailed Breakdown**:
+  - **Why used**: Required by `@expo/metro-config` in Expo SDK 52 to resolve, cache, and serve static assets (`icon.png`, `splash.png`, `adaptive-icon.png`).
+  - **What happened**: Fixed the runtime startup exception `Error: The required package 'expo-asset' cannot be found`. Metro now bundles all 2,480 modules seamlessly.
+  - **What would fail without it**: `expo start` immediately aborts during the Metro bundler startup hook `getAssetPlugins`.
+
+
