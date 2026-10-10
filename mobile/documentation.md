@@ -75,7 +75,7 @@ d:\Coding\Projects\todo\mobile/
 | **Step 1** | Expo React Native Project Scaffold | ✅ Completed | Initialized Expo SDK 52, `app.json`, `package.json`, `index.js`, `App.js` |
 | **Step 2** | Design System & Theme Tokens | ✅ Completed | `colors.js`, `typography.js`, `ScreenContainer`, `CustomButton`, `PriorityBadge`, `Header`, `useHaptics` |
 | **Step 3** | Network Service & Host Resolver | ✅ Completed | `api.js` with Render Cloud & local fallback, `storage.js` |
-| **Step 4** | Global State Contexts & Storage | ⏳ Pending | Auth, Task, Project & Agent contexts |
+| **Step 4** | Global State Contexts & Storage | ✅ Completed | `AuthContext`, `ProjectContext`, `TaskContext`, `AgentContext` |
 | **Step 5** | Navigation Infrastructure | ⏳ Pending | Bottom Tabs & Stack navigation |
 | **Step 6** | Native Task Lists & Swipe Gestures | ⏳ Pending | Swipeable rows + Haptics |
 | **Step 7** | Projects & Notes Mobile Screens | ⏳ Pending | Project cards & Notes markdown reader |
@@ -203,6 +203,37 @@ d:\Coding\Projects\todo\mobile/
   ```
 - **Verification**: Verified module loading and presets count using Node ESM runner (`API Service initialized successfully with presets: 4`).
 
-#### 3. Why It Was Done
-- **Mobile Network Isolation**: Unlike desktop web browsers where `localhost` points to the developer machine, a physical phone or Android emulator treats `localhost` as the phone itself. Having dynamic switching eliminates connection errors when developing on an emulator, physical device, or production.
 - **Production-First**: Defaults to the deployed Render backend so the app immediately displays live tasks and AI copilot capabilities upon installation.
+
+---
+
+### Step 4: Global State Contexts & Storage (`src/context/`)
+
+#### 1. What Was Done
+- Implemented four reactive state contexts architected specifically for mobile lifecycles:
+  - `src/context/AuthContext.js`: Handles session restoration from storage, login, register, developer profile, and an instant **Guest / Demo Mode** for testing without server credentials.
+  - `src/context/ProjectContext.js`: Manages project workspace folders, color chips, and creation with automatic offline fallback.
+  - `src/context/TaskContext.js`: Handles tasks with optimistic UI mutations (instant toggle completion), active view filtering (`today`, `inbox`, `upcoming`, `completed`), project grouping, search querying, and live velocity statistics.
+  - `src/context/AgentContext.js`: Powers the autonomous AI Copilot chat history, tool execution audit feed, and triggers automatic task/project data refresh whenever the AI creates or modifies items.
+- Wired all 4 providers together into `mobile/App.js` with `SafeAreaProvider`.
+
+#### 2. How It Was Done
+- **Optimistic Task Mutations**: When a user marks a task complete, `TaskContext` instantly flips the boolean flag in state and triggers a background sync to `TaskAPI.toggleTask()`, ensuring zero perceived UI latency.
+  ```javascript
+  const toggleTask = async (taskId) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t))
+    );
+    try { await TaskAPI.toggleTask(taskId, newCompleted); } catch (err) {}
+  };
+  ```
+- **Autonomous Agent Synchronization**: Whenever the user sends a natural language command to the Groq AI Copilot, `AgentContext` invokes the optional `onTasksMutated` callback to immediately re-fetch the user's tasks and project lists.
+- **Verification**: Verified JSX syntax across all 4 Context files using `@babel/core` with `babel-preset-expo`:
+  - `AuthContext compiled successfully`
+  - `ProjectContext compiled successfully`
+  - `TaskContext compiled successfully`
+  - `AgentContext compiled successfully`
+
+#### 3. Why It Was Done
+- **High-Response Ergonomics**: Mobile users expect immediate tactile and visual responses when interacting with checklists. Optimistic UI updates prevent jarring network lag.
+- **AI-Data Coupling**: Connecting the AI Copilot to the Task and Project contexts ensures that when the AI creates a task via tool calling, it immediately reflects across all screens without manual pull-to-refresh.
