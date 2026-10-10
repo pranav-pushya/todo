@@ -10,6 +10,7 @@ import {
   RefreshControl,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import { FileText, Plus, X, RefreshCw } from 'lucide-react-native';
 import ScreenContainer from '../components/common/ScreenContainer.js';
