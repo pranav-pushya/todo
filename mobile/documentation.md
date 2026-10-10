@@ -51,58 +51,86 @@ d:\Coding\Projects\todo\mobile/
 
 ---
 
-## 3. 🗺️ Full Native Mobile App Implementation Plan
+## 3. 🗺️ Full Native Mobile App Implementation Plan (10-Step Roadmap)
 
-### Step 1: Expo Scaffold & Dependencies
-- Initialize an Expo React Native application inside `mobile/`.
-- Install core native packages:
-  - `@react-navigation/native` & `@react-navigation/bottom-tabs`: Native screen navigation.
-  - `expo-haptics`: Tactile feedback on button presses and completions.
-  - `lucide-react-native`: Sleek vector icons.
-  - `expo-status-bar`: Styled mobile status bar.
-
-### Step 2: Mobile API Client Service (`src/services/api.js`)
-- Configure network client with dynamic backend host detection (connecting seamlessly to the development machine's local IP or emulator loopback).
-- Provide CRUD functions for tasks, projects, and AI agent execution.
-
-### Step 3: Minimalist Design Theme (`src/theme/colors.js`)
-- Implement the identical Obsidian Black (`#060810`), Pure White (`#ffffff`), and Cobalt Blue (`#1d4ed8`) theme optimized for mobile touchscreens.
-
-### Step 4: Bottom Tab Navigation (`src/navigation/`)
-- Set up a clean bottom navigation bar:
-  - 📅 **Today**: Focused daily checklist.
-  - 📥 **Inbox**: Quick-capture thoughts and unassigned tasks.
-  - 📁 **Projects**: Colored project groupings.
-  - 🤖 **AI Copilot**: Direct AI command interface.
-
-### Step 5: Native Task List & Gestures (`src/screens/TodayScreen.js`)
-- Build smooth 60fps scrolling task lists with swipe-to-complete and priority indicators (`P1`-`P4`).
-- Add quick floating action button (`+`) for instant task creation.
-
-### Step 6: Mobile AI Agent Interface (`src/screens/AgentScreen.js`)
-- Build a chat-style interface to give commands to the backend AI agent.
-- Display cards showing the results (e.g., *"Created 3 tasks for Project Mobile"*).
-
-### Step 7: Mobile Device Verification
-- Verify running via Expo Go on physical iOS/Android device or emulator.
-- Test real-time synchronization with the web app and FastAPI backend.
+| Step | Focus Area | Deliverables & Scope |
+| :---: | :--- | :--- |
+| **Step 1** | **Expo Project Scaffold & Dependencies** | Expo SDK 52 environment, app.json metadata, Babel config, root entrypoints |
+| **Step 2** | **Design System & Theme Tokens** | Obsidian Dark OLED palette, Cobalt Blue accents, P1–P4 priority badges, native UI primitives |
+| **Step 3** | **Network Service & Dynamic Host Resolver** | API client connecting to Localhost, Android loopback, and Render Cloud with JWT interceptors |
+| **Step 4** | **Global State Contexts & Secure Storage** | AuthContext, TaskContext, ProjectContext, AgentContext with optimistic local updates |
+| **Step 5** | **Navigation Infrastructure** | React Navigation AuthStack, 5-Tab Bottom Dock (Today, Inbox, Projects, Notes, Copilot), custom header |
+| **Step 6** | **Native Task Management & Swipe Gestures** | 60fps FlatList, SwipeableTaskRow with haptic feedback, AddTask modal |
+| **Step 7** | **Projects & Notes Mobile Screens** | Project folder cards with progress meters, dual-format Notes (.md / .txt) reader & checklist sync |
+| **Step 8** | **AI Copilot Mobile Console** | Interactive AI chat, tool execution audit feed, quick prompts, and live state invalidation |
+| **Step 9** | **Profile, Settings & Server Switching** | Developer profile, velocity analytics, dynamic backend server switcher (Local ↔ Render Cloud) |
+| **Step 10** | **Polish, Multi-Platform Testing & Build Config** | Safe area handling, offline banner, EAS Build configuration (`eas.json`), verification report |
 
 ---
 
 ## 4. 📝 Progress Log: Step-by-Step Breakdown
 
-*Status: Planned (Will begin after Phase 1 & 2 backend core are verified).*
-
-| Step | Description | Status |
-| :--- | :--- | :--- |
-| **Step 1** | Expo React Native Project Scaffold | ⏳ Pending |
-| **Step 2** | Mobile API Client & IP Config | ⏳ Pending |
-| **Step 3** | Color Tokens & Theme System | ⏳ Pending |
-| **Step 4** | Bottom Tab Navigation Setup | ⏳ Pending |
-| **Step 5** | Native Task Lists & Haptics | ⏳ Pending |
-| **Step 6** | AI Voice/Text Command Interface | ⏳ Pending |
-| **Step 7** | Multi-Platform Device Verification | ⏳ Pending |
+| Step | Description | Status | Commit / Notes |
+| :--- | :--- | :--- | :--- |
+| **Step 1** | Expo React Native Project Scaffold | ✅ Completed | Initialized Expo SDK 52, `app.json`, `package.json`, `index.js`, `App.js` |
+| **Step 2** | Design System & Theme Tokens | ⏳ Pending | `colors.js`, `typography.js`, native UI primitives |
+| **Step 3** | Network Service & Host Resolver | ⏳ Pending | `api.js` with Render Cloud & local fallback |
+| **Step 4** | Global State Contexts & Storage | ⏳ Pending | Auth, Task, Project & Agent contexts |
+| **Step 5** | Navigation Infrastructure | ⏳ Pending | Bottom Tabs & Stack navigation |
+| **Step 6** | Native Task Lists & Swipe Gestures | ⏳ Pending | Swipeable rows + Haptics |
+| **Step 7** | Projects & Notes Mobile Screens | ⏳ Pending | Project cards & Notes markdown reader |
+| **Step 8** | AI Copilot Mobile Console | ⏳ Pending | Tool execution audit feed & chat |
+| **Step 9** | Profile & Server Switcher | ⏳ Pending | Developer profile & dynamic host switch |
+| **Step 10** | Polish & EAS Build Configuration | ⏳ Pending | Cross-platform verification & `eas.json` |
 
 ---
 
-*This document will be updated as soon as mobile app development begins.*
+## 5. 🛠️ Step-by-Step Implementation Details
+
+### Step 1: Expo Project Scaffold & Core Dependencies
+
+#### 1. What Was Done
+- Scaffolded the official Expo React Native environment inside `mobile/`.
+- Configured application metadata in `app.json` for Android and iOS targeting bundle identifier `com.kortex.todo`.
+- Configured Babel transformation in `babel.config.js` with `babel-preset-expo`.
+- Defined runtime entrypoint in `index.js` using Expo's `registerRootComponent`.
+- Created initial root component in `App.js` featuring the Kortex Obsidian Dark styling.
+- Installed 920 required native packages across navigation, haptics, vector icons, SVG rendering, safe area contexts, and gesture handling.
+
+#### 2. How It Was Done
+- **`package.json`**: Configured compatible package versions:
+  - `expo`: `~52.0.0`
+  - `react`: `18.3.1` (aligned identically with the Kortex web frontend)
+  - `react-native`: `0.76.6`
+  - `@react-navigation/native` & `@react-navigation/bottom-tabs`: `^7.0.0`
+  - `expo-haptics`: `~14.0.0` (tactile vibrations)
+  - `lucide-react-native`: `^0.475.0` (futuristic vector icons)
+  - `react-native-gesture-handler`: `~2.20.2` (smooth 60fps swipe gestures)
+  - `react-native-safe-area-context`: `4.12.0` (edge-to-edge support for notches and home bars)
+- **`app.json`**:
+  ```json
+  {
+    "expo": {
+      "name": "Kortex",
+      "slug": "kortex",
+      "version": "1.0.0",
+      "orientation": "portrait",
+      "userInterfaceStyle": "dark",
+      "splash": {
+        "backgroundColor": "#060810"
+      },
+      "android": {
+        "package": "com.kortex.todo"
+      },
+      "ios": {
+        "bundleIdentifier": "com.kortex.todo"
+      }
+    }
+  }
+  ```
+- **Verification**: Executed `npm install --no-audit` with zero resolution conflicts.
+
+#### 3. Why It Was Done
+- **Cross-Platform Consistency**: Using React 18.3.1 allows maximum code/concept reuse between the React web app and React Native mobile app.
+- **Expo Managed Workflow**: Avoids brittle manual Xcode/Android Studio native linking while supporting modern New Architecture (`newArchEnabled: true`) and OTA updates.
+- **OLED First**: Initialized default black background (`#060810`) and light status bar right from the root configuration to prevent white-flash flicker on boot.
