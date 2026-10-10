@@ -623,7 +623,22 @@ import * as Asset from 'expo-asset';
 - **Location**: Bundler plugin integration in `@expo/metro-config` and `app.json`.
 - **Detailed Breakdown**:
   - **Why used**: Required by `@expo/metro-config` in Expo SDK 52 to resolve, cache, and serve static assets (`icon.png`, `splash.png`, `adaptive-icon.png`).
-  - **What happened**: Fixed the runtime startup exception `Error: The required package 'expo-asset' cannot be found`. Metro now bundles all 2,480 modules seamlessly.
+  - **What happened**: Fixed the runtime startup exception `Error: The required package 'expo-asset' cannot be found`. Metro now bundles all 2,561 modules seamlessly.
   - **What would fail without it**: `expo start` immediately aborts during the Metro bundler startup hook `getAssetPlugins`.
+
+---
+
+### 7. Gesture Engine & Root Provider (`react-native-gesture-handler`)
+```javascript
+import 'react-native-gesture-handler';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+```
+- **Package**: `react-native-gesture-handler`
+- **Location**: [`mobile/index.js`](file:///d:/Coding/Projects/todo/mobile/index.js), [`mobile/App.js`](file:///d:/Coding/Projects/todo/mobile/App.js)
+- **Detailed Breakdown**:
+  - **Why used**: Provides 60fps touch gesture processing natively on the UI thread for swipe actions, modal dismissing, and scroll containers.
+  - **What happened**: Placing `import 'react-native-gesture-handler'` at the very top of `index.js` and wrapping the entire root application in `<GestureHandlerRootView style={{ flex: 1 }}>` prevents the dreaded blue screen `Something went wrong` in Expo Go on Android.
+  - **What would fail without it**: On physical Android devices, any gesture detector or nested scroll view immediately crashes the React Native bridge on load.
+
 
 
