@@ -76,7 +76,7 @@ d:\Coding\Projects\todo\mobile/
 | **Step 2** | Design System & Theme Tokens | ✅ Completed | `colors.js`, `typography.js`, `ScreenContainer`, `CustomButton`, `PriorityBadge`, `Header`, `useHaptics` |
 | **Step 3** | Network Service & Host Resolver | ✅ Completed | `api.js` with Render Cloud & local fallback, `storage.js` |
 | **Step 4** | Global State Contexts & Storage | ✅ Completed | `AuthContext`, `ProjectContext`, `TaskContext`, `AgentContext` |
-| **Step 5** | Navigation Infrastructure | ⏳ Pending | Bottom Tabs & Stack navigation |
+| **Step 5** | Navigation Infrastructure | ✅ Completed | `BottomTabNavigator`, `AppNavigator`, 5-Tab dock with Lucide icons |
 | **Step 6** | Native Task Lists & Swipe Gestures | ⏳ Pending | Swipeable rows + Haptics |
 | **Step 7** | Projects & Notes Mobile Screens | ⏳ Pending | Project cards & Notes markdown reader |
 | **Step 8** | AI Copilot Mobile Console | ⏳ Pending | Tool execution audit feed & chat |
@@ -237,3 +237,42 @@ d:\Coding\Projects\todo\mobile/
 #### 3. Why It Was Done
 - **High-Response Ergonomics**: Mobile users expect immediate tactile and visual responses when interacting with checklists. Optimistic UI updates prevent jarring network lag.
 - **AI-Data Coupling**: Connecting the AI Copilot to the Task and Project contexts ensures that when the AI creates a task via tool calling, it immediately reflects across all screens without manual pull-to-refresh.
+
+---
+
+### Step 5: Navigation Infrastructure (`src/navigation/`)
+
+#### 1. What Was Done
+- Built the React Navigation routing architecture combining `@react-navigation/native-stack` and `@react-navigation/bottom-tabs`.
+- Configured a persistent 5-tab bottom dock in `src/navigation/BottomTabNavigator.js`:
+  1. 📅 **Today**: Daily agenda and urgent checklist (`TodayScreen.js`).
+  2. 📥 **Inbox**: Quick capture & backlog triage (`InboxScreen.js`).
+  3. 📁 **Projects**: Workspace folders and project progress (`ProjectsScreen.js`).
+  4. 📝 **Notes**: Dual-format Markdown / Plain-text scratchpads (`NotesScreen.js`).
+  5. 🤖 **Copilot**: Autonomous AI Copilot conversation console (`AgentScreen.js`).
+- Created modal stack layers in `src/navigation/AppNavigator.js` for `ProfileScreen.js` and `AuthScreen.js`.
+- Configured a custom `KortexNavigationTheme` matching Obsidian Black (`#060810`), Cobalt Blue (`#1d4ed8`), and border accents (`rgba(255, 255, 255, 0.07)`).
+- Integrated `useHaptics` on bottom tab presses for tactile feedback.
+
+#### 2. How It Was Done
+- **`BottomTabNavigator.js`**: Styled tab dock using Lucide vector icons (`Calendar`, `Inbox`, `FolderKanban`, `FileText`, `Sparkles`) and configured `screenListeners`:
+  ```javascript
+  screenListeners={{
+    tabPress: () => {
+      haptics.triggerLight();
+    },
+  }}
+  ```
+- **`AppNavigator.js`**: Built root stack with custom presentation modes:
+  ```javascript
+  <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+    <Stack.Screen name="Main" component={BottomTabNavigator} />
+    <Stack.Screen name="Profile" component={ProfileScreen} options={{ presentation: 'modal' }} />
+    <Stack.Screen name="Auth" component={AuthScreen} options={{ presentation: 'fullScreenModal' }} />
+  </Stack.Navigator>
+  ```
+- **Verification**: Verified JSX syntax across all 10 navigation and screen files with `@babel/core`—all 10 compiled with 0 errors.
+
+#### 3. Why It Was Done
+- **Thumb-Zone Usability**: Mobile ergonomic best practices place high-frequency navigation actions within easy reach of the user's thumb at the bottom of the display.
+- **Deep Hierarchical Separation**: Using native stack modals allows settings, developer profiles, and task creation bottom sheets to slide smoothly over the active tab without unmounting background state.
