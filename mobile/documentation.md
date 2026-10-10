@@ -78,7 +78,7 @@ d:\Coding\Projects\todo\mobile/
 | **Step 4** | Global State Contexts & Storage | ✅ Completed | `AuthContext`, `ProjectContext`, `TaskContext`, `AgentContext` |
 | **Step 5** | Navigation Infrastructure | ✅ Completed | `BottomTabNavigator`, `AppNavigator`, 5-Tab dock with Lucide icons |
 | **Step 6** | Native Task Lists & Swipe Gestures | ✅ Completed | `SwipeableTaskRow`, `AddTaskModal`, `TodayScreen`, `InboxScreen` |
-| **Step 7** | Projects & Notes Mobile Screens | ⏳ Pending | Project cards & Notes markdown reader |
+| **Step 7** | Projects & Notes Mobile Screens | ✅ Completed | `ProjectsScreen`, `NotesScreen`, Checklist Sync to Tasks |
 | **Step 8** | AI Copilot Mobile Console | ⏳ Pending | Tool execution audit feed & chat |
 | **Step 9** | Profile & Server Switcher | ⏳ Pending | Developer profile & dynamic host switch |
 | **Step 10** | Polish & EAS Build Configuration | ⏳ Pending | Cross-platform verification & `eas.json` |
@@ -326,3 +326,51 @@ d:\Coding\Projects\todo\mobile/
 #### 3. Why It Was Done
 - **Ergonomic Friction Reduction**: Developers frequently capture tasks on the move. Having an immediate inline capture bar in Inbox and a persistent FAB in Today reduces the taps required from 4 down to 1.
 - **Visual Motivation**: The dynamic progress bar and completion rate percentage give users satisfying visual progression as they work through their daily checklist.
+
+---
+
+### Step 7: Projects & Notes Mobile Screens (`src/screens/`)
+
+#### 1. What Was Done
+- Built `src/screens/ProjectsScreen.js`:
+  - Workspace cards with color badges, descriptions, and dynamic progress bars displaying `X / Y tasks completed` and completion rate percentages.
+  - Drill-down navigation: tapping a project filters tasks in the `Today` screen.
+  - Interactive "New Project Workspace" modal with custom color swatch picker (`#1d4ed8`, `#10b981`, `#f59e0b`, `#ef4444`, `#8b5cf6`, `#06b6d4`, `#ec4899`).
+- Built `src/screens/NotesScreen.js`:
+  - Dual-format notes workspace with `MD` (Markdown) and `TXT` (Plain Text) format chips.
+  - Implemented **"Sync Checklist to Tasks"** action button: calls `/api/v1/notes/{id}/sync-checklists` to automatically parse `- [ ]` checklist items from notes and inject them as new actionable tasks into the user's Inbox.
+  - "New Developer Note" modal supporting instant format toggle between Markdown and Plain Text.
+  - Full-screen modal note reader with monospaced code display.
+
+#### 2. How It Was Done
+- **Two-Way Bridge (Checklist Sync to Tasks)**:
+  ```javascript
+  const handleSyncChecklist = async (noteId) => {
+    setIsSyncing(true);
+    try {
+      await NoteAPI.syncChecklists(noteId);
+      haptics.triggerSuccess();
+      Alert.alert('Checklist Synced!', 'Unchecked items converted into Inbox tasks.');
+      fetchTasks();
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+  ```
+- **Project Progress Metrics Calculation**:
+  ```javascript
+  const projectStats = React.useMemo(() => {
+    const stats = {};
+    projects.forEach((p) => {
+      const pTasks = tasks.filter((t) => t.project_id === p.id);
+      const rate = pTasks.length > 0 ? Math.round((pTasks.filter(t => t.completed).length / pTasks.length) * 100) : 0;
+      stats[p.id] = { total: pTasks.length, completed: pTasks.filter(t => t.completed).length, rate };
+    });
+    return stats;
+  }, [projects, tasks]);
+  ```
+- **Verification**: Verified JSX transpilation of `ProjectsScreen.js` and `NotesScreen.js` via `@babel/core`—both compiled with 0 errors.
+
+#### 3. Why It Was Done
+- **Cross-Platform Parity**: Brings the web platform's standout Markdown vs Plain Text note system and automated checklist conversion directly to native mobile screens.
+- **Project Visibility**: Visual progress tracks on project cards allow developers to quickly assess which work streams are blocked or nearing completion directly from their phone.
