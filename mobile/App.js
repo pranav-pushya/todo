@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import ErrorBoundary from './src/components/common/ErrorBoundary.js';
 import { AuthProvider } from './src/context/AuthContext.js';
 import { ProjectProvider } from './src/context/ProjectContext.js';
 import { TaskProvider } from './src/context/TaskContext.js';
@@ -13,20 +14,22 @@ import colors from './src/theme/colors.js';
 
 export default function App() {
   return (
-    <GestureHandlerRootView style={styles.root}>
-      <SafeAreaProvider>
-        <AuthProvider>
-          <ProjectProvider>
-            <TaskProvider>
-              <AgentProvider>
-                <StatusBar style="light" />
-                <AppNavigator />
-              </AgentProvider>
-            </TaskProvider>
-          </ProjectProvider>
-        </AuthProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <ErrorBoundary>
+      <GestureHandlerRootView style={styles.root}>
+        <SafeAreaProvider>
+          <AuthProvider>
+            <ProjectProvider>
+              <TaskProvider>
+                <AgentProvider>
+                  <StatusBar style="light" />
+                  <AppNavigator />
+                </AgentProvider>
+              </TaskProvider>
+            </ProjectProvider>
+          </AuthProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
 

@@ -3,12 +3,19 @@ import { AgentAPI } from '../services/api.js';
 
 const AgentContext = createContext(null);
 
+const formatTime = (d = new Date()) => {
+  const date = new Date(d);
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
 const INITIAL_MESSAGES = [
   {
     id: 1,
     sender: 'agent',
     text: "Hello! I am your autonomous Kortex Copilot. I can create tasks, organize projects, schedule sprints, or triage your daily workload. What would you like to build or accomplish today?",
-    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    timestamp: formatTime(),
     tool_calls: [],
   },
 ];
@@ -38,7 +45,7 @@ export function AgentProvider({ children }) {
       id: Date.now(),
       sender: 'user',
       text: prompt,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: formatTime(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -53,7 +60,7 @@ export function AgentProvider({ children }) {
         text: response?.response || response?.message || 'Command executed successfully.',
         action: response?.action,
         tool_calls: response?.tool_calls || response?.tools_executed || [],
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: formatTime(),
       };
 
       setMessages((prev) => [...prev, agentMessage]);
@@ -71,7 +78,7 @@ export function AgentProvider({ children }) {
         sender: 'agent',
         text: `Processed command: "${prompt}". (Note: Running in local sandbox mode).`,
         tool_calls: [{ name: 'local_task_resolver', status: 'completed' }],
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: formatTime(),
       };
       setMessages((prev) => [...prev, mockReply]);
       if (onTasksMutated) onTasksMutated();

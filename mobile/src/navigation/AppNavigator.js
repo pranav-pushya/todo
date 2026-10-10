@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomTabNavigator from './BottomTabNavigator.js';
@@ -28,7 +29,7 @@ export default function AppNavigator() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: colors.background },
-          animation: 'fade_from_bottom',
+          animation: 'default',
         }}
       >
         <Stack.Screen name="Main" component={BottomTabNavigator} />
@@ -36,7 +37,7 @@ export default function AppNavigator() {
           name="Profile"
           component={ProfileScreen}
           options={{
-            presentation: 'modal',
+            presentation: Platform.OS === 'ios' ? 'modal' : 'card',
             animation: 'slide_from_bottom',
           }}
         />
@@ -44,7 +45,7 @@ export default function AppNavigator() {
           name="Auth"
           component={AuthScreen}
           options={{
-            presentation: 'fullScreenModal',
+            presentation: Platform.OS === 'ios' ? 'fullScreenModal' : 'card',
           }}
         />
       </Stack.Navigator>

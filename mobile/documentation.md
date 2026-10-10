@@ -596,3 +596,42 @@ npm test
 cd mobile
 npx eas-cli build -p android --profile preview
 ```
+
+---
+
+## 7. 🛡️ Physical Device Stability & Blue Screen Resolution
+
+### 1. Root Cause Diagnosis of Physical Android "Blue Screen"
+
+On physical Android devices inside **Expo Go**, an unhandled fatal exception during bundle evaluation or initial mount causes Expo Go to unmount the entire application and show its fallback screen:
+> *"Something went wrong. Sorry about that. You can go back to Expo home or try to reload the project."*
+
+Comprehensive static and dynamic runtime analysis identified 4 critical factors:
+1. **Top-Level `toLocaleTimeString` in `AgentContext.js`**: `INITIAL_MESSAGES` executed `new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })` at top-level module load time. On Android Hermes / JavaScriptCore engines without full ICU locale bundles, calling `toLocaleTimeString` with options throws an unhandled `RangeError: Unsupported locale or options` before the root component even mounts.
+2. **Missing Root Error Boundary**: Without an `ErrorBoundary` wrapping the React root, any runtime error thrown during child render causes React Native to unmount the entire tree, triggering Expo Go's fatal screen.
+3. **Android Native Stack Presentation Conflict**: In `AppNavigator.js`, `@react-navigation/native-stack` configured `presentation: 'modal'`, `presentation: 'fullScreenModal'`, and `animation: 'fade_from_bottom'`. On native Android, `presentation: 'modal'` is an iOS-specific paradigm that can cause FragmentManager transaction failures in Expo Go.
+4. **Relative Import Extension**: `src/components/common/Header.js` imported `../../theme/colors` without `.js`.
+
+### 2. Implementation Details
+
+- **Arithmetic `formatTime` Helper (`src/context/AgentContext.js`)**:
+  Replaced all `toLocaleTimeString` calls with zero-dependency arithmetic timestamp formatting:
+  ```javascript
+  const formatTime = (d = new Date()) => {
+    const date = new Date(d);
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+  ```
+- **Obsidian Dark `ErrorBoundary` Component (`src/components/common/ErrorBoundary.js`)**:
+  Catches any runtime JS or component render exception, displays the error message, component stack, and provides "Reload Interface" and "Reset Storage & Cache" recovery actions.
+- **Root Protection (`App.js`)**:
+  Wrapped the root component inside `<ErrorBoundary>`.
+- **Cross-Platform Navigation Options (`src/navigation/AppNavigator.js`)**:
+  Conditioned modal presentations to iOS only:
+  ```javascript
+  presentation: Platform.OS === 'ios' ? 'modal' : 'card'
+  ```
+- **Strict Extensions**: Fixed `Header.js` colors import to `../../theme/colors.js`.
+
