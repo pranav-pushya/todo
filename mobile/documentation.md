@@ -73,7 +73,7 @@ d:\Coding\Projects\todo\mobile/
 | Step | Description | Status | Commit / Notes |
 | :--- | :--- | :--- | :--- |
 | **Step 1** | Expo React Native Project Scaffold | ✅ Completed | Initialized Expo SDK 52, `app.json`, `package.json`, `index.js`, `App.js` |
-| **Step 2** | Design System & Theme Tokens | ⏳ Pending | `colors.js`, `typography.js`, native UI primitives |
+| **Step 2** | Design System & Theme Tokens | ✅ Completed | `colors.js`, `typography.js`, `ScreenContainer`, `CustomButton`, `PriorityBadge`, `Header`, `useHaptics` |
 | **Step 3** | Network Service & Host Resolver | ⏳ Pending | `api.js` with Render Cloud & local fallback |
 | **Step 4** | Global State Contexts & Storage | ⏳ Pending | Auth, Task, Project & Agent contexts |
 | **Step 5** | Navigation Infrastructure | ⏳ Pending | Bottom Tabs & Stack navigation |
@@ -134,3 +134,41 @@ d:\Coding\Projects\todo\mobile/
 - **Cross-Platform Consistency**: Using React 18.3.1 allows maximum code/concept reuse between the React web app and React Native mobile app.
 - **Expo Managed Workflow**: Avoids brittle manual Xcode/Android Studio native linking while supporting modern New Architecture (`newArchEnabled: true`) and OTA updates.
 - **OLED First**: Initialized default black background (`#060810`) and light status bar right from the root configuration to prevent white-flash flicker on boot.
+
+---
+
+### Step 2: Design System, Theme Tokens & Native Primitives
+
+#### 1. What Was Done
+- Created central design system tokens in `src/theme/colors.js` matching Kortex's signature Obsidian Black, Pure White, and Cobalt Blue palette.
+- Created typography tokens in `src/theme/typography.js` for consistent font sizes, weights, and line heights.
+- Created reusable native UI primitives:
+  - `src/components/common/ScreenContainer.js`: Safe area handling for Android navigation pills and iOS notches.
+  - `src/components/common/PriorityBadge.js`: P1 (Urgent/Red), P2 (High/Orange), P3 (Medium/Blue), P4 (Low/Slate) chips.
+  - `src/components/common/CustomButton.js`: Native pressable with cobalt blue states, loading spinners, and press opacity feedback.
+  - `src/components/common/Header.js`: Persistent top branding bar with "⚡ Kortex" logo and action buttons.
+  - `src/hooks/useHaptics.js`: Custom hook providing safe tactile feedback with try/catch fallbacks for physical devices and simulators.
+
+#### 2. How It Was Done
+- **`colors.js`**: Defined tokens including `background: '#060810'`, `surfaceCard: '#0e1320'`, `cobaltPrimary: '#1d4ed8'`, `cobaltLight: '#3b82f6'`, and priority status colors.
+- **`ScreenContainer.js`**: Utilized `SafeAreaView` from `react-native-safe-area-context` and configured `<StatusBar barStyle="light-content" />`.
+- **`useHaptics.js`**:
+  ```javascript
+  import * as Haptics from 'expo-haptics';
+
+  export function useHaptics() {
+    const triggerLight = async () => {
+      try { await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
+    };
+    const triggerSuccess = async () => {
+      try { await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
+    };
+    return { triggerLight, triggerSuccess };
+  }
+  ```
+- **Verification**: Verified token loading via Node runtime (`node -e "require('./src/theme/colors'); ..."`) and rendered interactive preview in `App.js`.
+
+#### 3. Why It Was Done
+- **Brand Cohesion**: Guarantees the mobile user experiences the exact same visual identity and hierarchy established in the web app.
+- **Battery Optimization**: Deep OLED blacks (`#060810`) turn off pixels on modern OLED/AMOLED smartphone displays, conserving battery life.
+- **Device Independence**: Encapsulating safe area logic in `ScreenContainer` prevents content from clipping under camera punch holes, dynamic islands, or navigation bars.

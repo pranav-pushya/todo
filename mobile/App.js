@@ -1,34 +1,83 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+import { View, Text, StyleSheet } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import ScreenContainer from './src/components/common/ScreenContainer';
+import Header from './src/components/common/Header';
+import PriorityBadge from './src/components/common/PriorityBadge';
+import CustomButton from './src/components/common/CustomButton';
+import colors from './src/theme/colors';
+import useHaptics from './src/hooks/useHaptics';
+
+function MainPreview() {
+  const haptics = useHaptics();
+
+  return (
+    <ScreenContainer>
+      <Header
+        title="Kortex"
+        subtitle="Autonomous AI Workspace"
+        rightAction="Live API"
+        onRightActionPress={() => haptics.triggerLight()}
+      />
+      <View style={styles.content}>
+        <Text style={styles.heading}>Step 2 Design Tokens Verified</Text>
+        <Text style={styles.desc}>
+          Obsidian Dark theme tokens, priority indicators, and haptic feedback hooks are active.
+        </Text>
+
+        <View style={styles.badgeRow}>
+          <PriorityBadge priority="P1" />
+          <PriorityBadge priority="P2" />
+          <PriorityBadge priority="P3" />
+          <PriorityBadge priority="P4" />
+        </View>
+
+        <CustomButton
+          title="Test Tactile Haptic Tap"
+          variant="primary"
+          onPress={() => haptics.triggerSuccess()}
+          style={styles.btn}
+        />
+      </View>
+    </ScreenContainer>
+  );
+}
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>⚡ Kortex Mobile</Text>
-      <Text style={styles.subtitle}>Autonomous AI Developer Platform & Workspace</Text>
-      <StatusBar style="light" />
-    </View>
+    <SafeAreaProvider>
+      <MainPreview />
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  content: {
     flex: 1,
-    backgroundColor: '#060810',
-    alignItems: 'center',
-    justifyContent: 'center',
     padding: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',
+  heading: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.textPrimary,
     marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#94a3b8',
     textAlign: 'center',
+  },
+  desc: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 24,
+  },
+  btn: {
+    width: '100%',
   },
 });
