@@ -11,8 +11,10 @@ let activeBaseUrl = SERVER_PRESETS[0].url; // Default to production Render API
 
 export async function initApiHost() {
   const saved = await storage.getItem('kortex_api_host');
-  if (saved) {
+  if (saved && (saved.startsWith('https://') || typeof __DEV__ !== 'undefined' && __DEV__)) {
     activeBaseUrl = saved;
+  } else {
+    activeBaseUrl = SERVER_PRESETS[0].url;
   }
   return activeBaseUrl;
 }

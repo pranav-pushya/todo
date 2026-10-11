@@ -669,6 +669,24 @@ const formatTime = (d = new Date()) => {
   - **What happened**: Fixed a fatal startup crash on physical Android phones where `toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })` threw a `RangeError: Unsupported locale or options` during module evaluation on Android Hermes/JSC engines.
   - **What would fail without it**: The app fails to boot on Android devices with compact or truncated ICU locale data.
 
+---
+
+### 10. Local-First Browser & Mobile State Synchronization
+```javascript
+const getStoredTasks = () => {
+  try {
+    const raw = localStorage.getItem('todo_local_tasks');
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return DEFAULT_DEMO_TASKS;
+};
+```
+- **Location**: [`web/src/context/TaskContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/TaskContext.jsx), [`web/src/context/NoteContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/NoteContext.jsx), [`web/src/context/ProjectContext.jsx`](file:///d:/Coding/Projects/todo/web/src/context/ProjectContext.jsx)
+- **Detailed Breakdown**:
+  - **Why used**: Ensures data is never lost or reset to zero when the user is logged out, offline, or when the backend server is sleeping (Render free tier cold-start).
+  - **What happened**: When logged in, mutations write to the cloud API and mirror in local storage; when logged out (or server unreachable), all actions seamlessly operate on the browser's local cache.
+
+
 
 
 

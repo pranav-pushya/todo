@@ -3038,3 +3038,26 @@ npm run dev
    - Live on Render Cloud: [https://kortex-xnin.onrender.com/api/v1](https://kortex-xnin.onrender.com/api/v1)
    - Verified health endpoint status: `200 OK` (`{"status":"healthy","database":"connected","version":"1.0.0"}`).
    - Connected with auto-deploy on git push from `main`.
+
+---
+
+### 🟢 Local-First Browser Persistence & Session Protection
+
+> **💡 Hinglish Summary:**  
+> Is update mein webapp mein local-first persistence add kiya gaya hai jisse user ka data browser mein hamesha safe rahega aur zero reset hoga. Agar user logged out hai ya guest mode mein hai, tab bhi saare tasks, notes aur projects `localStorage` mein persist rahenge. Saath hi Render cold-start ya network drops par user automatically log out nahi hoga.
+
+#### A. What Was Fixed:
+1. **Prevented Unexpected Auto-Logout (`web/src/context/AuthContext.jsx`)**:
+   - **Root Cause**: When Render free tier spins down or cold starts (returning 502/504 or network timeout), `refreshProfile()` caught the exception and unconditionally called `clearAuthSession()`, deleting tokens from `localStorage` and logging the user out.
+   - **Resolution**: Updated `refreshProfile()` to only clear sessions on explicit HTTP 401 Unauthorized responses. On network drops or server cold starts, the user's authenticated session and profile are preserved.
+   - **Guest Session Support**: Added `loginAsGuest()` so users can explore all features in sandbox mode without being forced to authenticate.
+
+2. **Local-First Task Persistence (`web/src/context/TaskContext.jsx`)**:
+   - Tasks are initialized directly from `localStorage` (`todo_local_tasks`).
+   - When **logged out / guest**: Tasks are created, updated, toggled, and deleted directly in `localStorage` without requiring server access.
+   - When **logged in**: Tasks are synchronized to the backend API while continuously mirrored in `localStorage`.
+   - **Zero-Data Reset Guarantee**: If the backend is cold-starting or offline, the UI serves cached local tasks so the screen is never blank or reset to zero.
+
+3. **Local-First Notes & Projects (`web/src/context/NoteContext.jsx`, `ProjectContext.jsx`)**:
+   - Both Notes (`todo_local_notes`) and Projects (`todo_local_projects`) now follow the identical offline-first caching pattern, guaranteeing that user documentation and custom workspaces persist permanently across page reloads.
+

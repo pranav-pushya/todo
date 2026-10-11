@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -18,19 +18,47 @@ import useHaptics from '../../hooks/useHaptics.js';
 import { useTasks } from '../../context/TaskContext.js';
 import { useProjects } from '../../context/ProjectContext.js';
 
-export default function AddTaskModal({ visible, onClose, initialView = 'today' }) {
+export default function AddTaskModal({ visible, onClose, initialView = 'today', taskToEdit = null }) {
   const haptics = useHaptics();
-  const { createTask } = useTasks();
+  const { createTask, updateTask } = useTasks();
   const { projects } = useProjects();
+
+  const isEditing = Boolean(taskToEdit);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('P2');
   const [projectId, setProjectId] = useState(null);
-  const [dueDateType, setDueDateType] = useState(initialView === 'today' ? 'today' : 'none');
+  const [dueDateType, setDueDateType] = useState('today');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const priorities = ['P1', 'P2', 'P3', 'P4'];
+
+  useEffect(() => {
+    if (taskToEdit) {
+      setTitle(taskToEdit.title || '');
+      setDescription(taskToEdit.description || '');
+      setPriority(taskToEdit.priority || 'P2');
+      setProjectId(taskToEdit.project_id || null);
+      if (!taskToEdit.due_date) {
+        setDueDateType('none');
+      } else {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const taskDueStr = taskToEdit.due_date.slice(0, 10);
+        if (taskDueStr === todayStr) {
+          setDueDateType('today');
+        } else {
+          setDueDateType('tomorrow');
+        }
+      }
+    } else {
+      setTitle('');
+      setDescription('');
+      setPriority('P2');
+      setProjectId(null);
+      setDueDateType(initialView === 'today' ? 'today' : 'none');
+    }
+  }, [taskToEdit, visible, initialView]);
 
   const handleSubmit = async () => {
     if (!title.trim()) return;
@@ -48,18 +76,26 @@ export default function AddTaskModal({ visible, onClose, initialView = 'today' }
     }
 
     try {
-      await createTask({
-        title: title.trim(),
-        description: description.trim(),
-        priority,
-        project_id: projectId,
-        due_date: computedDueDate,
-        tags: ['mobile'],
-      });
+      if (isEditing && taskToEdit) {
+        await updateTask(taskToEdit.id, {
+          title: title.trim(),
+          description: description.trim(),
+          priority,
+          project_id: projectId,
+          due_date: computedDueDate,
+        });
+      } else {
+        await createTask({
+          title: title.trim(),
+          description: description.trim(),
+          priority,
+          project_id: projectId,
+          due_date: computedDueDate,
+          tags: ['mobile'],
+        });
+      }
 
       haptics.triggerSuccess();
-      setTitle('');
-      setDescription('');
       onClose();
     } catch {
       haptics.triggerError();
@@ -81,7 +117,7 @@ export default function AddTaskModal({ visible, onClose, initialView = 'today' }
       >
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text style={styles.sheetTitle}>Create New Task</Text>
+            <Text style={styles.sheetTitle}>{isEditing ? 'Edit Task' : 'Create New Task'}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
               <X size={20} color={colors.textSecondary} />
             </TouchableOpacity>
@@ -214,7 +250,7 @@ export default function AddTaskModal({ visible, onClose, initialView = 'today' }
               style={styles.cancelBtn}
             />
             <CustomButton
-              title="Create Task"
+              title={isEditing ? 'Save Changes' : 'Create Task'}
               variant="primary"
               loading={isSubmitting}
               disabled={!title.trim()}

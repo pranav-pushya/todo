@@ -10,7 +10,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { Zap, ShieldCheck } from 'lucide-react-native';
+import { Zap, ShieldCheck, X } from 'lucide-react-native';
 import ScreenContainer from '../components/common/ScreenContainer.js';
 import CustomButton from '../components/common/CustomButton.js';
 import colors from '../theme/colors.js';
@@ -69,6 +69,17 @@ export default function AuthScreen({ navigation }) {
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Top Dismiss Button */}
+          <View style={styles.topNav}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.closeBtn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <X size={22} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
           {/* Logo & Branding */}
           <View style={styles.brandHeader}>
             <View style={styles.logoBadge}>
@@ -200,6 +211,22 @@ const styles = StyleSheet.create({
     padding: 24,
     justifyContent: 'center',
     minHeight: '100%',
+  },
+  topNav: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    zIndex: 10,
+  },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surfaceCard,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   brandHeader: {
     alignItems: 'center',

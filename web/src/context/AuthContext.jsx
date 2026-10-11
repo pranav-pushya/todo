@@ -43,24 +43,11 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('todo_user_profile');
   };
 
-  // Re-fetch profile on mount or token change
+  // Re-fetch profile on mount or token change without aggressive auto-logout
   const refreshProfile = useCallback(async () => {
     const currentToken = localStorage.getItem('todo_auth_token');
     if (!currentToken) {
-      // Auto-connect with demo profile if no existing session
-      try {
-        const res = await AuthAPI.login({
-          email_or_username: 'demo@example.com',
-          password: 'demo123',
-        });
-        if (res?.access_token && res?.user) {
-          saveAuthSession(res.access_token, res.user);
-        }
-      } catch (err) {
-        console.warn('Silent demo sign-in bypassed:', err.message);
-      } finally {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
       return;
     }
 
@@ -71,12 +58,38 @@ export function AuthProvider({ children }) {
         localStorage.setItem('todo_user_profile', JSON.stringify(profile));
       }
     } catch (err) {
-      console.warn('Session expired or invalid, clearing session:', err.message);
-      clearAuthSession();
+      const errorStr = String(err?.message || '');
+      const isExplicit401 =
+        errorStr.includes('401') ||
+        errorStr.toLowerCase().includes('unauthorized') ||
+        errorStr.toLowerCase().includes('invalid token') ||
+        errorStr.toLowerCase().includes('could not validate');
+
+      if (isExplicit401) {
+        console.warn('Session expired or invalidated by server, clearing session:', err.message);
+        clearAuthSession();
+      } else {
+        // Network drop, Render cold-start, or 502/503: DO NOT log out user!
+        console.warn('Temporary network/server issue. Preserving authenticated session:', err.message);
+      }
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  const loginAsGuest = () => {
+    const guestUser = {
+      id: 'guest',
+      username: 'GuestDeveloper',
+      email: 'guest@kortex.dev',
+      full_name: 'Guest Developer',
+      role: 'Staff Engineer',
+      is_guest: true,
+    };
+    setUser(guestUser);
+    localStorage.setItem('todo_user_profile', JSON.stringify(guestUser));
+    return guestUser;
+  };
 
   useEffect(() => {
     refreshProfile();
@@ -215,6 +228,7 @@ export function AuthProvider({ children }) {
     loginWithGoogle,
     sendFirebasePasswordReset,
     logout,
+    loginAsGuest,
     updateProfile,
     changePassword,
     refreshProfile,

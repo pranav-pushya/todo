@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Check, Trash2, Tag, Calendar } from 'lucide-react-native';
+import { Check, Trash2, Tag, Calendar, Pencil } from 'lucide-react-native';
 import PriorityBadge from '../common/PriorityBadge.js';
 import colors from '../../theme/colors.js';
 import useHaptics from '../../hooks/useHaptics.js';
 
-export default function SwipeableTaskRow({ task, onToggle, onDelete, projectName, projectColor }) {
+export default function SwipeableTaskRow({ task, onToggle, onDelete, onEdit, projectName, projectColor }) {
   const haptics = useHaptics();
 
   const handleToggle = () => {
@@ -16,6 +16,11 @@ export default function SwipeableTaskRow({ task, onToggle, onDelete, projectName
   const handleDelete = () => {
     haptics.triggerLight();
     if (onDelete) onDelete(task.id);
+  };
+
+  const handleEdit = () => {
+    haptics.triggerLight();
+    if (onEdit) onEdit(task);
   };
 
   const formattedDate = task.due_date ? task.due_date.slice(0, 10) : null;
@@ -33,7 +38,11 @@ export default function SwipeableTaskRow({ task, onToggle, onDelete, projectName
         {task.completed && <Check size={14} color="#ffffff" strokeWidth={3} />}
       </TouchableOpacity>
 
-      <View style={styles.content}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={handleEdit}
+        style={styles.content}
+      >
         <View style={styles.topRow}>
           <Text
             style={[
@@ -77,16 +86,27 @@ export default function SwipeableTaskRow({ task, onToggle, onDelete, projectName
               </View>
             ))}
         </View>
-      </View>
-
-      <TouchableOpacity
-        onPress={handleDelete}
-        activeOpacity={0.6}
-        style={styles.deleteButton}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      >
-        <Trash2 size={16} color={colors.textMuted} />
       </TouchableOpacity>
+
+      <View style={styles.actionButtons}>
+        <TouchableOpacity
+          onPress={handleEdit}
+          activeOpacity={0.6}
+          style={styles.iconButton}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Pencil size={15} color={colors.cobaltLight} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleDelete}
+          activeOpacity={0.6}
+          style={styles.iconButton}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Trash2 size={15} color={colors.textMuted} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -195,9 +215,14 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.textMuted,
   },
-  deleteButton: {
-    padding: 4,
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginLeft: 8,
+    gap: 6,
     marginTop: 2,
+  },
+  iconButton: {
+    padding: 4,
   },
 });

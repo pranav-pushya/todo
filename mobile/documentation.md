@@ -635,3 +635,25 @@ Comprehensive static and dynamic runtime analysis identified 4 critical factors:
   ```
 - **Strict Extensions**: Fixed `Header.js` colors import to `../../theme/colors.js`.
 
+---
+
+## 8. 📝 Task & Note In-Place Editing, Profile Auth Flow & UI Refinements
+
+### 1. Task & Note Editing Support
+- **Task Editing**:
+  - `SwipeableTaskRow.js`: Added `onEdit` callback triggered by tapping the task body or the dedicated pencil button.
+  - `AddTaskModal.js`: Upgraded to support both creation and editing via `taskToEdit` prop. Pre-fills title, description, priority, workspace project, and due date. Calls `updateTask(id, updates)` on submission.
+  - Integrated into both `TodayScreen.js` and `InboxScreen.js`.
+- **Note Editing & Deletion**:
+  - `NotesScreen.js`: Readers can now tap the Pencil edit icon to modify note titles, format (Markdown `.md` vs Plain Text `.txt`), and content, updating via `NoteAPI.updateNote()`.
+  - Added in-modal note deletion with alert confirmation via `NoteAPI.deleteNote()`.
+
+### 2. Profile Screen Redesign & Auth Navigation
+- **Removal of Developer Options**: Developer gateway switchers (emulator loopbacks, custom IPs, health checks) are now tucked away inside a collapsed accordion (`Advanced Developer Settings`) at the bottom of the screen.
+- **Clear Auth Flow**:
+  - **Guest Mode**: Displays a prominent *"Sign In / Create Account"* button that navigates directly to `AuthScreen`.
+  - **Authenticated Mode**: Displays user credentials and a red *"Sign Out"* action that clears tokens and transitions to `AuthScreen`.
+  - **AuthScreen Dismissal**: Added a top-right `X` button so users can easily dismiss the authentication modal and return to their session.
+- **Cloud Synchronization**: Added a dedicated Cloud Sync card displaying connection status to Kortex Production Cloud and a 1-tap *"Sync Tasks & Workspaces Now"* action.
+
+

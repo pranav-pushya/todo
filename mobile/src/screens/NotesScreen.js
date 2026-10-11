@@ -12,7 +12,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { FileText, Plus, X, RefreshCw } from 'lucide-react-native';
+import { FileText, Plus, X, RefreshCw, Pencil, Trash2 } from 'lucide-react-native';
 import ScreenContainer from '../components/common/ScreenContainer.js';
 import Header from '../components/common/Header.js';
 import CustomButton from '../components/common/CustomButton.js';
@@ -45,9 +45,10 @@ export default function NotesScreen() {
   const [notes, setNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState(null);
   const [activeNote, setActiveNote] = useState(null);
 
-  // New Note form state
+  // Note form state
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [format, setFormat] = useState('markdown'); // 'markdown' | 'text'
@@ -74,34 +75,105 @@ export default function NotesScreen() {
     fetchNotes();
   }, [fetchNotes]);
 
-  const handleCreateNote = async () => {
+  const handleOpenCreate = () => {
+    haptics.triggerLight();
+    setEditingNoteId(null);
+    setTitle('');
+    setContent('');
+    setFormat('markdown');
+    setCreateModalVisible(true);
+  };
+
+  const handleStartEdit = (note) => {
+    haptics.triggerLight();
+    setEditingNoteId(note.id);
+    setTitle(note.title || '');
+    setContent(note.content || '');
+    setFormat(note.format || 'markdown');
+    setActiveNote(null);
+    setCreateModalVisible(true);
+  };
+
+  const handleSaveNote = async () => {
     if (!title.trim()) return;
 
     setIsSubmitting(true);
     haptics.triggerMedium();
 
     try {
-      const created = await NoteAPI.createNote({
-        title: title.trim(),
-        content: content.trim(),
-        format,
-      });
-      haptics.triggerSuccess();
-      setNotes((prev) => [created || { id: Date.now(), title, content, format }, ...prev]);
+      if (editingNoteId) {
+        // Edit existing note
+        const updated = await NoteAPI.updateNote(editingNoteId, {
+          title: title.trim(),
+          content: content.trim(),
+          format,
+        });
+        haptics.triggerSuccess();
+        setNotes((prev) =>
+          prev.map((n) =>
+            n.id === editingNoteId
+              ? { ...n, title: title.trim(), content: content.trim(), format }
+              : n
+          )
+        );
+      } else {
+        // Create new note
+        const created = await NoteAPI.createNote({
+          title: title.trim(),
+          content: content.trim(),
+          format,
+        });
+        haptics.triggerSuccess();
+        setNotes((prev) => [created || { id: Date.now(), title, content, format }, ...prev]);
+      }
+
       setTitle('');
       setContent('');
+      setEditingNoteId(null);
       setCreateModalVisible(false);
     } catch {
-      // Local optimistic note
-      const fallback = { id: Date.now(), title, content, format };
-      setNotes((prev) => [fallback, ...prev]);
+      // Local optimistic fallback
+      if (editingNoteId) {
+        setNotes((prev) =>
+          prev.map((n) =>
+            n.id === editingNoteId
+              ? { ...n, title: title.trim(), content: content.trim(), format }
+              : n
+          )
+        );
+      } else {
+        const fallback = { id: Date.now(), title, content, format };
+        setNotes((prev) => [fallback, ...prev]);
+      }
       haptics.triggerSuccess();
       setTitle('');
       setContent('');
+      setEditingNoteId(null);
       setCreateModalVisible(false);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDeleteNote = (noteId) => {
+    haptics.triggerMedium();
+    Alert.alert('Delete Note', 'Are you sure you want to delete this note?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          haptics.triggerLight();
+          try {
+            await NoteAPI.deleteNote(noteId);
+          } catch {
+            // Local delete
+          }
+          setNotes((prev) => prev.filter((n) => n.id !== noteId));
+          setActiveNote(null);
+        },
+      },
+    ]);
   };
 
   const handleSyncChecklist = async (noteId) => {
@@ -180,10 +252,7 @@ export default function NotesScreen() {
         title="Notes"
         subtitle="Dual-format scratchpads"
         rightAction="+ Note"
-        onRightActionPress={() => {
-          haptics.triggerLight();
-          setCreateModalVisible(true);
-        }}
+        onRightActionPress={handleOpenCreate}
       />
 
       <FlatList
@@ -208,7 +277,7 @@ export default function NotesScreen() {
               </Text>
               <CustomButton
                 title="Create First Note"
-                onPress={() => setCreateModalVisible(true)}
+                onPress={handleOpenCreate}
                 style={styles.emptyBtn}
               />
             </View>
@@ -216,12 +285,12 @@ export default function NotesScreen() {
         }
       />
 
-      {/* Create Note Modal */}
+      {/* Create / Edit Note Modal */}
       <Modal visible={createModalVisible} animationType="slide" transparent onRequestClose={() => setCreateModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>New Developer Note</Text>
+              <Text style={styles.modalTitle}>{editingNoteId ? 'Edit Developer Note' : 'New Developer Note'}</Text>
               <TouchableOpacity onPress={() => setCreateModalVisible(false)}>
                 <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
@@ -278,11 +347,11 @@ export default function NotesScreen() {
                 style={{ flex: 1 }}
               />
               <CustomButton
-                title="Save Note"
+                title={editingNoteId ? 'Save Changes' : 'Save Note'}
                 variant="primary"
                 disabled={!title.trim()}
                 loading={isSubmitting}
-                onPress={handleCreateNote}
+                onPress={handleSaveNote}
                 style={{ flex: 2 }}
               />
             </View>
@@ -290,19 +359,27 @@ export default function NotesScreen() {
         </View>
       </Modal>
 
-      {/* Note Detail Reader Modal */}
+      {/* Note Detail Reader Modal with Edit & Delete */}
       {activeNote && (
         <Modal visible={!!activeNote} animationType="fade" transparent onRequestClose={() => setActiveNote(null)}>
           <View style={styles.modalOverlay}>
             <View style={styles.readerModal}>
               <View style={styles.modalHeader}>
-                <View style={{ flex: 1, marginRight: 10 }}>
+                <View style={{ flex: 1, marginRight: 8 }}>
                   <Text style={styles.modalTitle} numberOfLines={1}>{activeNote.title}</Text>
                   <Text style={styles.readerMeta}>Format: {activeNote.format?.toUpperCase()}</Text>
                 </View>
-                <TouchableOpacity onPress={() => setActiveNote(null)}>
-                  <X size={20} color={colors.textSecondary} />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <TouchableOpacity onPress={() => handleStartEdit(activeNote)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Pencil size={18} color={colors.cobaltLight} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDeleteNote(activeNote.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Trash2 size={18} color={colors.danger} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => setActiveNote(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <X size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <ScrollView style={styles.readerBody}>

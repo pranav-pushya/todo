@@ -22,6 +22,7 @@ export default function TodayScreen({ navigation }) {
   const { filteredTasks, isLoading, fetchTasks, toggleTask, deleteTask, stats } = useTasks();
   const { projects } = useProjects();
   const [modalVisible, setModalVisible] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
 
   const projectMap = React.useMemo(() => {
     const map = {};
@@ -101,6 +102,7 @@ export default function TodayScreen({ navigation }) {
               projectColor={proj?.color}
               onToggle={toggleTask}
               onDelete={deleteTask}
+              onEdit={(task) => setEditingTask(task)}
             />
           );
         }}
@@ -126,8 +128,12 @@ export default function TodayScreen({ navigation }) {
       </TouchableOpacity>
 
       <AddTaskModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
+        visible={modalVisible || !!editingTask}
+        taskToEdit={editingTask}
+        onClose={() => {
+          setModalVisible(false);
+          setEditingTask(null);
+        }}
         initialView="today"
       />
     </ScreenContainer>

@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import {
   User,
@@ -18,6 +18,11 @@ import {
   Activity,
   Github,
   Zap,
+  LogIn,
+  RefreshCw,
+  Sliders,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react-native';
 import ScreenContainer from '../components/common/ScreenContainer.js';
 import Header from '../components/common/Header.js';
@@ -43,7 +48,11 @@ export default function ProfileScreen({ navigation }) {
   const [activeHostUrl, setActiveHostUrl] = useState(getActiveHost());
   const [customUrl, setCustomUrl] = useState('');
   const [isTestingServer, setIsTestingServer] = useState(false);
-  const [serverHealthStatus, setServerHealthStatus] = useState(null); // 'online' | 'offline'
+  const [serverHealthStatus, setServerHealthStatus] = useState(null);
+  const [showDevOptions, setShowDevOptions] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const isGuest = !user || user.is_guest;
 
   useEffect(() => {
     setActiveHostUrl(getActiveHost());
@@ -56,6 +65,20 @@ export default function ProfileScreen({ navigation }) {
     setServerHealthStatus(null);
   };
 
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    haptics.triggerMedium();
+    try {
+      await Promise.all([fetchTasks(), fetchProjects()]);
+      haptics.triggerSuccess();
+      Alert.alert('Synced!', 'Tasks and workspaces refreshed from Kortex Cloud.');
+    } catch {
+      haptics.triggerError();
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleTestConnection = async () => {
     setIsTestingServer(true);
     haptics.triggerMedium();
@@ -65,7 +88,6 @@ export default function ProfileScreen({ navigation }) {
       setServerHealthStatus('online');
       haptics.triggerSuccess();
       Alert.alert('Server Connected!', `API responded with 200 OK at:\n${activeHostUrl}`);
-      // Refresh tasks and projects from newly selected server
       fetchTasks();
       fetchProjects();
     } catch (err) {
@@ -106,7 +128,7 @@ export default function ProfileScreen({ navigation }) {
         onPress: async () => {
           await logout();
           haptics.triggerLight();
-          navigation.goBack();
+          navigation.navigate('Auth');
         },
       },
     ]);
@@ -115,34 +137,70 @@ export default function ProfileScreen({ navigation }) {
   return (
     <ScreenContainer>
       <Header
-        title="Developer Profile"
-        subtitle="Identity & Diagnostics"
+        title="Settings & Profile"
+        subtitle="Account & Cloud Sync"
         rightAction="Done"
         onRightActionPress={() => navigation.goBack()}
       />
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Profile Card */}
+        {/* User Account Card */}
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
-            <User size={32} color={colors.cobaltLight} />
+            <User size={30} color={colors.cobaltLight} />
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.userName}>{user?.full_name || user?.username || 'Developer'}</Text>
-            <Text style={styles.userRole}>{user?.role || 'Staff Engineer'}</Text>
+            <Text style={styles.userName}>
+              {user?.full_name || user?.username || (isGuest ? 'Guest Developer' : 'Developer')}
+            </Text>
+            <Text style={styles.userRole}>
+              {user?.email || (isGuest ? 'Local Device Storage' : user?.role || 'Staff Engineer')}
+            </Text>
             <View style={styles.tagRow}>
-              <View style={styles.githubBadge}>
-                <Github size={11} color={colors.textSecondary} style={{ marginRight: 4 }} />
-                <Text style={styles.githubText}>{user?.username || 'pranav-pushya'}</Text>
-              </View>
-              {user?.is_guest && (
+              {isGuest ? (
                 <View style={styles.guestBadge}>
-                  <Shield size={10} color={colors.warning} style={{ marginRight: 3 }} />
+                  <Shield size={11} color={colors.warning} style={{ marginRight: 4 }} />
                   <Text style={styles.guestText}>Guest Session</Text>
+                </View>
+              ) : (
+                <View style={styles.verifiedBadge}>
+                  <Check size={11} color={colors.success} style={{ marginRight: 4 }} />
+                  <Text style={styles.verifiedText}>Kortex Cloud Member</Text>
                 </View>
               )}
             </View>
           </View>
+        </View>
+
+        {/* Authentication Controls: Sign In vs Sign Out */}
+        <View style={styles.authSection}>
+          {isGuest ? (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                haptics.triggerLight();
+                navigation.navigate('Auth');
+              }}
+              style={styles.signInButton}
+            >
+              <LogIn size={18} color="#ffffff" />
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={styles.signInTitle}>Sign In / Create Account</Text>
+                <Text style={styles.signInSubtitle}>
+                  Sync your tasks, notes, and AI copilot across web & mobile
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handleLogout}
+              style={styles.logoutBtn}
+            >
+              <LogOut size={16} color={colors.danger} />
+              <Text style={styles.logoutText}>Sign Out of Kortex</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Productivity Analytics Stats */}
@@ -162,102 +220,130 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Dynamic Server Host Switcher */}
-        <Text style={styles.sectionTitle}>Backend API Host Configuration</Text>
-        <View style={styles.serverCard}>
-          <View style={styles.serverHeader}>
-            <Server size={18} color={colors.cobaltLight} />
-            <Text style={styles.serverTitle}>Active Gateway</Text>
-            {serverHealthStatus && (
-              <View
-                style={[
-                  styles.statusPill,
-                  serverHealthStatus === 'online' ? styles.statusOnline : styles.statusOffline,
-                ]}
-              >
-                <Activity size={10} color="#ffffff" style={{ marginRight: 4 }} />
-                <Text style={styles.statusPillText}>
-                  {serverHealthStatus === 'online' ? 'Online' : 'Offline'}
-                </Text>
-              </View>
-            )}
+        {/* Cloud Synchronization Card */}
+        <Text style={styles.sectionTitle}>Cloud Synchronization</Text>
+        <View style={styles.cloudCard}>
+          <View style={styles.cloudRow}>
+            <View style={styles.cloudIconWrap}>
+              <Server size={18} color={colors.cobaltLight} />
+            </View>
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={styles.cloudTitle}>Production Gateway</Text>
+              <Text style={styles.cloudSubtitle}>Connected to Kortex Cloud API</Text>
+            </View>
+            <View style={styles.cloudStatusDot} />
           </View>
 
-          <Text style={styles.activeUrlText} numberOfLines={1}>
-            {activeHostUrl}
-          </Text>
-
-          {/* Preset Buttons */}
-          <View style={styles.presetsList}>
-            {SERVER_PRESETS.map((preset) => {
-              const isSelected = activeHostUrl === preset.url;
-              return (
-                <TouchableOpacity
-                  key={preset.id}
-                  onPress={() => handleSelectPreset(preset.url)}
-                  style={[styles.presetRow, isSelected && styles.presetRowSelected]}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.presetLabel, isSelected && styles.presetLabelSelected]}>
-                      {preset.label}
-                    </Text>
-                    <Text style={styles.presetUrl} numberOfLines={1}>
-                      {preset.url}
-                    </Text>
-                  </View>
-                  {isSelected && <Check size={16} color={colors.cobaltLight} />}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Custom URL Input */}
-          <View style={styles.customUrlRow}>
-            <TextInput
-              style={styles.customInput}
-              placeholder="Or enter custom IP (e.g. 192.168.1.50:8001)"
-              placeholderTextColor={colors.textMuted}
-              value={customUrl}
-              onChangeText={setCustomUrl}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            <TouchableOpacity
-              onPress={handleApplyCustomUrl}
-              disabled={!customUrl.trim()}
-              style={[styles.applyBtn, !customUrl.trim() && { opacity: 0.5 }]}
-            >
-              <Text style={styles.applyBtnText}>Set</Text>
-            </TouchableOpacity>
-          </View>
-
-          <CustomButton
-            title={isTestingServer ? 'Testing Gateway...' : 'Ping & Health Check'}
-            variant="secondary"
-            loading={isTestingServer}
-            onPress={handleTestConnection}
-            style={styles.testBtn}
-          />
+          <TouchableOpacity
+            style={styles.syncButton}
+            onPress={handleManualSync}
+            disabled={isSyncing}
+          >
+            <RefreshCw size={14} color={colors.cobaltLight} />
+            <Text style={styles.syncButtonText}>
+              {isSyncing ? 'Syncing...' : 'Sync Tasks & Workspaces Now'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Session Management */}
-        <View style={styles.authActions}>
+        {/* App Info & Preferences */}
+        <Text style={styles.sectionTitle}>Preferences</Text>
+        <View style={styles.settingsCard}>
+          <View style={styles.settingRow}>
+            <Text style={styles.settingLabel}>Theme</Text>
+            <Text style={styles.settingValue}>Obsidian Dark (Default)</Text>
+          </View>
+          <View style={styles.settingDivider} />
+          <View style={styles.settingRow}>
+            <Text style={styles.settingLabel}>Tactile Haptics</Text>
+            <Text style={styles.settingValue}>Enabled</Text>
+          </View>
+          <View style={styles.settingDivider} />
+          <View style={styles.settingRow}>
+            <Text style={styles.settingLabel}>Version</Text>
+            <Text style={styles.settingValue}>Kortex Mobile v1.0.0 (Release)</Text>
+          </View>
+        </View>
+
+        {/* Collapsed Advanced Developer Options Accordion */}
+        <View style={styles.devAccordion}>
           <TouchableOpacity
-            style={styles.guestBtn}
-            onPress={async () => {
-              await loginAsGuest();
-              haptics.triggerSuccess();
-              Alert.alert('Guest Session', 'Active guest session restored.');
+            onPress={() => {
+              haptics.triggerLight();
+              setShowDevOptions(!showDevOptions);
             }}
+            style={styles.accordionHeader}
           >
-            <Zap size={16} color={colors.cobaltLight} />
-            <Text style={styles.guestBtnText}>Re-initialize Demo Session</Text>
+            <Sliders size={16} color={colors.textMuted} />
+            <Text style={styles.accordionTitle}>Advanced Developer Settings</Text>
+            {showDevOptions ? (
+              <ChevronUp size={16} color={colors.textMuted} />
+            ) : (
+              <ChevronDown size={16} color={colors.textMuted} />
+            )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-            <LogOut size={16} color={colors.danger} />
-            <Text style={styles.logoutText}>Sign Out of Kortex</Text>
-          </TouchableOpacity>
+          {showDevOptions && (
+            <View style={styles.devContent}>
+              <Text style={styles.devWarning}>
+                Configure custom backend API gateways for local testing or custom deployments.
+              </Text>
+
+              <Text style={styles.activeUrlText} numberOfLines={1}>
+                {activeHostUrl}
+              </Text>
+
+              <View style={styles.presetsList}>
+                {SERVER_PRESETS.map((preset) => {
+                  const isSelected = activeHostUrl === preset.url;
+                  return (
+                    <TouchableOpacity
+                      key={preset.id}
+                      onPress={() => handleSelectPreset(preset.url)}
+                      style={[styles.presetRow, isSelected && styles.presetRowSelected]}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.presetLabel, isSelected && styles.presetLabelSelected]}>
+                          {preset.label}
+                        </Text>
+                        <Text style={styles.presetUrl} numberOfLines={1}>
+                          {preset.url}
+                        </Text>
+                      </View>
+                      {isSelected && <Check size={16} color={colors.cobaltLight} />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <View style={styles.customUrlRow}>
+                <TextInput
+                  style={styles.customInput}
+                  placeholder="Custom API URL..."
+                  placeholderTextColor={colors.textMuted}
+                  value={customUrl}
+                  onChangeText={setCustomUrl}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <TouchableOpacity
+                  onPress={handleApplyCustomUrl}
+                  disabled={!customUrl.trim()}
+                  style={[styles.applyBtn, !customUrl.trim() && { opacity: 0.5 }]}
+                >
+                  <Text style={styles.applyBtnText}>Set</Text>
+                </TouchableOpacity>
+              </View>
+
+              <CustomButton
+                title={isTestingServer ? 'Testing Gateway...' : 'Ping & Health Check'}
+                variant="secondary"
+                loading={isTestingServer}
+                onPress={handleTestConnection}
+                style={{ width: '100%', marginTop: 6 }}
+              />
+            </View>
+          )}
         </View>
       </ScrollView>
     </ScreenContainer>
@@ -277,67 +363,101 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: 'rgba(29, 78, 216, 0.15)',
     borderWidth: 1,
     borderColor: colors.borderActive,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: 14,
   },
   profileInfo: {
     flex: 1,
   },
   userName: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: colors.textPrimary,
   },
   userRole: {
-    fontSize: 13,
-    color: colors.cobaltLight,
+    fontSize: 12,
+    color: colors.textSecondary,
     marginTop: 2,
-    fontWeight: '500',
   },
   tagRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
     marginTop: 6,
-  },
-  githubBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  githubText: {
-    fontSize: 10,
-    color: colors.textSecondary,
-    fontWeight: '600',
   },
   guestBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 6,
   },
   guestText: {
-    fontSize: 9,
+    fontSize: 10,
     color: colors.warning,
     fontWeight: '700',
   },
+  verifiedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  verifiedText: {
+    fontSize: 10,
+    color: colors.success,
+    fontWeight: '700',
+  },
+  authSection: {
+    marginBottom: 20,
+  },
+  signInButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.cobaltPrimary,
+    padding: 14,
+    borderRadius: 12,
+  },
+  signInTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  signInSubtitle: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 2,
+  },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
+    gap: 8,
+  },
+  logoutText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.danger,
+  },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     color: colors.textSecondary,
     textTransform: 'uppercase',
@@ -370,64 +490,139 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: 'center',
   },
-  serverCard: {
+  cloudCard: {
     backgroundColor: colors.surfaceCard,
-    borderRadius: 16,
+    borderRadius: 14,
     padding: 16,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
     marginBottom: 20,
   },
-  serverHeader: {
+  cloudRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    gap: 8,
+    marginBottom: 12,
   },
-  serverTitle: {
-    fontSize: 15,
+  cloudIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cloudTitle: {
+    fontSize: 14,
     fontWeight: '700',
     color: colors.textPrimary,
-    flex: 1,
   },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
+  cloudSubtitle: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
-  statusOnline: {
+  cloudStatusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: colors.success,
   },
-  statusOffline: {
-    backgroundColor: colors.danger,
+  syncButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.borderActive,
+    gap: 8,
   },
-  statusPillText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#ffffff',
+  syncButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.cobaltLight,
+  },
+  settingsCard: {
+    backgroundColor: colors.surfaceCard,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    marginBottom: 20,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  settingLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  settingValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  settingDivider: {
+    height: 1,
+    backgroundColor: colors.borderSubtle,
+    marginVertical: 10,
+  },
+  devAccordion: {
+    backgroundColor: colors.surfaceCard,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    overflow: 'hidden',
+  },
+  accordionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    gap: 10,
+  },
+  accordionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    flex: 1,
+  },
+  devContent: {
+    padding: 14,
+    paddingTop: 0,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderSubtle,
+  },
+  devWarning: {
+    fontSize: 11,
+    color: colors.textMuted,
+    marginBottom: 10,
+    marginTop: 10,
+    lineHeight: 16,
   },
   activeUrlText: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.cobaltLight,
     backgroundColor: colors.surface,
     padding: 8,
     borderRadius: 6,
-    marginBottom: 14,
-    fontFamily: 'monospace',
+    marginBottom: 12,
+    fontFamily: Platform?.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   presetsList: {
     gap: 8,
-    marginBottom: 14,
+    marginBottom: 12,
   },
   presetRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: colors.surface,
-    padding: 12,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
   },
@@ -436,7 +631,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(29, 78, 216, 0.1)',
   },
   presetLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: colors.textPrimary,
   },
@@ -444,14 +639,14 @@ const styles = StyleSheet.create({
     color: colors.cobaltLight,
   },
   presetUrl: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.textMuted,
     marginTop: 2,
   },
   customUrlRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   customInput: {
     flex: 1,
@@ -475,44 +670,5 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '700',
     fontSize: 12,
-  },
-  testBtn: {
-    width: '100%',
-  },
-  authActions: {
-    gap: 10,
-    marginTop: 10,
-  },
-  guestBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceCard,
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    gap: 8,
-  },
-  guestBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.cobaltLight,
-  },
-  logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.25)',
-    gap: 8,
-  },
-  logoutText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.danger,
   },
 });

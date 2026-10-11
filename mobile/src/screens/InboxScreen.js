@@ -12,6 +12,7 @@ import { Plus, Inbox as InboxIcon } from 'lucide-react-native';
 import ScreenContainer from '../components/common/ScreenContainer.js';
 import Header from '../components/common/Header.js';
 import SwipeableTaskRow from '../components/tasks/SwipeableTaskRow.js';
+import AddTaskModal from '../components/tasks/AddTaskModal.js';
 import colors from '../theme/colors.js';
 import useHaptics from '../hooks/useHaptics.js';
 import { useTasks } from '../context/TaskContext.js';
@@ -23,6 +24,7 @@ export default function InboxScreen({ navigation }) {
   const { projects } = useProjects();
   const [quickInput, setQuickInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
 
   const inboxTasks = React.useMemo(() => {
     return tasks.filter((t) => !t.project_id);
@@ -123,6 +125,7 @@ export default function InboxScreen({ navigation }) {
               projectColor={proj?.color}
               onToggle={toggleTask}
               onDelete={deleteTask}
+              onEdit={(task) => setEditingTask(task)}
             />
           );
         }}
@@ -136,6 +139,13 @@ export default function InboxScreen({ navigation }) {
             tintColor={colors.cobaltLight}
           />
         }
+      />
+
+      <AddTaskModal
+        visible={!!editingTask}
+        taskToEdit={editingTask}
+        onClose={() => setEditingTask(null)}
+        initialView="inbox"
       />
     </ScreenContainer>
   );
