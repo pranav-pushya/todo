@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
   Alert,
+  Image,
 } from 'react-native';
 import { Zap, ShieldCheck, X } from 'lucide-react-native';
 import ScreenContainer from '../components/common/ScreenContainer.js';
@@ -83,7 +84,11 @@ export default function AuthScreen({ navigation }) {
           {/* Logo & Branding */}
           <View style={styles.brandHeader}>
             <View style={styles.logoBadge}>
-              <Text style={styles.logoBolt}>⚡</Text>
+              <Image
+                source={require('../../assets/icon.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.brandTitle}>Kortex</Text>
             <Text style={styles.brandSubtitle}>
@@ -233,18 +238,21 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   logoBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(29, 78, 216, 0.15)',
+    width: 76,
+    height: 76,
+    borderRadius: 22,
+    backgroundColor: '#11182f',
     borderWidth: 1,
     borderColor: colors.borderActive,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,
+    overflow: 'hidden',
   },
-  logoBolt: {
-    fontSize: 32,
+  logoImage: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
   },
   brandTitle: {
     fontSize: 28,

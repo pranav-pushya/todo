@@ -10,7 +10,7 @@
 
 **An intelligent, unified engineering productivity hub combining Task Management, Agile Sprints, LaTeX/Markdown & Plain-Text Notes, and an Autonomous Groq AI Copilot with Function Calling.**
 
-[🚀 **Explore Live App**](https://kortex-246.web.app) • [📖 **Interactive API Docs**](https://kortex-xnin.onrender.com/docs) • [📦 **GitHub Repo**](https://github.com/pranav-pushya/todo)
+[🚀 **Explore Live App**](https://kortex-246.web.app) • [📖 **Interactive API Docs**](https://kortex-xnin.onrender.com/docs) 
 
 </div>
 

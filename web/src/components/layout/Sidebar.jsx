@@ -75,8 +75,8 @@ export default function Sidebar({ onOpenCreateProject, onOpenML }) {
         className="h-16 border-b border-white/[0.08] px-6 flex items-center justify-between cursor-pointer group hover:bg-white/[0.02] transition-colors"
       >
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-cobalt-700 flex items-center justify-center shadow-glow-cobalt group-hover:scale-105 transition-transform">
-            <CheckCircle className="w-4 h-4 text-white stroke-[2.5]" />
+          <div className="w-7 h-7 rounded-lg bg-[#11182f] flex items-center justify-center shadow-glow-cobalt group-hover:scale-105 transition-transform overflow-hidden border border-white/10">
+            <img src="/favicon.png" alt="Kortex Logo" className="w-full h-full object-contain" />
           </div>
           <div className="flex flex-col">
             <span className="font-semibold text-sm tracking-tight text-white group-hover:text-cobalt-300 transition-colors">

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import colors from '../../theme/colors.js';
 
 export default function Header({
@@ -13,7 +13,11 @@ export default function Header({
     <View style={styles.header}>
       <View style={styles.left}>
         <View style={styles.logoRow}>
-          <Text style={styles.bolt}>⚡</Text>
+          <Image
+            source={require('../../../assets/icon.png')}
+            style={styles.logoIcon}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>{title}</Text>
         </View>
         {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
@@ -51,9 +55,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  bolt: {
-    fontSize: 18,
-    marginRight: 6,
+  logoIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    marginRight: 8,
   },
   title: {
     fontSize: 20,

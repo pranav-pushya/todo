@@ -686,6 +686,32 @@ const getStoredTasks = () => {
   - **Why used**: Ensures data is never lost or reset to zero when the user is logged out, offline, or when the backend server is sleeping (Render free tier cold-start).
   - **What happened**: When logged in, mutations write to the cloud API and mirror in local storage; when logged out (or server unreachable), all actions seamlessly operate on the browser's local cache.
 
+---
+
+### 11. Brand Icon Assets & Android Adaptive Icon Architecture
+```json
+{
+  "icon": "./assets/icon.png",
+  "splash": {
+    "image": "./assets/splash.png",
+    "resizeMode": "contain",
+    "backgroundColor": "#11182f"
+  },
+  "android": {
+    "adaptiveIcon": {
+      "foregroundImage": "./assets/adaptive-icon.png",
+      "backgroundColor": "#11182f"
+    }
+  }
+}
+```
+- **Location**: [`mobile/app.json`](file:///d:/Coding/Projects/todo/mobile/app.json), [`mobile/assets/`](file:///d:/Coding/Projects/todo/mobile/assets/)
+- **Detailed Breakdown**:
+  - **Why used**: Replaces default Expo placeholders with the official high-resolution (1024x1024) glowing K brand emblem.
+  - **What happened**: Android Oreo+ (API 26+) adaptive icons apply dynamic device-specific masks (circles, squircles, pebbles). Setting `backgroundColor: "#11182f"` and compositing `adaptive-icon.png` over `#11182f` eliminates black corner notch artifacts on Google Pixel, Samsung One UI, and Xiaomi launchers.
+  - **Cross-Platform Parity**: The same asset was downscaled using Lanczos filtering to generate `web/public/favicon.png` (192x192), `web/public/favicon-32x32.png` (32x32), and integrated into `web/src/components/layout/Sidebar.jsx` and mobile `Header.js`.
+
+
 
 
 
